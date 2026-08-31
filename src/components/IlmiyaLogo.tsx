@@ -8,7 +8,7 @@ interface IlmiyaLogoProps {
 }
 
 /**
- * Official ILMIYA Vector Logo & Favicon Artwork
+ * Official Ilmiya Vector Logo & Favicon Artwork
  * Accurately vectorized from user-provided assets.
  */
 export const IlmiyaLogo: React.FC<IlmiyaLogoProps> = ({
@@ -98,7 +98,7 @@ export const IlmiyaLogo: React.FC<IlmiyaLogoProps> = ({
 
       {showText && (
         <span className="font-serif font-bold text-xl tracking-tight text-[#2C2E2A]">
-          ILMIYA
+          Ilmiya
         </span>
       )}
     </div>

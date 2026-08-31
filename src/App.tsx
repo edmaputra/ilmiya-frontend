@@ -355,7 +355,7 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-[#E9E4DB]/80 border-t border-[#D9D1C5] py-6 mt-12 text-center text-xs text-[#6B6E68]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-medium">© 2026 ILMIYA • Natural Tones Edition • School Information System</p>
+          <p className="font-medium">© 2026 Ilmiya • Natural Tones Edition • School Information System</p>
           <div className="flex items-center gap-4 text-[#6B6E68]">
             <button onClick={() => setActiveTab('flutter_code')} className="hover:text-[#5F6F52] font-semibold transition-colors cursor-pointer">
               Flutter Architecture

@@ -49,7 +49,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             <IlmiyaLogo variant="app-squircle" size={42} className="rounded-2xl" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-serif font-bold text-xl text-[#2C2E2A] tracking-tight">ILMIYA</span>
+                <span className="font-serif font-bold text-xl text-[#2C2E2A] tracking-tight">Ilmiya</span>
                 <span className="text-[10px] uppercase tracking-widest font-bold px-2.5 py-0.5 rounded-full bg-[#FEFAE0] text-[#5F6F52] border border-[#E9E4DB]">
                   SIS
                 </span>

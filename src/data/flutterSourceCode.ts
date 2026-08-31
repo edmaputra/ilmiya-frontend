@@ -7,7 +7,7 @@ export const FLUTTER_CODE_FILES: FlutterCodeFile[] = [
     language: 'yaml',
     description: 'Multiplatform Flutter dependencies for iOS, Android, and Web with Riverpod, WebSockets, and Local Notifications',
     content: `name: ilmiya_app
-description: "ILMIYA - Multiplatform School Information System for iOS, Android, and Web."
+description: "Ilmiya - Multiplatform School Information System for iOS, Android, and Web."
 publish_to: "none"
 version: 1.0.0+1
 
@@ -102,7 +102,7 @@ class IlmiyaApp extends ConsumerWidget {
     final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
 
     return MaterialApp.router(
-      title: 'ILMIYA - School Information System',
+      title: 'Ilmiya - School Information System',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -724,9 +724,9 @@ class AppTheme {
     path: 'README.md',
     language: 'markdown',
     description: 'Open source project documentation, CLI setup commands, and cross-platform build instructions',
-    content: `# 🎓 ILMIYA - School Information System
+    content: `# 🎓 Ilmiya - School Information System
 
-ILMIYA is a modern, responsive, multiplatform School Information System (SIS) built for **iOS**, **Android**, and **Web** using **Flutter 3.19+** and clean feature-first architecture.
+Ilmiya is a modern, responsive, multiplatform School Information System (SIS) built for **iOS**, **Android**, and **Web** using **Flutter 3.19+** and clean feature-first architecture.
 
 ---
 
