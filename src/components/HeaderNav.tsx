@@ -1,6 +1,5 @@
 import React from 'react';
 import { 
-  GraduationCap, 
   Smartphone, 
   Monitor, 
   Tablet, 
@@ -13,6 +12,7 @@ import {
   Sliders
 } from 'lucide-react';
 import { UserRole, DeviceView, ActiveTab, UserProfile } from '../types';
+import { IlmiyaLogo } from './IlmiyaLogo';
 
 interface HeaderNavProps {
   currentRole: UserRole;
@@ -46,17 +46,15 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           
           {/* Brand & Open Source Badge */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#5F6F52] flex items-center justify-center shadow-sm text-[#FAF9F6]">
-              <GraduationCap className="w-5 h-5" />
-            </div>
+            <IlmiyaLogo variant="app-squircle" size={42} className="rounded-2xl" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-serif italic font-bold text-xl text-[#5F6F52] tracking-tight">OpenSIS</span>
-                <span className="text-[10px] uppercase tracking-widest font-semibold px-2.5 py-0.5 rounded-full bg-[#FEFAE0] text-[#5F6F52] border border-[#E9E4DB]">
-                  Natural Tones
+                <span className="font-serif font-bold text-xl text-[#2C2E2A] tracking-tight">ILMIYA</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold px-2.5 py-0.5 rounded-full bg-[#FEFAE0] text-[#5F6F52] border border-[#E9E4DB]">
+                  SIS
                 </span>
               </div>
-              <p className="text-[11px] text-[#8C887D] hidden sm:block">Open Source School Information System</p>
+              <p className="text-[11px] text-[#8C887D] hidden sm:block">School Information System • Natural Tones</p>
             </div>
           </div>
 

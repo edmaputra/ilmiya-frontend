@@ -6,8 +6,8 @@ export const FLUTTER_CODE_FILES: FlutterCodeFile[] = [
     path: 'pubspec.yaml',
     language: 'yaml',
     description: 'Multiplatform Flutter dependencies for iOS, Android, and Web with Riverpod, WebSockets, and Local Notifications',
-    content: `name: open_sis_app
-description: "OpenSIS - Multiplatform Open Source School Information System for iOS, Android, and Web."
+    content: `name: ilmiya_app
+description: "ILMIYA - Multiplatform School Information System for iOS, Android, and Web."
 publish_to: "none"
 version: 1.0.0+1
 
@@ -88,13 +88,13 @@ void main() async {
   
   runApp(
     const ProviderScope(
-      child: OpenSISApp(),
+      child: IlmiyaApp(),
     ),
   );
 }
 
-class OpenSISApp extends ConsumerWidget {
-  const OpenSISApp({super.key});
+class IlmiyaApp extends ConsumerWidget {
+  const IlmiyaApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,7 +102,7 @@ class OpenSISApp extends ConsumerWidget {
     final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
 
     return MaterialApp.router(
-      title: 'OpenSIS - School Information System',
+      title: 'ILMIYA - School Information System',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -587,7 +587,7 @@ class NotificationService {
     required String title,
     required String body,
     String? payload,
-    String channelId = 'opensis_academic_alerts',
+    String channelId = 'ilmiya_academic_alerts',
   }) async {
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       channelId,
@@ -724,9 +724,9 @@ class AppTheme {
     path: 'README.md',
     language: 'markdown',
     description: 'Open source project documentation, CLI setup commands, and cross-platform build instructions',
-    content: `# 🎓 OpenSIS - Open Source School Information System
+    content: `# 🎓 ILMIYA - School Information System
 
-OpenSIS is a modern, responsive, multiplatform School Information System (SIS) built for **iOS**, **Android**, and **Web** using **Flutter 3.19+** and clean feature-first architecture.
+ILMIYA is a modern, responsive, multiplatform School Information System (SIS) built for **iOS**, **Android**, and **Web** using **Flutter 3.19+** and clean feature-first architecture.
 
 ---
 
@@ -751,8 +751,8 @@ OpenSIS is a modern, responsive, multiplatform School Information System (SIS) b
 
 \`\`\`bash
 # 1. Clone the repository
-git clone https://github.com/opensis/opensis-flutter.git
-cd opensis-flutter
+git clone https://github.com/ilmiya/ilmiya-flutter.git
+cd ilmiya-flutter
 
 # 2. Install dependencies
 flutter pub get

@@ -1,6 +1,6 @@
 {
-  "name": "OpenSIS - School Information System",
-  "description": "Open-source multiplatform school information system for iOS, Android, and Web with real-time notifications, grade tracking, and secure teacher-student messaging.",
+  "name": "ILMIYA",
+  "description": "Multiplatform school information system for iOS, Android, and Web featuring real-time grade tracking, secure teacher-student messaging, and push notifications.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

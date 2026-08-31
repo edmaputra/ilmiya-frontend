@@ -378,7 +378,7 @@ export const MessagingView: React.FC<MessagingViewProps> = ({
             </div>
 
             <p className="text-xs text-[#6B6E68] leading-relaxed">
-              All direct student-to-teacher communications in OpenSIS use authenticated AES-256 GCM encryption. Keys are exchanged client-side using Elliptic Curve Cryptography (ECDH Curve25519) and verified for strict FERPA and COPPA compliance.
+              All direct student-to-teacher communications in ILMIYA use authenticated AES-256 GCM encryption. Keys are exchanged client-side using Elliptic Curve Cryptography (ECDH Curve25519) and verified for strict FERPA and COPPA compliance.
             </p>
 
             <div className="bg-[#FAF9F6] p-3.5 rounded-2xl border border-[#E9E4DB] text-xs space-y-2">

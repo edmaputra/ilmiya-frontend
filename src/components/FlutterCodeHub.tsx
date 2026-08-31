@@ -252,8 +252,8 @@ export const FlutterCodeHub: React.FC = () => {
           <div className="space-y-4 text-xs font-mono">
             <div className="bg-[#FAF9F6] p-4.5 rounded-2xl border border-[#E9E4DB] space-y-2">
               <p className="text-[#2C2E2A] font-sans font-bold">1. Initialize and Install Dependencies</p>
-              <pre className="text-[#5F6F52] bg-[#242724] p-3.5 rounded-xl text-[#A9B388]">git clone https://github.com/opensis/opensis-flutter.git
-cd opensis-flutter
+              <pre className="text-[#5F6F52] bg-[#242724] p-3.5 rounded-xl text-[#A9B388]">git clone https://github.com/ilmiya/ilmiya-flutter.git
+cd ilmiya-flutter
 flutter pub get</pre>
             </div>
 
