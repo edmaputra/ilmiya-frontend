@@ -15,7 +15,7 @@ class AppState extends ChangeNotifier {
   List<Course> _courses = List.from(initialCourses);
   List<NotificationItem> _notifications = List.from(initialNotifications);
   List<ChatChannel> _channels = List.from(initialChannels);
-  Map<String, List<ChatMessage>> _messages = {
+  final Map<String, List<ChatMessage>> _messages = {
     for (var entry in initialMessages.entries) entry.key: List.from(entry.value),
   };
 
@@ -111,7 +111,7 @@ class AppState extends ChangeNotifier {
       'course': course,
       'assignment': assignment,
     };
-    _currentTab = 2; // Switch to Messaging Tab
+    _currentTab = 3; // Switch to Feature Previews Tab
     notifyListeners();
   }
 
@@ -160,7 +160,7 @@ class AppState extends ChangeNotifier {
   }
 
   void simulateNotification(String preset) {
-    final timestamp = 'Just now';
+    const timestamp = 'Just now';
     NotificationItem newNotif;
 
     if (preset == 'grade') {
@@ -342,14 +342,23 @@ class AppState extends ChangeNotifier {
         final newPct = maxPoints > 0 ? (earnedPoints / maxPoints) * 100 : course.currentPercentage;
 
         String letter = 'A';
-        if (newPct >= 97) letter = 'A+';
-        else if (newPct >= 93) letter = 'A';
-        else if (newPct >= 90) letter = 'A-';
-        else if (newPct >= 87) letter = 'B+';
-        else if (newPct >= 83) letter = 'B';
-        else if (newPct >= 80) letter = 'B-';
-        else if (newPct >= 75) letter = 'C+';
-        else letter = 'C';
+        if (newPct >= 97) {
+          letter = 'A+';
+        } else if (newPct >= 93) {
+          letter = 'A';
+        } else if (newPct >= 90) {
+          letter = 'A-';
+        } else if (newPct >= 87) {
+          letter = 'B+';
+        } else if (newPct >= 83) {
+          letter = 'B';
+        } else if (newPct >= 80) {
+          letter = 'B-';
+        } else if (newPct >= 75) {
+          letter = 'C+';
+        } else {
+          letter = 'C';
+        }
 
         return course.copyWith(
           assignments: updatedAssignments,

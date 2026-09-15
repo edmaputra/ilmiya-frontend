@@ -65,12 +65,15 @@ class AssignmentRubricCard extends StatelessWidget {
                         ),
                         if (assignment.submittedDate != null) ...[
                           const SizedBox(width: 8),
-                          Text(
-                            '• Submitted on ${assignment.submittedDate}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.forestSage,
+                          Flexible(
+                            child: Text(
+                              '• Submitted on ${assignment.submittedDate}',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.forestSage,
+                              ),
                             ),
                           ),
                         ],

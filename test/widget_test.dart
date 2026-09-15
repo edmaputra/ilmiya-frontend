@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:ilmiya_app/main.dart';
 import 'package:ilmiya_app/state/app_state.dart';
+import 'package:ilmiya_app/state/auth_notifier.dart';
 
 final Uint8List _transparentImage = Uint8List.fromList([
   0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
@@ -84,21 +85,70 @@ void main() {
     HttpOverrides.global = null;
   });
 
-  testWidgets('IlmiyaApp basic smoke test', (WidgetTester tester) async {
+  Widget createTestWidget() {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppState()),
+        ChangeNotifierProvider(create: (_) => AuthNotifier()),
+      ],
+      child: const IlmiyaApp(),
+    );
+  }
+
+  testWidgets('IlmiyaApp loads School Profile as default tab and displays navigation pills', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1280, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    await tester.pumpWidget(createTestWidget());
+    await tester.pumpAndSettle();
+
+    // Verify brand title and navigation pills exist
+    expect(find.text('Ilmiya'), findsWidgets);
+    expect(find.text('School Profile'), findsWidgets);
+    expect(find.text('Academic Years'), findsWidgets);
+    expect(find.text('IAM Console'), findsWidgets);
+    expect(find.text('Feature Previews'), findsWidgets);
+
+    // Verify School Profile content loaded
+    expect(find.textContaining('SMA Negeri 1 Ilmiya'), findsOneWidget);
+    expect(find.text('Operational Rules'), findsOneWidget);
+  });
+
+  testWidgets('IlmiyaApp navigation switches between tabs correctly', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final appState = AppState();
+    final authNotifier = AuthNotifier();
+
     await tester.pumpWidget(
-      ChangeNotifierProvider(
-        create: (_) => AppState(),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AppState>.value(value: appState),
+          ChangeNotifierProvider<AuthNotifier>.value(value: authNotifier),
+        ],
         child: const IlmiyaApp(),
       ),
     );
+    await tester.pumpAndSettle();
 
-    // Verify brand title exists
-    expect(find.text('Ilmiya'), findsWidgets);
-    expect(find.text('Active Academic Courses'), findsOneWidget);
+    // Navigate to Academic Years
+    appState.setTab(1);
+    await tester.pumpAndSettle();
+    expect(find.text('Academic Years & Terms'), findsOneWidget);
+
+    // Navigate to IAM Console
+    appState.setTab(2);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Identity & Access Management'), findsOneWidget);
+
+    // Navigate to Feature Previews
+    appState.setTab(3);
+    await tester.pumpAndSettle();
+    expect(find.text('Feature Preview & Prototype Labs'), findsOneWidget);
   });
 }

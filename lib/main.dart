@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'state/app_state.dart';
+import 'state/auth_notifier.dart';
 import 'shared_widgets/adaptive_scaffold.dart';
-import 'features/dashboard/presentation/dashboard_screen.dart';
-import 'features/grades/presentation/grades_screen.dart';
-import 'features/messaging/presentation/messaging_screen.dart';
-import 'features/notifications/presentation/notifications_screen.dart';
-import 'features/flutter_code/presentation/flutter_code_screen.dart';
+import 'features/school_profile/presentation/school_profile_screen.dart';
+import 'features/academic_years/presentation/academic_years_screen.dart';
+import 'features/iam_management/presentation/iam_management_screen.dart';
+import 'features/preview/presentation/preview_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AppState(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppState()),
+        ChangeNotifierProvider(create: (_) => AuthNotifier()),
+      ],
       child: const IlmiyaApp(),
     ),
   );
@@ -34,13 +37,12 @@ class IlmiyaApp extends StatelessWidget {
         builder: (context, state, _) {
           return AdaptiveScaffold(
             body: IndexedStack(
-              index: state.currentTab,
+              index: state.currentTab.clamp(0, 3),
               children: const [
-                DashboardScreen(),
-                GradesScreen(),
-                MessagingScreen(),
-                NotificationsScreen(),
-                FlutterCodeScreen(),
+                SchoolProfileScreen(),
+                AcademicYearsScreen(),
+                IamManagementScreen(),
+                PreviewScreen(),
               ],
             ),
           );

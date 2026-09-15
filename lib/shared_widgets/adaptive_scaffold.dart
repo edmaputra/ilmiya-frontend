@@ -16,7 +16,7 @@ class AdaptiveScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final isDesktop = MediaQuery.of(context).size.width >= 960;
 
     return Scaffold(
       appBar: const HeaderNavBar(),
@@ -38,51 +38,26 @@ class AdaptiveScaffold extends StatelessWidget {
               backgroundColor: Colors.white,
               indicatorColor: AppColors.warmSand,
               elevation: 4,
-              destinations: [
-                const NavigationDestination(
-                  icon: Icon(Icons.dashboard_outlined),
-                  selectedIcon: Icon(Icons.dashboard, color: AppColors.forestSage),
-                  label: 'Dashboard',
-                ),
-                const NavigationDestination(
-                  icon: Icon(Icons.assessment_outlined),
-                  selectedIcon: Icon(Icons.assessment, color: AppColors.forestSage),
-                  label: 'Grades',
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.account_balance_outlined),
+                  selectedIcon: Icon(Icons.account_balance, color: AppColors.forestSage),
+                  label: 'School',
                 ),
                 NavigationDestination(
-                  icon: Badge(
-                    isLabelVisible: state.unreadMessagesCount > 0,
-                    label: Text('${state.unreadMessagesCount}'),
-                    backgroundColor: AppColors.earthyTerra,
-                    child: const Icon(Icons.chat_bubble_outline),
-                  ),
-                  selectedIcon: Badge(
-                    isLabelVisible: state.unreadMessagesCount > 0,
-                    label: Text('${state.unreadMessagesCount}'),
-                    backgroundColor: AppColors.earthyTerra,
-                    child: const Icon(Icons.chat_bubble, color: AppColors.forestSage),
-                  ),
-                  label: 'Chat',
+                  icon: Icon(Icons.calendar_month_outlined),
+                  selectedIcon: Icon(Icons.calendar_month, color: AppColors.forestSage),
+                  label: 'Calendar',
                 ),
                 NavigationDestination(
-                  icon: Badge(
-                    isLabelVisible: state.unreadNotifsCount > 0,
-                    label: Text('${state.unreadNotifsCount}'),
-                    backgroundColor: AppColors.earthyTerra,
-                    child: const Icon(Icons.notifications_none_rounded),
-                  ),
-                  selectedIcon: Badge(
-                    isLabelVisible: state.unreadNotifsCount > 0,
-                    label: Text('${state.unreadNotifsCount}'),
-                    backgroundColor: AppColors.earthyTerra,
-                    child: const Icon(Icons.notifications, color: AppColors.forestSage),
-                  ),
-                  label: 'Alerts',
+                  icon: Icon(Icons.admin_panel_settings_outlined),
+                  selectedIcon: Icon(Icons.admin_panel_settings, color: AppColors.forestSage),
+                  label: 'IAM Console',
                 ),
-                const NavigationDestination(
-                  icon: Icon(Icons.code),
-                  selectedIcon: Icon(Icons.code, color: AppColors.forestSage),
-                  label: 'Flutter Code',
+                NavigationDestination(
+                  icon: Icon(Icons.science_outlined),
+                  selectedIcon: Icon(Icons.science, color: AppColors.forestSage),
+                  label: 'Previews',
                 ),
               ],
             )
