@@ -292,13 +292,18 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header Bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
                     children: [
                       Text(
                         p.name,
@@ -309,7 +314,6 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
@@ -334,18 +338,14 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: canEditProfile ? _showEditProfileDialog : null,
-                    icon: Icon(canEditProfile ? Icons.edit : Icons.lock_outline, size: 16),
-                    label: const Text('Edit Profile'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.forestSage,
-                      side: const BorderSide(color: AppColors.borderMedium),
-                    ),
-                  ),
-                ],
+              OutlinedButton.icon(
+                onPressed: canEditProfile ? _showEditProfileDialog : null,
+                icon: Icon(canEditProfile ? Icons.edit : Icons.lock_outline, size: 16),
+                label: const Text('Edit Profile'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.forestSage,
+                  side: const BorderSide(color: AppColors.borderMedium),
+                ),
               ),
             ],
           ),
@@ -380,9 +380,12 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                             children: [
                               Icon(Icons.account_balance_outlined, color: AppColors.forestSage, size: 20),
                               SizedBox(width: 8),
-                              Text(
-                                'Institutional Details',
-                                style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                              Expanded(
+                                child: Text(
+                                  'Institutional Details',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
                               ),
                             ],
                           ),

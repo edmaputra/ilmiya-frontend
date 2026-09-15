@@ -39,59 +39,135 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
         child: Row(
           children: [
             // Brand Logo & Title
-            Row(
-              children: [
-                const IlmiyaLogo(size: 38, isSquircle: true),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'Ilmiya',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.warmSand,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.borderLight),
-                          ),
-                          child: const Text(
-                            'SIS',
+            if (isDesktop)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const IlmiyaLogo(size: 38, isSquircle: true),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Ilmiya',
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.forestSage,
-                              letterSpacing: 0.8,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.5,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    if (isTablet)
-                      const Text(
-                        'School Information System',
-                        style: TextStyle(
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.warmSand,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.borderLight),
+                            ),
+                            child: const Text(
+                              'SIS',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.forestSage,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        auth.tenantId == 'tenant-lincoln-high-001'
+                            ? 'Lincoln High School'
+                            : auth.tenantId == 'tenant-sma1-ilmiya-002'
+                                ? 'SMA Negeri 1 Ilmiya'
+                                : auth.tenantId.replaceAll('tenant-', '').replaceAll('-', ' ').toUpperCase(),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: const TextStyle(
                           fontSize: 10,
-                          color: AppColors.textMuted,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.forestSage,
                         ),
                       ),
+                    ],
+                  ),
+                ],
+              )
+            else
+              Expanded(
+                child: Row(
+                  children: [
+                    const IlmiyaLogo(size: 38, isSquircle: true),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'Ilmiya',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textPrimary,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.warmSand,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: AppColors.borderLight),
+                                  ),
+                                  child: const Text(
+                                    'SIS',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.forestSage,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            auth.tenantId == 'tenant-lincoln-high-001'
+                                ? 'Lincoln High School'
+                                : auth.tenantId == 'tenant-sma1-ilmiya-002'
+                                    ? 'SMA Negeri 1 Ilmiya'
+                                    : auth.tenantId.replaceAll('tenant-', '').replaceAll('-', ' ').toUpperCase(),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.forestSage,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
 
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
 
             // Navigation Tabs (Desktop Web)
             if (isDesktop)
@@ -143,12 +219,11 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                 ),
-              )
-            else
-              const Spacer(),
+              ),
 
             // Right Controls: Mode Toggle, Tenant Badge, Actor Profile
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Mode indicator
                 if (isTablet) ...[
@@ -217,7 +292,7 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                   borderRadius: BorderRadius.circular(14),
                   onTap: () => _showTenantSwitcherDialog(context, auth),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.borderLight,
                       borderRadius: BorderRadius.circular(14),
@@ -231,11 +306,15 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                           size: 13,
                           color: AppColors.forestSage,
                         ),
-                        const SizedBox(width: 5),
+                        const SizedBox(width: 4),
                         ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 110),
+                          constraints: BoxConstraints(maxWidth: isTablet ? 120 : 75),
                           child: Text(
-                            auth.tenantId,
+                            auth.tenantId == 'tenant-lincoln-high-001'
+                                ? 'Lincoln High'
+                                : auth.tenantId == 'tenant-sma1-ilmiya-002'
+                                    ? 'SMAN 1 Ilmiya'
+                                    : auth.tenantId,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 11,
@@ -374,6 +453,7 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                       border: Border.all(color: AppColors.borderMedium),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         CircleAvatar(
                           radius: 14,
@@ -534,13 +614,16 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
             const SizedBox(height: 12),
             Wrap(
               spacing: 6,
+              runSpacing: 6,
               children: [
                 ActionChip(
-                  label: const Text('tenant-lincoln-high-001', style: TextStyle(fontSize: 11)),
+                  avatar: const Icon(Icons.school, size: 14, color: AppColors.forestSage),
+                  label: const Text('Lincoln High (tenant-lincoln-high-001)', style: TextStyle(fontSize: 11)),
                   onPressed: () => tenantCtrl.text = 'tenant-lincoln-high-001',
                 ),
                 ActionChip(
-                  label: const Text('tenant-sma1-ilmiya-002', style: TextStyle(fontSize: 11)),
+                  avatar: const Icon(Icons.account_balance, size: 14, color: AppColors.forestSage),
+                  label: const Text('SMAN 1 Ilmiya (tenant-sma1-ilmiya-002)', style: TextStyle(fontSize: 11)),
                   onPressed: () => tenantCtrl.text = 'tenant-sma1-ilmiya-002',
                 ),
               ],
