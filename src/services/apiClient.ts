@@ -25,7 +25,7 @@ export class ApiError extends Error {
 
 // In-memory fallback for test and non-browser environments
 const memoryStore: Record<string, string> = {};
-const safeStorage = {
+export const safeStorage = {
   getItem: (key: string): string | null => {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -54,16 +54,20 @@ const safeStorage = {
   }
 };
 
-class ApiClient {
+export class ApiClient {
   private _baseUrl: string;
   private _tenantId: string;
   private _token: string | null;
+  private _refreshToken: string | null;
   private _mockMode: boolean;
+  private _isRefreshing: boolean = false;
+  private _onAuthExpiredListeners: (() => void)[] = [];
 
   constructor() {
     this._baseUrl = safeStorage.getItem('ilmiya_api_base_url') || 'http://localhost:8080';
     this._tenantId = safeStorage.getItem('ilmiya_tenant_id') || 'tenant-lincoln-high-001';
     this._token = safeStorage.getItem('ilmiya_auth_token') || null;
+    this._refreshToken = safeStorage.getItem('ilmiya_refresh_token') || null;
     // Default to mock mode if not explicitly turned off or until live backend is connected
     const savedMode = safeStorage.getItem('ilmiya_mock_mode');
     this._mockMode = savedMode !== null ? savedMode === 'true' : true;
@@ -98,6 +102,32 @@ class ApiClient {
     } else {
       safeStorage.removeItem('ilmiya_auth_token');
     }
+  }
+
+  public get refreshToken(): string | null {
+    return this._refreshToken;
+  }
+
+  public setRefreshToken(token: string | null) {
+    this._refreshToken = token;
+    if (token) {
+      safeStorage.setItem('ilmiya_refresh_token', token);
+    } else {
+      safeStorage.removeItem('ilmiya_refresh_token');
+    }
+  }
+
+  public onAuthExpired(listener: () => void) {
+    this._onAuthExpiredListeners.push(listener);
+    return () => {
+      this._onAuthExpiredListeners = this._onAuthExpiredListeners.filter(l => l !== listener);
+    };
+  }
+
+  public triggerAuthExpired() {
+    this.setToken(null);
+    this.setRefreshToken(null);
+    this._onAuthExpiredListeners.forEach(l => l());
   }
 
   public get isMockMode(): boolean {
@@ -136,6 +166,37 @@ class ApiClient {
       });
 
       if (!response.ok) {
+        // Automatic token refresh on 401 Unauthorized
+        if (
+          response.status === 401 &&
+          this._refreshToken &&
+          !endpoint.includes('/api/v1/auth/') &&
+          !this._isRefreshing
+        ) {
+          this._isRefreshing = true;
+          try {
+            const refreshResp = await fetch(`${this._baseUrl}/api/v1/auth/refresh`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refreshToken: this._refreshToken })
+            });
+            if (refreshResp.ok) {
+              const data = await refreshResp.json();
+              this.setToken(data.accessToken);
+              if (data.refreshToken) this.setRefreshToken(data.refreshToken);
+              this._isRefreshing = false;
+              // Retry original request with newly issued token
+              return this.request<T>(endpoint, options);
+            } else {
+              this.triggerAuthExpired();
+            }
+          } catch {
+            this.triggerAuthExpired();
+          } finally {
+            this._isRefreshing = false;
+          }
+        }
+
         let errorData: ApiErrorDetail | undefined;
         let message = `Request failed with status ${response.status}`;
 

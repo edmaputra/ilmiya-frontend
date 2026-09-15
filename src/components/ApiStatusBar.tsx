@@ -9,13 +9,15 @@ interface ApiStatusBarProps {
   onTenantChange: (newTenantId: string) => void;
   currentUserProfile?: UserProfileResponse | null;
   onRefreshData: () => void;
+  onOpenAuthModal?: () => void;
 }
 
 export const ApiStatusBar: React.FC<ApiStatusBarProps> = ({
   currentTenantId,
   onTenantChange,
   currentUserProfile,
-  onRefreshData
+  onRefreshData,
+  onOpenAuthModal
 }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showTenantModal, setShowTenantModal] = useState(false);
@@ -93,15 +95,28 @@ export const ApiStatusBar: React.FC<ApiStatusBarProps> = ({
               <RefreshCw className="w-2.5 h-2.5 text-[#8C887D] ml-0.5" />
             </button>
 
-            {currentUserProfile && (
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-[#E9E4DB] text-[#2C2E2A]">
+            {currentUserProfile ? (
+              <button
+                onClick={onOpenAuthModal}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-[#E9E4DB] hover:border-[#A9B388] text-[#2C2E2A] transition cursor-pointer"
+                title="Click to switch persona or manage session"
+              >
                 <Shield className="w-3.5 h-3.5 text-[#5F6F52]" />
                 <span className="text-[#8C887D]">Actor:</span>
-                <span className="font-semibold truncate max-w-[180px]">{currentUserProfile.fullName}</span>
+                <span className="font-semibold truncate max-w-[160px]">{currentUserProfile.fullName}</span>
                 <span className="text-[10px] uppercase font-bold bg-[#5F6F52] text-white px-1.5 py-0.2 rounded">
                   {currentUserProfile.roles[0] || 'USER'}
                 </span>
-              </div>
+                <Key className="w-2.5 h-2.5 text-[#8C887D] ml-0.5" />
+              </button>
+            ) : (
+              <button
+                onClick={onOpenAuthModal}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#5F6F52] text-white font-semibold hover:bg-[#4E5C43] transition cursor-pointer text-xs shadow-xs"
+              >
+                <Key className="w-3.5 h-3.5" />
+                <span>Sign In / Demo</span>
+              </button>
             )}
           </div>
 

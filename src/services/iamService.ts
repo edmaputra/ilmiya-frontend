@@ -3,7 +3,7 @@
  * Interacts with /api/v1/auth, /api/v1/users, /api/v1/roles, /api/v1/groups, and /api/v1/scopes.
  */
 
-import { apiClient } from './apiClient';
+import { apiClient, safeStorage } from './apiClient';
 import { mockStorage } from './mockStorage';
 import {
   UserResponse,
@@ -32,20 +32,78 @@ export class IamService {
   // ================= Auth Endpoints =================
 
   public async login(request: LoginRequest): Promise<TokenResponse> {
+    const email = (request.email || '').toLowerCase().trim();
+    if (request.tenantId) {
+      apiClient.setTenantId(request.tenantId);
+    }
+
     if (apiClient.isMockMode) {
       const token = `mock-jwt-token-${Date.now()}`;
+      const refreshToken = `mock-refresh-${Date.now()}`;
       apiClient.setToken(token);
-      if (request.tenantId) {
-        apiClient.setTenantId(request.tenantId);
+      apiClient.setRefreshToken(refreshToken);
+
+      const mockUser = mockStorage.getUserByEmail(email);
+      let roles = ['USER'];
+      let permissions: string[] = [];
+      let fullName = mockUser?.fullName || 'Academic Staff Member';
+      let userId = mockUser?.id || `u-${Date.now()}`;
+
+      if (email.includes('admin.utama') || mockUser?.isPlatformSuperAdmin) {
+        roles = ['SUPERADMIN'];
+        permissions = ['*'];
+        fullName = 'Dr. Sarah Jenkins (Head Administrator)';
+      } else if (email.includes('principal')) {
+        roles = ['SCHOOL_ADMIN'];
+        permissions = mockStorage.listRoles(apiClient.tenantId).find(r => r.code === 'SCHOOL_ADMIN')?.permissions || [
+          'school:profile:read', 'school:profile:write', 'school:settings:manage',
+          'academic:year:read', 'academic:year:write', 'academic:curriculum:read', 'academic:curriculum:manage',
+          'iam:user:create', 'iam:user:read', 'iam:user:update', 'iam:user:assign-role', 'iam:group:read'
+        ];
+        fullName = 'Prof. Marcus Chen (School Principal)';
+      } else if (email.includes('eleanor.vance') || email.includes('teacher')) {
+        roles = ['TEACHER'];
+        permissions = mockStorage.listRoles(apiClient.tenantId).find(r => r.code === 'TEACHER')?.permissions || [
+          'school:profile:read', 'academic:year:read', 'academic:course:read', 'academic:course:write',
+          'student:profile:read', 'attendance:record:read', 'attendance:record:create', 'attendance:record:update',
+          'exam:grade:create', 'exam:grade:update', 'exam:report-card:publish'
+        ];
+        fullName = 'Dr. Eleanor Vance (Computer Science Faculty)';
+      } else if (email.includes('student') || email.includes('alex.rivera')) {
+        roles = ['STUDENT'];
+        permissions = mockStorage.listRoles(apiClient.tenantId).find(r => r.code === 'STUDENT')?.permissions || [
+          'school:profile:read', 'academic:year:read', 'academic:course:read', 'student:profile:read',
+          'attendance:record:read', 'exam:grade:create'
+        ];
+        fullName = 'Alex Rivera (Class 10-A)';
+      } else if (email.includes('parent') || email.includes('elena.rivera')) {
+        roles = ['PARENT'];
+        permissions = ['student:profile:read', 'attendance:record:read', 'exam:grade:read'];
+        fullName = 'Elena Rivera (Parent / Guardian)';
+      } else {
+        roles = ['USER'];
+        permissions = ['school:profile:read', 'academic:year:read'];
       }
+
+      const profile: UserProfileResponse = {
+        id: userId,
+        email: email || 'user@ilmiya.edu',
+        fullName,
+        tenantId: apiClient.tenantId,
+        roles,
+        permissions,
+        scopes: ['/CAMPUS_MAIN']
+      };
+      safeStorage.setItem('ilmiya_user_profile', JSON.stringify(profile));
+
       return {
         accessToken: token,
-        refreshToken: `mock-refresh-${Date.now()}`,
+        refreshToken,
         tokenType: 'Bearer',
         expiresIn: 3600,
         tenantId: apiClient.tenantId,
-        roles: ['SUPERADMIN'],
-        permissions: ['school:profile:read', 'school:profile:write', 'school:settings:manage', 'academic:year:write', 'iam:user:read']
+        roles,
+        permissions
       };
     }
 
@@ -55,17 +113,39 @@ export class IamService {
         body: JSON.stringify(request)
       });
       apiClient.setToken(response.accessToken);
+      if (response.refreshToken) {
+        apiClient.setRefreshToken(response.refreshToken);
+      }
       if (response.tenantId) {
         apiClient.setTenantId(response.tenantId);
       }
+      // Attempt to load actor profile
+      try {
+        const me = await this.getMe();
+        safeStorage.setItem('ilmiya_user_profile', JSON.stringify(me));
+      } catch {}
       return response;
     } catch (err) {
       console.warn('Backend unavailable, falling back to mock login:', err);
       const token = `mock-jwt-token-${Date.now()}`;
+      const refreshToken = `mock-refresh-${Date.now()}`;
       apiClient.setToken(token);
+      apiClient.setRefreshToken(refreshToken);
+
+      const profile: UserProfileResponse = {
+        id: 'u-11111111-1111-1111-1111-111111111111',
+        email: email || 'admin.utama@ilmiya.edu',
+        fullName: 'Dr. Sarah Jenkins (Head Administrator)',
+        tenantId: apiClient.tenantId,
+        roles: ['SUPERADMIN'],
+        permissions: ['*'],
+        scopes: ['/CAMPUS_MAIN']
+      };
+      safeStorage.setItem('ilmiya_user_profile', JSON.stringify(profile));
+
       return {
         accessToken: token,
-        refreshToken: `mock-refresh-${Date.now()}`,
+        refreshToken,
         tokenType: 'Bearer',
         expiresIn: 3600,
         tenantId: apiClient.tenantId,
@@ -76,7 +156,14 @@ export class IamService {
   }
 
   public async getMe(): Promise<UserProfileResponse> {
+    const saved = safeStorage.getItem('ilmiya_user_profile');
     if (apiClient.isMockMode) {
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return { ...parsed, tenantId: apiClient.tenantId };
+        } catch {}
+      }
       return {
         id: 'u-11111111-1111-1111-1111-111111111111',
         email: 'admin.utama@ilmiya.edu',
@@ -89,10 +176,17 @@ export class IamService {
     }
 
     try {
-      return await apiClient.request<UserProfileResponse>('/api/v1/auth/me', {
+      const profile = await apiClient.request<UserProfileResponse>('/api/v1/auth/me', {
         method: 'GET'
       });
+      safeStorage.setItem('ilmiya_user_profile', JSON.stringify(profile));
+      return profile;
     } catch (err) {
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {}
+      }
       console.warn('Backend unavailable, falling back to mock getMe:', err);
       return {
         id: 'u-11111111-1111-1111-1111-111111111111',
@@ -106,15 +200,33 @@ export class IamService {
     }
   }
 
+  public logout(): void {
+    apiClient.setToken(null);
+    apiClient.setRefreshToken(null);
+    safeStorage.removeItem('ilmiya_user_profile');
+  }
+
   public async switchTenant(targetTenantId: string): Promise<TokenResponse> {
     apiClient.setTenantId(targetTenantId);
 
+    // Update cached profile's tenantId if present
+    const saved = safeStorage.getItem('ilmiya_user_profile');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        parsed.tenantId = targetTenantId;
+        safeStorage.setItem('ilmiya_user_profile', JSON.stringify(parsed));
+      } catch {}
+    }
+
     if (apiClient.isMockMode) {
       const token = `mock-jwt-switched-${Date.now()}`;
+      const refreshToken = `mock-refresh-${Date.now()}`;
       apiClient.setToken(token);
+      apiClient.setRefreshToken(refreshToken);
       return {
         accessToken: token,
-        refreshToken: `mock-refresh-${Date.now()}`,
+        refreshToken,
         tokenType: 'Bearer',
         expiresIn: 3600,
         tenantId: targetTenantId,
@@ -132,14 +244,19 @@ export class IamService {
         body: JSON.stringify({ tenantId: targetTenantId })
       });
       apiClient.setToken(response.accessToken);
+      if (response.refreshToken) {
+        apiClient.setRefreshToken(response.refreshToken);
+      }
       return response;
     } catch (err) {
       console.warn('Backend unavailable, falling back to mock switchTenant:', err);
       const token = `mock-jwt-switched-${Date.now()}`;
+      const refreshToken = `mock-refresh-${Date.now()}`;
       apiClient.setToken(token);
+      apiClient.setRefreshToken(refreshToken);
       return {
         accessToken: token,
-        refreshToken: `mock-refresh-${Date.now()}`,
+        refreshToken,
         tokenType: 'Bearer',
         expiresIn: 3600,
         tenantId: targetTenantId,

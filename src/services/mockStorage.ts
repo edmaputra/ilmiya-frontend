@@ -325,6 +325,14 @@ class MockStorageEngine {
         tenantId: DEFAULT_TENANT_ID,
         scopeNodeId: 'scope-class-10a',
         assignedAt: '2026-07-10T11:00:00Z'
+      },
+      {
+        id: 'ura-4',
+        userId: 'u-22222222-2222-2222-2222-222222222222',
+        roleId: 'role-school-admin',
+        tenantId: DEFAULT_TENANT_ID,
+        scopeNodeId: 'scope-root',
+        assignedAt: '2026-01-05T09:00:00Z'
       }
     ];
     this.userGroupMemberships = [

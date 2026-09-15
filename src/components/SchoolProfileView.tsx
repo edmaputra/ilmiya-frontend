@@ -12,10 +12,12 @@ import {
   PlusCircle, 
   ShieldAlert, 
   ExternalLink,
-  GraduationCap
+  GraduationCap,
+  Lock
 } from 'lucide-react';
 import { SchoolResponse, GradingPreference, TermLayout } from '../types/ilmiya';
 import { schoolService } from '../services/schoolService';
+import { useAuth } from '../context/AuthContext';
 
 interface SchoolProfileViewProps {
   currentTenantId: string;
@@ -28,6 +30,10 @@ export const SchoolProfileView: React.FC<SchoolProfileViewProps> = ({
   currentTenantId,
   onNotification
 }) => {
+  const { hasPermission } = useAuth();
+  const canEditProfile = hasPermission('school:profile:write');
+  const canManageSettings = hasPermission('school:settings:manage');
+
   const [profile, setProfile] = useState<SchoolResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -192,16 +198,28 @@ export const SchoolProfileView: React.FC<SchoolProfileViewProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowRegisterModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#D9D1C5] text-xs font-semibold text-[#2C2E2A] hover:bg-[#E9E4DB] transition-all cursor-pointer"
+            disabled={!canEditProfile}
+            title={!canEditProfile ? "Requires permission: school:profile:write" : "Register a new school tenant"}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#D9D1C5] text-xs font-semibold text-[#2C2E2A] transition-all ${
+              canEditProfile 
+                ? 'hover:bg-[#E9E4DB] cursor-pointer' 
+                : 'opacity-50 cursor-not-allowed bg-[#FAF9F6]'
+            }`}
           >
-            <PlusCircle className="w-3.5 h-3.5 text-[#5F6F52]" />
+            {canEditProfile ? <PlusCircle className="w-3.5 h-3.5 text-[#5F6F52]" /> : <Lock className="w-3.5 h-3.5 text-[#8C887D]" />}
             <span>Register New School</span>
           </button>
           <button
             onClick={() => setShowEditModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#5F6F52] text-white text-xs font-semibold hover:bg-[#4E5C43] transition-colors shadow-sm cursor-pointer"
+            disabled={!canEditProfile}
+            title={!canEditProfile ? "Requires permission: school:profile:write" : "Edit institutional profile"}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors shadow-sm ${
+              canEditProfile 
+                ? 'bg-[#5F6F52] text-white hover:bg-[#4E5C43] cursor-pointer' 
+                : 'bg-gray-200 text-gray-500 opacity-60 cursor-not-allowed'
+            }`}
           >
-            <Edit3 className="w-3.5 h-3.5" />
+            {canEditProfile ? <Edit3 className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
             <span>Edit Profile</span>
           </button>
         </div>
@@ -320,9 +338,16 @@ export const SchoolProfileView: React.FC<SchoolProfileViewProps> = ({
                 </div>
                 <button
                   onClick={() => setShowSettingsModal(true)}
-                  className="text-xs text-[#5F6F52] hover:text-[#4E5C43] font-semibold cursor-pointer"
+                  disabled={!canManageSettings}
+                  title={!canManageSettings ? "Requires permission: school:settings:manage" : "Configure working days and grading preferences"}
+                  className={`text-xs font-semibold flex items-center gap-1 ${
+                    canManageSettings
+                      ? 'text-[#5F6F52] hover:text-[#4E5C43] cursor-pointer'
+                      : 'text-[#8C887D] opacity-50 cursor-not-allowed'
+                  }`}
                 >
-                  Configure
+                  {!canManageSettings && <Lock className="w-3 h-3" />}
+                  <span>Configure</span>
                 </button>
               </div>
 

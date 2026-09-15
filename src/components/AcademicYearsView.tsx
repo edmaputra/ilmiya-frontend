@@ -9,10 +9,12 @@ import {
   ChevronRight, 
   CalendarDays, 
   Layers,
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
 import { AcademicYearResponse, AcademicTermType, AcademicTermResponse } from '../types/ilmiya';
 import { academicYearService } from '../services/academicYearService';
+import { useAuth } from '../context/AuthContext';
 
 interface AcademicYearsViewProps {
   currentTenantId: string;
@@ -35,6 +37,9 @@ export const AcademicYearsView: React.FC<AcademicYearsViewProps> = ({
   currentTenantId,
   onNotification
 }) => {
+  const { hasPermission } = useAuth();
+  const canWriteAcademic = hasPermission('academic:year:write');
+
   const [academicYears, setAcademicYears] = useState<AcademicYearResponse[]>([]);
   const [activeYear, setActiveYear] = useState<AcademicYearResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -174,9 +179,15 @@ export const AcademicYearsView: React.FC<AcademicYearsViewProps> = ({
 
         <button
           onClick={() => setShowCreateYearModal(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#5F6F52] text-white text-xs font-semibold hover:bg-[#4E5C43] transition-colors shadow-sm cursor-pointer"
+          disabled={!canWriteAcademic}
+          title={!canWriteAcademic ? "Requires permission: academic:year:write" : "Create new academic calendar year"}
+          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors shadow-sm ${
+            canWriteAcademic
+              ? 'bg-[#5F6F52] text-white hover:bg-[#4E5C43] cursor-pointer'
+              : 'bg-gray-200 text-gray-500 opacity-60 cursor-not-allowed'
+          }`}
         >
-          <PlusCircle className="w-4 h-4" />
+          {canWriteAcademic ? <PlusCircle className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
           <span>New Academic Year</span>
         </button>
       </div>
@@ -208,9 +219,15 @@ export const AcademicYearsView: React.FC<AcademicYearsViewProps> = ({
               </div>
               <button
                 onClick={() => handleOpenAddTerm(activeYear.id)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#5F6F52] text-white font-semibold hover:bg-[#4E5C43] transition-colors cursor-pointer"
+                disabled={!canWriteAcademic}
+                title={!canWriteAcademic ? "Requires permission: academic:year:write" : "Add academic term to calendar"}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold transition-colors ${
+                  canWriteAcademic
+                    ? 'bg-[#5F6F52] text-white hover:bg-[#4E5C43] cursor-pointer'
+                    : 'bg-gray-200 text-gray-500 opacity-60 cursor-not-allowed'
+                }`}
               >
-                <PlusCircle className="w-3.5 h-3.5" />
+                {canWriteAcademic ? <PlusCircle className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                 <span>Add Term</span>
               </button>
             </div>
@@ -262,9 +279,16 @@ export const AcademicYearsView: React.FC<AcademicYearsViewProps> = ({
                       {!isTermActive && term.status !== 'CONCLUDED' && (
                         <button
                           onClick={() => handleActivateTerm(activeYear.id, term.id, term.name)}
-                          className="w-full py-1 text-[11px] font-semibold text-[#5F6F52] hover:bg-[#FEFAE0] rounded-lg border border-[#D9D1C5] transition-colors cursor-pointer"
+                          disabled={!canWriteAcademic}
+                          title={!canWriteAcademic ? "Requires permission: academic:year:write" : "Activate this academic term"}
+                          className={`w-full py-1 text-[11px] font-semibold rounded-lg border transition-colors flex items-center justify-center gap-1 ${
+                            canWriteAcademic
+                              ? 'text-[#5F6F52] hover:bg-[#FEFAE0] border-[#D9D1C5] cursor-pointer'
+                              : 'text-gray-400 bg-gray-50 border-gray-200 cursor-not-allowed'
+                          }`}
                         >
-                          Activate Term
+                          {!canWriteAcademic && <Lock className="w-3 h-3" />}
+                          <span>Activate Term</span>
                         </button>
                       )}
                     </div>
@@ -320,16 +344,29 @@ export const AcademicYearsView: React.FC<AcademicYearsViewProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleOpenAddTerm(ay.id)}
-                      className="px-2.5 py-1 text-xs rounded-xl border border-[#D9D1C5] text-[#2C2E2A] hover:bg-[#FAF9F6] font-medium cursor-pointer"
+                      disabled={!canWriteAcademic}
+                      title={!canWriteAcademic ? "Requires permission: academic:year:write" : "Add term"}
+                      className={`px-2.5 py-1 text-xs rounded-xl border font-medium flex items-center gap-1 ${
+                        canWriteAcademic
+                          ? 'border-[#D9D1C5] text-[#2C2E2A] hover:bg-[#FAF9F6] cursor-pointer'
+                          : 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                      }`}
                     >
-                      + Add Term
+                      {canWriteAcademic ? '+ Add Term' : <><Lock className="w-3 h-3" /> + Add Term</>}
                     </button>
                     {!isActive && (
                       <button
                         onClick={() => handleActivateYear(ay.id, ay.name)}
-                        className="px-3 py-1 text-xs rounded-xl bg-[#5F6F52] text-white hover:bg-[#4E5C43] font-semibold transition-colors cursor-pointer"
+                        disabled={!canWriteAcademic}
+                        title={!canWriteAcademic ? "Requires permission: academic:year:write" : "Activate this academic year"}
+                        className={`px-3 py-1 text-xs rounded-xl font-semibold transition-colors flex items-center gap-1 ${
+                          canWriteAcademic
+                            ? 'bg-[#5F6F52] text-white hover:bg-[#4E5C43] cursor-pointer'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
                       >
-                        Activate
+                        {!canWriteAcademic && <Lock className="w-3 h-3" />}
+                        <span>Activate</span>
                       </button>
                     )}
                   </div>

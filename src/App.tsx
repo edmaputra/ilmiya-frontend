@@ -14,6 +14,8 @@ import { FeaturePreviewView } from './components/FeaturePreviewView';
 import { apiClient } from './services/apiClient';
 import { iamService } from './services/iamService';
 import { UserProfileResponse } from './types/iam';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginView } from './components/LoginView';
 import { 
   PROFILES, 
   INITIAL_COURSES, 
@@ -25,14 +27,12 @@ import {
 import { UserRole, DeviceView, ActiveTab, Course, Assignment, NotificationItem, ChatMessage } from './types';
 import { Bell, Award, MessageSquare, AlertTriangle, X } from 'lucide-react';
 
-export default function App() {
-  const [currentRole, setCurrentRole] = useState<UserRole>('student');
+function AppContent() {
+  const { user, tenantId, switchTenant, refreshProfile, isAuthenticated, loginAsPersona } = useAuth();
+  const [currentRole, setCurrentRole] = useState<UserRole>('admin');
   const [deviceView, setDeviceView] = useState<DeviceView>('responsive');
   const [activeTab, setActiveTab] = useState<ActiveTab>('school_profile');
-  
-  // Backend & IAM context
-  const [currentTenantId, setCurrentTenantId] = useState<string>(apiClient.tenantId);
-  const [currentUserProfile, setCurrentUserProfile] = useState<UserProfileResponse | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [courses, setCourses] = useState<Course[]>(INITIAL_COURSES);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
@@ -40,19 +40,18 @@ export default function App() {
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>(INITIAL_MESSAGES);
   const [activeChannelId, setActiveChannelId] = useState<string>('chan_vance_direct');
 
-  // Load current IAM actor profile
-  const refreshUserData = async () => {
+  // Keep persona and backend tokens aligned
+  const handleRoleChange = async (role: UserRole) => {
+    setCurrentRole(role);
     try {
-      const profile = await iamService.getMe();
-      setCurrentUserProfile(profile);
+      if (role === 'admin') await loginAsPersona('principal');
+      else if (role === 'teacher') await loginAsPersona('teacher');
+      else if (role === 'student') await loginAsPersona('student');
+      else if (role === 'parent') await loginAsPersona('parent');
     } catch (err) {
-      console.warn('Failed to load current actor profile:', err);
+      console.warn('Failed to switch persona:', err);
     }
   };
-
-  React.useEffect(() => {
-    refreshUserData();
-  }, [currentTenantId]);
 
   // Passing contextual assignment inquiry from Grades view to Chat view
   const [pendingInquiryContext, setPendingInquiryContext] = useState<{ course: Course; assignment: Assignment } | null>(null);
@@ -311,16 +310,17 @@ export default function App() {
 
       {/* Backend API & Tenant Context Bar */}
       <ApiStatusBar
-        currentTenantId={currentTenantId}
-        onTenantChange={setCurrentTenantId}
-        currentUserProfile={currentUserProfile}
-        onRefreshData={refreshUserData}
+        currentTenantId={tenantId}
+        onTenantChange={switchTenant}
+        currentUserProfile={user}
+        onRefreshData={refreshProfile}
+        onOpenAuthModal={() => setShowAuthModal(true)}
       />
 
       {/* Main Navigation Bar */}
       <HeaderNav
         currentRole={currentRole}
-        onRoleChange={setCurrentRole}
+        onRoleChange={handleRoleChange}
         deviceView={deviceView}
         onDeviceViewChange={setDeviceView}
         activeTab={activeTab}
@@ -336,54 +336,68 @@ export default function App() {
         <DeviceFrameWrapper deviceView={deviceView}>
           <div className="space-y-6">
             
-            {activeTab === 'school_profile' && (
-              <SchoolProfileView
-                currentTenantId={currentTenantId}
-                onNotification={handleUiNotification}
-              />
-            )}
+            {!isAuthenticated ? (
+              <LoginView />
+            ) : (
+              <>
+                {activeTab === 'school_profile' && (
+                  <SchoolProfileView
+                    currentTenantId={tenantId}
+                    onNotification={handleUiNotification}
+                  />
+                )}
 
-            {activeTab === 'academic_years' && (
-              <AcademicYearsView
-                currentTenantId={currentTenantId}
-                onNotification={handleUiNotification}
-              />
-            )}
+                {activeTab === 'academic_years' && (
+                  <AcademicYearsView
+                    currentTenantId={tenantId}
+                    onNotification={handleUiNotification}
+                  />
+                )}
 
-            {activeTab === 'iam_management' && (
-              <IamManagementView
-                currentTenantId={currentTenantId}
-                onNotification={handleUiNotification}
-              />
-            )}
+                {activeTab === 'iam_management' && (
+                  <IamManagementView
+                    currentTenantId={tenantId}
+                    onNotification={handleUiNotification}
+                  />
+                )}
 
-            {(activeTab === 'preview' || activeTab === 'dashboard' || activeTab === 'grades' || activeTab === 'messaging' || activeTab === 'notifications' || activeTab === 'flutter_code') && (
-              <FeaturePreviewView
-                currentUser={currentUser}
-                currentRole={currentRole}
-                courses={courses}
-                schedule={WEEKLY_SCHEDULE}
-                notifications={notifications}
-                channels={channels}
-                messages={messages}
-                activeChannelId={activeChannelId}
-                pendingInquiryContext={pendingInquiryContext}
-                onSelectChannel={setActiveChannelId}
-                onSendMessage={handleSendMessage}
-                onClearInquiryContext={() => setPendingInquiryContext(null)}
-                onInquireAssignment={handleInquireAssignment}
-                onMarkAllAsRead={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
-                onMarkAsRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
-                onDeleteNotification={(id) => setNotifications(prev => prev.filter(n => n.id !== id))}
-                onSimulateNotification={handleSimulateNotification}
-                onBroadcastAnnouncement={handleBroadcastAnnouncement}
-                onNavigateTab={(tab) => setActiveTab(tab)}
-              />
+                {(activeTab === 'preview' || activeTab === 'dashboard' || activeTab === 'grades' || activeTab === 'messaging' || activeTab === 'notifications' || activeTab === 'flutter_code') && (
+                  <FeaturePreviewView
+                    currentUser={currentUser}
+                    currentRole={currentRole}
+                    courses={courses}
+                    schedule={WEEKLY_SCHEDULE}
+                    notifications={notifications}
+                    channels={channels}
+                    messages={messages}
+                    activeChannelId={activeChannelId}
+                    pendingInquiryContext={pendingInquiryContext}
+                    onSelectChannel={setActiveChannelId}
+                    onSendMessage={handleSendMessage}
+                    onClearInquiryContext={() => setPendingInquiryContext(null)}
+                    onInquireAssignment={handleInquireAssignment}
+                    onMarkAllAsRead={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+                    onMarkAsRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
+                    onDeleteNotification={(id) => setNotifications(prev => prev.filter(n => n.id !== id))}
+                    onSimulateNotification={handleSimulateNotification}
+                    onBroadcastAnnouncement={handleBroadcastAnnouncement}
+                    onNavigateTab={(tab) => setActiveTab(tab)}
+                  />
+                )}
+              </>
             )}
 
           </div>
         </DeviceFrameWrapper>
       </main>
+
+      {/* Login & Persona Switcher Modal */}
+      {showAuthModal && (
+        <LoginView
+          isModal
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
 
       {/* Footer */}
       <footer className="bg-[#E9E4DB]/80 border-t border-[#D9D1C5] py-6 mt-12 text-center text-xs text-[#6B6E68]">
@@ -394,7 +408,7 @@ export default function App() {
               Roadmap Feature Previews
             </button>
             <span>•</span>
-            <button onClick={() => setCurrentRole(currentRole === 'student' ? 'teacher' : 'student')} className="hover:text-[#5F6F52] font-semibold transition-colors cursor-pointer">
+            <button onClick={() => handleRoleChange(currentRole === 'student' ? 'teacher' : 'student')} className="hover:text-[#5F6F52] font-semibold transition-colors cursor-pointer">
               Switch to {currentRole === 'student' ? 'Teacher' : 'Student'} Persona
             </button>
             <span>•</span>
@@ -404,5 +418,13 @@ export default function App() {
       </footer>
 
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

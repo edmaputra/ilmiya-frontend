@@ -27,6 +27,7 @@ import {
   AVAILABLE_PERMISSIONS
 } from '../types/iam';
 import { iamService } from '../services/iamService';
+import { useAuth } from '../context/AuthContext';
 
 interface IamManagementViewProps {
   currentTenantId: string;
@@ -39,6 +40,15 @@ export const IamManagementView: React.FC<IamManagementViewProps> = ({
   currentTenantId,
   onNotification
 }) => {
+  const { hasPermission } = useAuth();
+  const canCreateUser = hasPermission('iam:user:create');
+  const canUpdateUserStatus = hasPermission('iam:user:status');
+  const canAssignRole = hasPermission('iam:user:assign-role');
+  const canDeleteUser = hasPermission('iam:user:delete');
+  const canCreateRole = hasPermission('iam:role:create');
+  const canCreateGroup = hasPermission('iam:group:create');
+  const canCreateScope = hasPermission('iam:scope:create');
+
   const [activeTab, setActiveTab] = useState<IamTab>('users');
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [roles, setRoles] = useState<RoleResponse[]>([]);
@@ -293,10 +303,15 @@ export const IamManagementView: React.FC<IamManagementViewProps> = ({
                 setParentScopeId(node.id);
                 setShowCreateScopeModal(true);
               }}
-              className="p-1 text-[11px] font-semibold text-[#5F6F52] hover:bg-[#FEFAE0] rounded-lg border border-[#D9D1C5] flex items-center gap-1 cursor-pointer"
-              title="Add child scope under this node"
+              disabled={!canCreateScope}
+              title={!canCreateScope ? "Requires permission: iam:scope:create" : "Add child scope under this node"}
+              className={`p-1 text-[11px] font-semibold rounded-lg border flex items-center gap-1 ${
+                canCreateScope
+                  ? 'text-[#5F6F52] hover:bg-[#FEFAE0] border-[#D9D1C5] cursor-pointer'
+                  : 'text-gray-400 bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed'
+              }`}
             >
-              <FolderPlus className="w-3 h-3" />
+              {canCreateScope ? <FolderPlus className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
               <span className="hidden sm:inline">Add Child</span>
             </button>
             {depth > 0 && (
@@ -402,9 +417,15 @@ export const IamManagementView: React.FC<IamManagementViewProps> = ({
 
             <button
               onClick={() => setShowCreateUserModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#5F6F52] text-white text-xs font-semibold hover:bg-[#4E5C43] transition-colors cursor-pointer"
+              disabled={!canCreateUser}
+              title={!canCreateUser ? "Requires permission: iam:user:create" : "Create new user"}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                canCreateUser
+                  ? 'bg-[#5F6F52] text-white hover:bg-[#4E5C43] cursor-pointer'
+                  : 'bg-gray-200 text-gray-500 opacity-60 cursor-not-allowed'
+              }`}
             >
-              <PlusCircle className="w-3.5 h-3.5" />
+              {canCreateUser ? <PlusCircle className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
               <span>Create User</span>
             </button>
           </div>
@@ -431,7 +452,11 @@ export const IamManagementView: React.FC<IamManagementViewProps> = ({
                       <select
                         value={user.status}
                         onChange={(e) => handleChangeStatus(user.id, e.target.value as UserStatus)}
+                        disabled={!canUpdateUserStatus}
+                        title={!canUpdateUserStatus ? "Requires permission: iam:user:status" : "Change user status"}
                         className={`text-[10px] font-bold uppercase px-2 py-1 rounded-lg border ${
+                          !canUpdateUserStatus ? 'opacity-50 cursor-not-allowed ' : 'cursor-pointer '
+                        }${
                           user.status === 'ACTIVE'
                             ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                             : 'bg-amber-50 text-amber-800 border-amber-200'
@@ -458,14 +483,25 @@ export const IamManagementView: React.FC<IamManagementViewProps> = ({
                     <td className="py-3 text-right space-x-1">
                       <button
                         onClick={() => handleOpenAssignRole(user)}
-                        className="px-2.5 py-1 text-[11px] rounded-lg border border-[#D9D1C5] text-[#5F6F52] hover:bg-[#FEFAE0] font-semibold cursor-pointer"
+                        disabled={!canAssignRole}
+                        title={!canAssignRole ? "Requires permission: iam:user:assign-role" : "Assign role"}
+                        className={`px-2.5 py-1 text-[11px] rounded-lg border font-semibold ${
+                          canAssignRole
+                            ? 'border-[#D9D1C5] text-[#5F6F52] hover:bg-[#FEFAE0] cursor-pointer'
+                            : 'border-gray-200 text-gray-400 bg-gray-50 opacity-60 cursor-not-allowed'
+                        }`}
                       >
                         Assign Role
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id, user.fullName)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
-                        title="Delete User"
+                        disabled={!canDeleteUser}
+                        title={!canDeleteUser ? "Requires permission: iam:user:delete" : "Delete User"}
+                        className={`p-1 rounded-lg ${
+                          canDeleteUser
+                            ? 'text-red-600 hover:bg-red-50 cursor-pointer'
+                            : 'text-gray-300 cursor-not-allowed opacity-40'
+                        }`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -485,9 +521,15 @@ export const IamManagementView: React.FC<IamManagementViewProps> = ({
             <h3 className="text-base font-serif font-bold text-[#2C2E2A]">Role-Based Access Control (RBAC)</h3>
             <button
               onClick={() => setShowCreateRoleModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#5F6F52] text-white text-xs font-semibold hover:bg-[#4E5C43] transition-colors cursor-pointer"
+              disabled={!canCreateRole}
+              title={!canCreateRole ? "Requires permission: iam:role:create" : "Create custom role"}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                canCreateRole
+                  ? 'bg-[#5F6F52] text-white hover:bg-[#4E5C43] cursor-pointer'
+                  : 'bg-gray-200 text-gray-500 opacity-60 cursor-not-allowed'
+              }`}
             >
-              <PlusCircle className="w-3.5 h-3.5" />
+              {canCreateRole ? <PlusCircle className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
               <span>Create Custom Role</span>
             </button>
           </div>
@@ -548,9 +590,15 @@ export const IamManagementView: React.FC<IamManagementViewProps> = ({
             <h3 className="text-base font-serif font-bold text-[#2C2E2A]">User Groups & Directory</h3>
             <button
               onClick={() => setShowCreateGroupModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#5F6F52] text-white text-xs font-semibold hover:bg-[#4E5C43] transition-colors cursor-pointer"
+              disabled={!canCreateGroup}
+              title={!canCreateGroup ? "Requires permission: iam:group:create" : "Create user group"}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                canCreateGroup
+                  ? 'bg-[#5F6F52] text-white hover:bg-[#4E5C43] cursor-pointer'
+                  : 'bg-gray-200 text-gray-500 opacity-60 cursor-not-allowed'
+              }`}
             >
-              <PlusCircle className="w-3.5 h-3.5" />
+              {canCreateGroup ? <PlusCircle className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
               <span>Create Group</span>
             </button>
           </div>
@@ -601,9 +649,15 @@ export const IamManagementView: React.FC<IamManagementViewProps> = ({
                 setParentScopeId(null);
                 setShowCreateScopeModal(true);
               }}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#5F6F52] text-white text-xs font-semibold hover:bg-[#4E5C43] transition-colors cursor-pointer"
+              disabled={!canCreateScope}
+              title={!canCreateScope ? "Requires permission: iam:scope:create" : "Create root scope node"}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                canCreateScope
+                  ? 'bg-[#5F6F52] text-white hover:bg-[#4E5C43] cursor-pointer'
+                  : 'bg-gray-200 text-gray-500 opacity-60 cursor-not-allowed'
+              }`}
             >
-              <PlusCircle className="w-3.5 h-3.5" />
+              {canCreateScope ? <PlusCircle className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
               <span>Create Root Scope</span>
             </button>
           </div>

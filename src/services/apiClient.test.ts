@@ -39,4 +39,28 @@ describe('ApiClient', () => {
     expect(error.message).toBe('Resource not found');
     expect(error.data?.detail).toBe('School tenant not found');
   });
+
+  it('should store and read refresh token correctly', () => {
+    apiClient.setRefreshToken('refresh-token-123');
+    expect(apiClient.refreshToken).toBe('refresh-token-123');
+    apiClient.setRefreshToken(null);
+    expect(apiClient.refreshToken).toBeNull();
+  });
+
+  it('should trigger onAuthExpired listeners and clear tokens when session expires', () => {
+    let fired = false;
+    const unsubscribe = apiClient.onAuthExpired(() => {
+      fired = true;
+    });
+
+    apiClient.setToken('valid-token');
+    apiClient.setRefreshToken('valid-refresh');
+    apiClient.triggerAuthExpired();
+
+    expect(fired).toBe(true);
+    expect(apiClient.token).toBeNull();
+    expect(apiClient.refreshToken).toBeNull();
+
+    unsubscribe();
+  });
 });

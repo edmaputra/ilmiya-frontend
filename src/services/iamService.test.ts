@@ -25,6 +25,43 @@ describe('IamService', () => {
     expect(apiClient.tenantId).toBe('tenant-secondary-002');
   });
 
+  it('should correctly authenticate personas (principal, teacher, student) and handle logout', async () => {
+    // Principal login
+    const principalLogin = await iamService.login({
+      email: 'principal@ilmiya.edu',
+      password: 'Principal@123'
+    });
+    expect(principalLogin.roles).toContain('SCHOOL_ADMIN');
+    expect(principalLogin.permissions).toContain('school:profile:write');
+
+    const principalProfile = await iamService.getMe();
+    expect(principalProfile.fullName).toContain('Marcus Chen');
+    expect(principalProfile.roles).toContain('SCHOOL_ADMIN');
+
+    // Teacher login
+    const teacherLogin = await iamService.login({
+      email: 'eleanor.vance@ilmiya.edu',
+      password: 'Teacher@123'
+    });
+    expect(teacherLogin.roles).toContain('TEACHER');
+    expect(teacherLogin.permissions).toContain('exam:grade:create');
+
+    const teacherProfile = await iamService.getMe();
+    expect(teacherProfile.fullName).toContain('Eleanor Vance');
+
+    // Student login
+    const studentLogin = await iamService.login({
+      email: 'alex.rivera@student.ilmiya.edu',
+      password: 'Student@123'
+    });
+    expect(studentLogin.roles).toContain('STUDENT');
+
+    // Logout
+    iamService.logout();
+    expect(apiClient.token).toBeNull();
+    expect(apiClient.refreshToken).toBeNull();
+  });
+
   it('should handle user creation, status updating, and role assignments', async () => {
     const user = await iamService.createUser({
       email: 'finance.officer@ilmiya.edu',
