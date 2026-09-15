@@ -3,10 +3,11 @@ export type UserRole = 'student' | 'teacher' | 'parent' | 'admin';
 export type DeviceView = 'responsive' | 'ios' | 'android' | 'tablet';
 
 export type ActiveTab = 
-  | 'dashboard' 
   | 'school_profile' 
   | 'academic_years' 
   | 'iam_management' 
+  | 'preview'
+  | 'dashboard' 
   | 'grades' 
   | 'messaging' 
   | 'notifications' 

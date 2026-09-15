@@ -7,9 +7,12 @@ import {
   MessageSquare, 
   Code2, 
   ShieldCheck,
-  ChevronDown,
-  User,
-  Sliders
+  ChevronDown, 
+  User, 
+  Sliders,
+  Building2,
+  Calendar,
+  Compass
 } from 'lucide-react';
 import { UserRole, DeviceView, ActiveTab, UserProfile } from '../types';
 import { IlmiyaLogo } from './IlmiyaLogo';
@@ -59,99 +62,58 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </div>
 
           {/* Navigation Tabs (Desktop Web) */}
-          <nav className="hidden xl:flex items-center gap-1 bg-[#E9E4DB] p-1.5 rounded-2xl border border-[#D9D1C5]">
-            <button
-              onClick={() => onTabChange('dashboard')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                activeTab === 'dashboard'
-                  ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
-                  : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
-              }`}
-            >
-              Dashboard
-            </button>
+          <nav className="hidden md:flex items-center gap-1.5 bg-[#E9E4DB] p-1.5 rounded-2xl border border-[#D9D1C5]">
             <button
               onClick={() => onTabChange('school_profile')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'school_profile'
                   ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
                   : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
               }`}
             >
-              School Profile
+              <Building2 className="w-3.5 h-3.5" />
+              <span>School Profile</span>
             </button>
             <button
               onClick={() => onTabChange('academic_years')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'academic_years'
                   ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
                   : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
               }`}
             >
-              Academic Years
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Academic Years</span>
             </button>
             <button
               onClick={() => onTabChange('iam_management')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'iam_management'
                   ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
                   : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
               }`}
             >
-              IAM Console
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>IAM Console</span>
             </button>
             <button
-              onClick={() => onTabChange('grades')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                activeTab === 'grades'
-                  ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
-                  : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
+              onClick={() => onTabChange('preview')}
+              className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'preview'
+                  ? 'bg-[#5F6F52] text-white shadow-sm'
+                  : 'text-[#5F6F52] hover:bg-[#FEFAE0]'
               }`}
             >
-              Grade Tracking
-            </button>
-            <button
-              onClick={() => onTabChange('messaging')}
-              className={`relative px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'messaging'
-                  ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
-                  : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
-              }`}
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>Messaging</span>
-              {unreadMessagesCount > 0 && (
-                <span className="bg-[#D67D5B] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                  {unreadMessagesCount}
-                </span>
+              <Compass className="w-3.5 h-3.5" />
+              <span>Feature Previews</span>
+              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                activeTab === 'preview' ? 'bg-[#FAF9F6] text-[#5F6F52]' : 'bg-[#FEFAE0] text-[#5F6F52] border border-[#E9E4DB]'
+              }`}>
+                Labs
+              </span>
+              {(unreadMessagesCount + unreadNotifsCount) > 0 && (
+                <span className="w-2 h-2 rounded-full bg-[#D67D5B] animate-pulse" />
               )}
-            </button>
-            <button
-              onClick={() => onTabChange('notifications')}
-              className={`relative px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'notifications'
-                  ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
-                  : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
-              }`}
-            >
-              <Bell className="w-3.5 h-3.5" />
-              <span>Alerts</span>
-              {unreadNotifsCount > 0 && (
-                <span className="bg-[#D67D5B] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full animate-pulse">
-                  {unreadNotifsCount}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => onTabChange('flutter_code')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'flutter_code'
-                  ? 'bg-[#5F6F52] text-[#FAF9F6] shadow-sm'
-                  : 'text-[#5F6F52] hover:bg-[#F2EDE4]'
-              }`}
-            >
-              <Code2 className="w-3.5 h-3.5" />
-              <span>Flutter</span>
             </button>
           </nav>
 
@@ -234,14 +196,6 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
       {/* Mobile sub-bar tabs */}
       <div className="md:hidden flex items-center justify-around px-2 py-2 border-t border-[#E9E4DB] bg-[#FAF9F6]/95 overflow-x-auto text-xs">
         <button
-          onClick={() => onTabChange('dashboard')}
-          className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap cursor-pointer ${
-            activeTab === 'dashboard' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#6B6E68]'
-          }`}
-        >
-          Dashboard
-        </button>
-        <button
           onClick={() => onTabChange('school_profile')}
           className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap cursor-pointer ${
             activeTab === 'school_profile' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#6B6E68]'
@@ -266,46 +220,15 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           IAM
         </button>
         <button
-          onClick={() => onTabChange('grades')}
-          className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap cursor-pointer ${
-            activeTab === 'grades' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#6B6E68]'
-          }`}
-        >
-          Grades & GPA
-        </button>
-        <button
-          onClick={() => onTabChange('messaging')}
+          onClick={() => onTabChange('preview')}
           className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap flex items-center gap-1 cursor-pointer ${
-            activeTab === 'messaging' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#6B6E68]'
+            activeTab === 'preview' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#5F6F52]'
           }`}
         >
-          <span>Chat</span>
-          {unreadMessagesCount > 0 && (
-            <span className="w-4 h-4 rounded-full bg-[#D67D5B] text-white text-[9px] font-bold flex items-center justify-center">
-              {unreadMessagesCount}
-            </span>
+          <span>Previews</span>
+          {(unreadMessagesCount + unreadNotifsCount) > 0 && (
+            <span className="w-2 h-2 rounded-full bg-[#D67D5B] animate-pulse" />
           )}
-        </button>
-        <button
-          onClick={() => onTabChange('notifications')}
-          className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap flex items-center gap-1 cursor-pointer ${
-            activeTab === 'notifications' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#6B6E68]'
-          }`}
-        >
-          <span>Alerts</span>
-          {unreadNotifsCount > 0 && (
-            <span className="w-4 h-4 rounded-full bg-[#D67D5B] text-white text-[9px] font-bold flex items-center justify-center">
-              {unreadNotifsCount}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => onTabChange('flutter_code')}
-          className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap cursor-pointer ${
-            activeTab === 'flutter_code' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#5F6F52]'
-          }`}
-        >
-          Flutter
         </button>
       </div>
     </header>

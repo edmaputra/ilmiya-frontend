@@ -5,16 +5,12 @@
 
 import React, { useState } from 'react';
 import { HeaderNav } from './components/HeaderNav';
-import { DashboardView } from './components/DashboardView';
-import { GradesView } from './components/GradesView';
-import { MessagingView } from './components/MessagingView';
-import { NotificationsView } from './components/NotificationsView';
-import { FlutterCodeHub } from './components/FlutterCodeHub';
 import { DeviceFrameWrapper } from './components/DeviceFrameWrapper';
 import { ApiStatusBar } from './components/ApiStatusBar';
 import { SchoolProfileView } from './components/SchoolProfileView';
 import { AcademicYearsView } from './components/AcademicYearsView';
 import { IamManagementView } from './components/IamManagementView';
+import { FeaturePreviewView } from './components/FeaturePreviewView';
 import { apiClient } from './services/apiClient';
 import { iamService } from './services/iamService';
 import { UserProfileResponse } from './types/iam';
@@ -32,7 +28,7 @@ import { Bell, Award, MessageSquare, AlertTriangle, X } from 'lucide-react';
 export default function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('student');
   const [deviceView, setDeviceView] = useState<DeviceView>('responsive');
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('school_profile');
   
   // Backend & IAM context
   const [currentTenantId, setCurrentTenantId] = useState<string>(apiClient.tenantId);
@@ -340,20 +336,6 @@ export default function App() {
         <DeviceFrameWrapper deviceView={deviceView}>
           <div className="space-y-6">
             
-            {activeTab === 'dashboard' && (
-              <DashboardView
-                user={currentUser}
-                courses={courses}
-                schedule={WEEKLY_SCHEDULE}
-                notifications={notifications}
-                onNavigateTab={(tab) => setActiveTab(tab)}
-                onSelectCourse={() => setActiveTab('grades')}
-                onOpenGpaCalc={() => setActiveTab('grades')}
-                onOpenTranscript={() => setActiveTab('grades')}
-                onTriggerQuickSimulation={() => handleSimulateNotification('grade')}
-              />
-            )}
-
             {activeTab === 'school_profile' && (
               <SchoolProfileView
                 currentTenantId={currentTenantId}
@@ -375,46 +357,28 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'grades' && (
-              <GradesView
-                courses={courses}
-                user={currentUser}
+            {(activeTab === 'preview' || activeTab === 'dashboard' || activeTab === 'grades' || activeTab === 'messaging' || activeTab === 'notifications' || activeTab === 'flutter_code') && (
+              <FeaturePreviewView
+                currentUser={currentUser}
                 currentRole={currentRole}
-                onInquireAssignment={handleInquireAssignment}
-                onUpdateCourseGrade={() => {}}
-              />
-            )}
-
-            {activeTab === 'messaging' && (
-              <MessagingView
+                courses={courses}
+                schedule={WEEKLY_SCHEDULE}
+                notifications={notifications}
                 channels={channels}
                 messages={messages}
-                currentUser={currentUser}
-                currentRole={currentRole}
-                courses={courses}
                 activeChannelId={activeChannelId}
+                pendingInquiryContext={pendingInquiryContext}
                 onSelectChannel={setActiveChannelId}
                 onSendMessage={handleSendMessage}
-                pendingInquiryContext={pendingInquiryContext}
                 onClearInquiryContext={() => setPendingInquiryContext(null)}
-              />
-            )}
-
-            {activeTab === 'notifications' && (
-              <NotificationsView
-                notifications={notifications}
-                currentUser={currentUser}
-                currentRole={currentRole}
+                onInquireAssignment={handleInquireAssignment}
                 onMarkAllAsRead={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
                 onMarkAsRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
                 onDeleteNotification={(id) => setNotifications(prev => prev.filter(n => n.id !== id))}
                 onSimulateNotification={handleSimulateNotification}
                 onBroadcastAnnouncement={handleBroadcastAnnouncement}
+                onNavigateTab={(tab) => setActiveTab(tab)}
               />
-            )}
-
-            {activeTab === 'flutter_code' && (
-              <FlutterCodeHub />
             )}
 
           </div>
@@ -426,12 +390,12 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="font-medium">© 2026 Ilmiya • Natural Tones Edition • School Information System</p>
           <div className="flex items-center gap-4 text-[#6B6E68]">
-            <button onClick={() => setActiveTab('flutter_code')} className="hover:text-[#5F6F52] font-semibold transition-colors cursor-pointer">
-              Flutter Architecture
+            <button onClick={() => setActiveTab('preview')} className="hover:text-[#5F6F52] font-semibold transition-colors cursor-pointer">
+              Roadmap Feature Previews
             </button>
             <span>•</span>
             <button onClick={() => setCurrentRole(currentRole === 'student' ? 'teacher' : 'student')} className="hover:text-[#5F6F52] font-semibold transition-colors cursor-pointer">
-              Switch to {currentRole === 'student' ? 'Teacher' : 'Student'} Role
+              Switch to {currentRole === 'student' ? 'Teacher' : 'Student'} Persona
             </button>
             <span>•</span>
             <span className="text-[#8C887D]">FERPA / COPPA Compliant</span>
