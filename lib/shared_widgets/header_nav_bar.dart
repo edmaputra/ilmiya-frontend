@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
-import '../core/models/user_profile.dart';
+import '../core/models/iam.dart';
+import '../core/services/api_client.dart';
+import '../features/auth/presentation/login_dialog.dart';
 import '../state/app_state.dart';
+import '../state/auth_notifier.dart';
 import 'ilmiya_logo.dart';
 
 class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
@@ -13,10 +16,18 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
-    final user = state.currentUser;
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
-    final isTablet = MediaQuery.of(context).size.width >= 600;
+    final appState = context.watch<AppState>();
+    final auth = context.watch<AuthNotifier>();
+    final isDesktop = MediaQuery.of(context).size.width >= 960;
+    final isTablet = MediaQuery.of(context).size.width >= 640;
+
+    final currentUser = auth.user;
+    final actorName = currentUser?.fullName.isNotEmpty == true
+        ? currentUser!.fullName
+        : appState.currentUser.name;
+    final primaryRole = auth.roles.isNotEmpty
+        ? auth.roles.first
+        : appState.currentUser.role.displayName;
 
     return Container(
       decoration: const BoxDecoration(
@@ -80,7 +91,7 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
               ],
             ),
 
-            const SizedBox(width: 20),
+            const SizedBox(width: 16),
 
             // Navigation Tabs (Desktop Web)
             if (isDesktop)
@@ -97,89 +108,263 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildNavPill(
+                            context,
+                            label: 'School Profile',
+                            tabIndex: 0,
+                            icon: Icons.account_balance_outlined,
+                            isActive: appState.currentTab == 0,
+                          ),
+                          _buildNavPill(
+                            context,
+                            label: 'Academic Years',
+                            tabIndex: 1,
+                            icon: Icons.calendar_month_outlined,
+                            isActive: appState.currentTab == 1,
+                          ),
+                          _buildNavPill(
+                            context,
+                            label: 'IAM Console',
+                            tabIndex: 2,
+                            icon: Icons.admin_panel_settings_outlined,
+                            isActive: appState.currentTab == 2,
+                          ),
+                          _buildNavPill(
+                            context,
+                            label: 'Feature Previews',
+                            tabIndex: 3,
+                            icon: Icons.science_outlined,
+                            isActive: appState.currentTab == 3,
+                            tag: 'Labs',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              const Spacer(),
+
+            // Right Controls: Mode Toggle, Tenant Badge, Actor Profile
+            Row(
+              children: [
+                // Mode indicator
+                if (isTablet) ...[
+                  InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () {
+                      final newMode = !apiClient.isMockMode;
+                      apiClient.isMockMode = newMode;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            newMode
+                                ? 'Switched to Mock In-Memory Simulation'
+                                : 'Switched to Live REST Backend Mode (${apiClient.baseUrl})',
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: apiClient.isMockMode
+                            ? const Color(0xFFF3E8FF)
+                            : const Color(0xFFE6F4EA),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: apiClient.isMockMode
+                              ? const Color(0xFFD8B4FE)
+                              : const Color(0xFFA8DAB5),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: apiClient.isMockMode
+                                  ? const Color(0xFF9333EA)
+                                  : const Color(0xFF137333),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            apiClient.isMockMode ? 'Mock Simulation' : 'Live REST API',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: apiClient.isMockMode
+                                  ? const Color(0xFF7E22CE)
+                                  : const Color(0xFF137333),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
+                // Tenant Badge / Switcher
+                InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => _showTenantSwitcherDialog(context, auth),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.borderLight,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.borderMedium),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildNavPill(
-                          context,
-                          label: 'Dashboard',
-                          tabIndex: 0,
-                          isActive: state.currentTab == 0,
+                        const Icon(
+                          Icons.domain_rounded,
+                          size: 13,
+                          color: AppColors.forestSage,
                         ),
-                        _buildNavPill(
-                          context,
-                          label: 'Grade Tracking',
-                          tabIndex: 1,
-                          isActive: state.currentTab == 1,
+                        const SizedBox(width: 5),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 110),
+                          child: Text(
+                            auth.tenantId,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
                         ),
-                        _buildNavPill(
-                          context,
-                          label: 'Messaging',
-                          tabIndex: 2,
-                          badgeCount: state.unreadMessagesCount,
-                          icon: Icons.chat_bubble_outline,
-                          isActive: state.currentTab == 2,
-                        ),
-                        _buildNavPill(
-                          context,
-                          label: 'Notifications',
-                          tabIndex: 3,
-                          badgeCount: state.unreadNotifsCount,
-                          icon: Icons.notifications_none_rounded,
-                          isActive: state.currentTab == 3,
-                        ),
-                        _buildNavPill(
-                          context,
-                          label: 'Flutter Code',
-                          tabIndex: 4,
-                          icon: Icons.code,
-                          isActive: state.currentTab == 4,
+                        const SizedBox(width: 2),
+                        const Icon(
+                          Icons.swap_vert,
+                          size: 13,
+                          color: AppColors.textMuted,
                         ),
                       ],
                     ),
                   ),
                 ),
-              ),
-              )
-            else
-              const Spacer(),
-
-            // Right Controls: Quick Simulator & Role Switcher
-            Row(
-              children: [
-                if (isTablet)
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.forestSage,
-                      side: const BorderSide(color: AppColors.borderMedium),
-                      backgroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    icon: const Icon(Icons.tune, size: 14, color: AppColors.earthyTerra),
-                    label: const Text(
-                      'Simulate Alert',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-                    ),
-                    onPressed: () => state.simulateNotification('grade'),
-                  ),
 
                 const SizedBox(width: 8),
 
-                // Role Switcher Dropdown Button
-                PopupMenuButton<UserRole>(
-                  tooltip: 'Switch Campus Role',
+                // Actor Profile & Persona Switcher Menu
+                PopupMenuButton<String>(
+                  tooltip: 'Account & Personas',
                   offset: const Offset(0, 48),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                     side: const BorderSide(color: AppColors.borderLight),
                   ),
-                  onSelected: (role) => state.setRole(role),
+                  onSelected: (action) {
+                    if (action == 'login') {
+                      LoginDialog.show(context);
+                    } else if (action == 'logout') {
+                      auth.logout();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Signed out successfully.')),
+                      );
+                    } else if (action.startsWith('persona:')) {
+                      final keyStr = action.replaceFirst('persona:', '');
+                      final personaKey = DemoPersonaKey.values.firstWhere(
+                        (k) => k.name == keyStr,
+                        orElse: () => DemoPersonaKey.superadmin,
+                      );
+                      auth.loginAsPersona(personaKey);
+                    }
+                  },
                   itemBuilder: (context) => [
-                    _buildRoleMenuItem(UserRole.student, 'Alex Rivera (Grade 11)'),
-                    _buildRoleMenuItem(UserRole.teacher, 'Dr. Eleanor Vance (STEM)'),
-                    _buildRoleMenuItem(UserRole.parent, 'Marco Rivera (Parent)'),
-                    _buildRoleMenuItem(UserRole.admin, 'Principal Martinez (Admin)'),
+                    const PopupMenuItem<String>(
+                      enabled: false,
+                      child: Text(
+                        '1-CLICK PERSONAS (RBAC)',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textMuted,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    ...DemoPersonaKey.values.map((key) {
+                      final persona = DEMO_PERSONAS[key]!;
+                      final isActive = auth.user?.email == persona.email;
+                      return PopupMenuItem<String>(
+                        value: 'persona:${key.name}',
+                        child: Row(
+                          children: [
+                            Icon(
+                              isActive ? Icons.radio_button_checked : Icons.radio_button_off,
+                              size: 14,
+                              color: isActive ? AppColors.forestSage : AppColors.textMuted,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    persona.name,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${persona.roleLabel} • ${persona.email}',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem<String>(
+                      value: 'login',
+                      child: Row(
+                        children: [
+                          Icon(Icons.login, size: 16, color: AppColors.forestSage),
+                          SizedBox(width: 8),
+                          Text(
+                            'Sign In with Custom Credentials...',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'logout',
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, size: 16, color: AppColors.earthyTerra),
+                          SizedBox(width: 8),
+                          Text(
+                            'Sign Out',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.earthyTerra,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -192,8 +377,15 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         CircleAvatar(
                           radius: 14,
-                          backgroundImage: NetworkImage(user.avatar),
-                          backgroundColor: AppColors.borderMedium,
+                          backgroundColor: AppColors.forestSage.withOpacity(0.2),
+                          child: Text(
+                            actorName.isNotEmpty ? actorName[0].toUpperCase() : 'U',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.forestSage,
+                            ),
+                          ),
                         ),
                         if (isTablet) ...[
                           const SizedBox(width: 8),
@@ -202,7 +394,7 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                user.name,
+                                actorName,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
@@ -211,7 +403,7 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                                 ),
                               ),
                               Text(
-                                user.role.displayName,
+                                primaryRole,
                                 style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
@@ -222,7 +414,11 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                           ),
                         ],
                         const SizedBox(width: 4),
-                        const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
+                        const Icon(
+                          Icons.keyboard_arrow_down,
+                          size: 16,
+                          color: AppColors.textSecondary,
+                        ),
                       ],
                     ),
                   ),
@@ -241,9 +437,10 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
     required int tabIndex,
     required bool isActive,
     IconData? icon,
-    int? badgeCount,
+    String? tag,
   }) {
     return InkWell(
+      key: ValueKey('nav_pill_$tabIndex'),
       borderRadius: BorderRadius.circular(12),
       onTap: () => context.read<AppState>().setTab(tabIndex),
       child: Container(
@@ -267,10 +464,10 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
             if (icon != null) ...[
               Icon(
                 icon,
-                size: 14,
+                size: 15,
                 color: isActive ? AppColors.forestSage : AppColors.textSecondary,
               ),
-              const SizedBox(width: 5),
+              const SizedBox(width: 6),
             ],
             Text(
               label,
@@ -280,20 +477,21 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                 color: isActive ? AppColors.forestSage : AppColors.textSecondary,
               ),
             ),
-            if (badgeCount != null && badgeCount > 0) ...[
+            if (tag != null) ...[
               const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
-                  color: AppColors.earthyTerra,
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.warmSand,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Text(
-                  '$badgeCount',
+                  tag,
                   style: const TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: AppColors.forestSage,
                   ),
                 ),
               ),
@@ -304,26 +502,78 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  PopupMenuItem<UserRole> _buildRoleMenuItem(UserRole role, String subtitle) {
-    return PopupMenuItem<UserRole>(
-      value: role,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            role.displayName,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+  void _showTenantSwitcherDialog(BuildContext context, AuthNotifier auth) {
+    final tenantCtrl = TextEditingController(text: auth.tenantId);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.domain_rounded, color: AppColors.forestSage),
+            SizedBox(width: 8),
+            Text('Switch Multi-Tenant Context', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Specify target school tenant ID to isolate data partitions:',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: tenantCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Tenant ID',
+                prefixIcon: Icon(Icons.apartment_rounded),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              children: [
+                ActionChip(
+                  label: const Text('tenant-lincoln-high-001', style: TextStyle(fontSize: 11)),
+                  onPressed: () => tenantCtrl.text = 'tenant-lincoln-high-001',
+                ),
+                ActionChip(
+                  label: const Text('tenant-sma1-ilmiya-002', style: TextStyle(fontSize: 11)),
+                  onPressed: () => tenantCtrl.text = 'tenant-sma1-ilmiya-002',
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
           ),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textMuted,
-            ),
+          FilledButton(
+            onPressed: () async {
+              final newTenant = tenantCtrl.text.trim();
+              if (newTenant.isNotEmpty) {
+                Navigator.of(ctx).pop();
+                try {
+                  await auth.switchTenant(newTenant);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Switched tenant to $newTenant')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error switching tenant: $e')),
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text('Switch Tenant'),
           ),
         ],
       ),
