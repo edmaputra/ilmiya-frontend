@@ -59,10 +59,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </div>
 
           {/* Navigation Tabs (Desktop Web) */}
-          <nav className="hidden md:flex items-center gap-1 bg-[#E9E4DB] p-1.5 rounded-2xl border border-[#D9D1C5]">
+          <nav className="hidden xl:flex items-center gap-1 bg-[#E9E4DB] p-1.5 rounded-2xl border border-[#D9D1C5]">
             <button
               onClick={() => onTabChange('dashboard')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'dashboard'
                   ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
                   : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
@@ -71,8 +71,38 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               Dashboard
             </button>
             <button
+              onClick={() => onTabChange('school_profile')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'school_profile'
+                  ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
+                  : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
+              }`}
+            >
+              School Profile
+            </button>
+            <button
+              onClick={() => onTabChange('academic_years')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'academic_years'
+                  ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
+                  : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
+              }`}
+            >
+              Academic Years
+            </button>
+            <button
+              onClick={() => onTabChange('iam_management')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'iam_management'
+                  ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
+                  : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
+              }`}
+            >
+              IAM Console
+            </button>
+            <button
               onClick={() => onTabChange('grades')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'grades'
                   ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
                   : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
@@ -82,7 +112,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             </button>
             <button
               onClick={() => onTabChange('messaging')}
-              className={`relative px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`relative px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'messaging'
                   ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
                   : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
@@ -98,14 +128,14 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             </button>
             <button
               onClick={() => onTabChange('notifications')}
-              className={`relative px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`relative px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'notifications'
                   ? 'bg-[#FAF9F6] text-[#5F6F52] shadow-sm'
                   : 'text-[#6B6E68] hover:text-[#2C2E2A] hover:bg-[#F2EDE4]'
               }`}
             >
               <Bell className="w-3.5 h-3.5" />
-              <span>Notifications</span>
+              <span>Alerts</span>
               {unreadNotifsCount > 0 && (
                 <span className="bg-[#D67D5B] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full animate-pulse">
                   {unreadNotifsCount}
@@ -114,14 +144,14 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             </button>
             <button
               onClick={() => onTabChange('flutter_code')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'flutter_code'
                   ? 'bg-[#5F6F52] text-[#FAF9F6] shadow-sm'
                   : 'text-[#5F6F52] hover:bg-[#F2EDE4]'
               }`}
             >
               <Code2 className="w-3.5 h-3.5" />
-              <span>Flutter Source</span>
+              <span>Flutter</span>
             </button>
           </nav>
 
@@ -212,6 +242,30 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           Dashboard
         </button>
         <button
+          onClick={() => onTabChange('school_profile')}
+          className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap cursor-pointer ${
+            activeTab === 'school_profile' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#6B6E68]'
+          }`}
+        >
+          School
+        </button>
+        <button
+          onClick={() => onTabChange('academic_years')}
+          className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap cursor-pointer ${
+            activeTab === 'academic_years' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#6B6E68]'
+          }`}
+        >
+          Calendar
+        </button>
+        <button
+          onClick={() => onTabChange('iam_management')}
+          className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap cursor-pointer ${
+            activeTab === 'iam_management' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#6B6E68]'
+          }`}
+        >
+          IAM
+        </button>
+        <button
           onClick={() => onTabChange('grades')}
           className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap cursor-pointer ${
             activeTab === 'grades' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#6B6E68]'
@@ -251,7 +305,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             activeTab === 'flutter_code' ? 'bg-[#5F6F52] text-white font-bold' : 'text-[#5F6F52]'
           }`}
         >
-          Flutter Code
+          Flutter
         </button>
       </div>
     </header>

@@ -25,7 +25,7 @@ interface DashboardViewProps {
   courses: Course[];
   schedule: SchedulePeriod[];
   notifications: NotificationItem[];
-  onNavigateTab: (tab: 'grades' | 'messaging' | 'notifications' | 'flutter_code') => void;
+  onNavigateTab: (tab: import('../types').ActiveTab) => void;
   onSelectCourse: (course: Course) => void;
   onOpenGpaCalc: () => void;
   onOpenTranscript: () => void;

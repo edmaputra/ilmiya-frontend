@@ -11,6 +11,13 @@ import { MessagingView } from './components/MessagingView';
 import { NotificationsView } from './components/NotificationsView';
 import { FlutterCodeHub } from './components/FlutterCodeHub';
 import { DeviceFrameWrapper } from './components/DeviceFrameWrapper';
+import { ApiStatusBar } from './components/ApiStatusBar';
+import { SchoolProfileView } from './components/SchoolProfileView';
+import { AcademicYearsView } from './components/AcademicYearsView';
+import { IamManagementView } from './components/IamManagementView';
+import { apiClient } from './services/apiClient';
+import { iamService } from './services/iamService';
+import { UserProfileResponse } from './types/iam';
 import { 
   PROFILES, 
   INITIAL_COURSES, 
@@ -27,11 +34,29 @@ export default function App() {
   const [deviceView, setDeviceView] = useState<DeviceView>('responsive');
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   
+  // Backend & IAM context
+  const [currentTenantId, setCurrentTenantId] = useState<string>(apiClient.tenantId);
+  const [currentUserProfile, setCurrentUserProfile] = useState<UserProfileResponse | null>(null);
+
   const [courses, setCourses] = useState<Course[]>(INITIAL_COURSES);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [channels, setChannels] = useState(INITIAL_CHANNELS);
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>(INITIAL_MESSAGES);
   const [activeChannelId, setActiveChannelId] = useState<string>('chan_vance_direct');
+
+  // Load current IAM actor profile
+  const refreshUserData = async () => {
+    try {
+      const profile = await iamService.getMe();
+      setCurrentUserProfile(profile);
+    } catch (err) {
+      console.warn('Failed to load current actor profile:', err);
+    }
+  };
+
+  React.useEffect(() => {
+    refreshUserData();
+  }, [currentTenantId]);
 
   // Passing contextual assignment inquiry from Grades view to Chat view
   const [pendingInquiryContext, setPendingInquiryContext] = useState<{ course: Course; assignment: Assignment } | null>(null);
@@ -240,6 +265,21 @@ export default function App() {
     setActiveTab('messaging');
   };
 
+  const handleUiNotification = (title: string, message: string, category: 'announcement' | 'emergency') => {
+    const newNotif: NotificationItem = {
+      id: `notif_${Date.now()}`,
+      title,
+      message,
+      timestamp: 'Just now',
+      category,
+      priority: category === 'emergency' ? 'urgent' : 'medium',
+      read: false,
+      senderName: 'System / IAM Core'
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+    showToastNotification(newNotif);
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF9F6] text-[#2C2E2A] flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
       
@@ -273,6 +313,14 @@ export default function App() {
         </div>
       )}
 
+      {/* Backend API & Tenant Context Bar */}
+      <ApiStatusBar
+        currentTenantId={currentTenantId}
+        onTenantChange={setCurrentTenantId}
+        currentUserProfile={currentUserProfile}
+        onRefreshData={refreshUserData}
+      />
+
       {/* Main Navigation Bar */}
       <HeaderNav
         currentRole={currentRole}
@@ -303,6 +351,27 @@ export default function App() {
                 onOpenGpaCalc={() => setActiveTab('grades')}
                 onOpenTranscript={() => setActiveTab('grades')}
                 onTriggerQuickSimulation={() => handleSimulateNotification('grade')}
+              />
+            )}
+
+            {activeTab === 'school_profile' && (
+              <SchoolProfileView
+                currentTenantId={currentTenantId}
+                onNotification={handleUiNotification}
+              />
+            )}
+
+            {activeTab === 'academic_years' && (
+              <AcademicYearsView
+                currentTenantId={currentTenantId}
+                onNotification={handleUiNotification}
+              />
+            )}
+
+            {activeTab === 'iam_management' && (
+              <IamManagementView
+                currentTenantId={currentTenantId}
+                onNotification={handleUiNotification}
               />
             )}
 

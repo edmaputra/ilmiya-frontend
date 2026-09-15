@@ -2,7 +2,17 @@ export type UserRole = 'student' | 'teacher' | 'parent' | 'admin';
 
 export type DeviceView = 'responsive' | 'ios' | 'android' | 'tablet';
 
-export type ActiveTab = 'dashboard' | 'grades' | 'messaging' | 'notifications' | 'schedule' | 'flutter_code' | 'settings';
+export type ActiveTab = 
+  | 'dashboard' 
+  | 'school_profile' 
+  | 'academic_years' 
+  | 'iam_management' 
+  | 'grades' 
+  | 'messaging' 
+  | 'notifications' 
+  | 'schedule' 
+  | 'flutter_code' 
+  | 'settings';
 
 export interface UserProfile {
   id: string;
