@@ -151,4 +151,71 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Feature Preview & Prototype Labs'), findsOneWidget);
   });
+
+  testWidgets('IlmiyaApp renders without overflow on iPhone 12 Pro dimensions (390x844)', (WidgetTester tester) async {
+    // iPhone 12 Pro viewport size: 390 x 844 logical pixels
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final appState = AppState();
+    final authNotifier = AuthNotifier();
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AppState>.value(value: appState),
+          ChangeNotifierProvider<AuthNotifier>.value(value: authNotifier),
+        ],
+        child: const IlmiyaApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify header and mobile bottom navigation bar render without overflow
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('School'), findsOneWidget);
+
+    // Switch to Academic Years on mobile
+    appState.setTab(1);
+    await tester.pumpAndSettle();
+    expect(find.text('Academic Years & Terms'), findsOneWidget);
+
+    // Switch to IAM Console on mobile
+    appState.setTab(2);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Identity & Access Management'), findsOneWidget);
+  });
+
+  testWidgets('Switching tenant updates dynamic school name in header and state', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final appState = AppState();
+    final authNotifier = AuthNotifier();
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AppState>.value(value: appState),
+          ChangeNotifierProvider<AuthNotifier>.value(value: authNotifier),
+        ],
+        child: const IlmiyaApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Initial tenant is Lincoln High School
+    expect(find.text('Lincoln High School'), findsWidgets);
+
+    // Switch tenant to SMAN 1 Ilmiya
+    authNotifier.switchTenant('tenant-sma1-ilmiya-002');
+    await tester.pumpAndSettle();
+
+    // Subtitle in header navbar dynamically updates
+    expect(find.text('SMA Negeri 1 Ilmiya'), findsWidgets);
+  });
 }

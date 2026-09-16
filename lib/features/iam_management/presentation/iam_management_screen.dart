@@ -395,29 +395,27 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Identity & Access Management (IAM)',
-                      style: TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Enterprise ed-iam security console: Users, RBAC Matrix, Directory Groups, and Scopes.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
+          // Responsive Header Bar
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 720;
+              const titleColumn = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Identity & Access Management (IAM)',
+                    style: TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Enterprise ed-iam security console: Users, RBAC Matrix, Directory Groups, and Scopes.',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ],
+              );
+
+              final tabBar = ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: isNarrow ? double.infinity : 480),
                 child: TabBar(
                   controller: _tabController,
                   isScrollable: true,
@@ -431,8 +429,28 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                     Tab(icon: Icon(Icons.account_tree_outlined, size: 16), text: 'Scope Tree'),
                   ],
                 ),
-              ),
-            ],
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleColumn,
+                    const SizedBox(height: 12),
+                    tabBar,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(child: titleColumn),
+                  const SizedBox(width: 16),
+                  tabBar,
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 16),
@@ -503,73 +521,168 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (ctx, i) {
                 final u = users[i];
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                  leading: CircleAvatar(
-                    backgroundColor: AppColors.warmSand,
-                    child: Text(u.fullName[0], style: const TextStyle(color: AppColors.forestSage, fontWeight: FontWeight.bold)),
-                  ),
-                  title: Row(
-                    children: [
-                      Text(u.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      if (u.isPlatformSuperAdmin) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.purple.shade200),
-                          ),
-                          child: Text(
-                            'SUPERADMIN',
-                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.purple.shade700),
-                          ),
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 640;
+                    if (isNarrow) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 18,
+                                  backgroundColor: AppColors.warmSand,
+                                  child: Text(u.fullName[0], style: const TextStyle(color: AppColors.forestSage, fontWeight: FontWeight.bold)),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Wrap(
+                                        spacing: 6,
+                                        runSpacing: 2,
+                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        children: [
+                                          Text(u.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                          if (u.isPlatformSuperAdmin)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                              decoration: BoxDecoration(
+                                                color: Colors.purple.shade50,
+                                                borderRadius: BorderRadius.circular(6),
+                                                border: Border.all(color: Colors.purple.shade200),
+                                              ),
+                                              child: Text(
+                                                'SUPERADMIN',
+                                                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.purple.shade700),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      Text(u.email, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                DropdownButton<String>(
+                                  value: u.status,
+                                  underline: const SizedBox(),
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                  items: ['ACTIVE', 'SUSPENDED', 'PENDING_ACTIVATION', 'DEACTIVATED']
+                                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                                      .toList(),
+                                  onChanged: canUpdateStatus
+                                      ? (val) async {
+                                          if (val != null) {
+                                            await iamService.changeUserStatus(u.id, val);
+                                            _loadAllIamData();
+                                          }
+                                        }
+                                      : null,
+                                ),
+                                OutlinedButton(
+                                  onPressed: canAssign ? () => _showAssignRoleDialog(u) : null,
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    foregroundColor: AppColors.forestSage,
+                                  ),
+                                  child: const Text('Assign Role', style: TextStyle(fontSize: 11)),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.earthyTerra),
+                                  onPressed: canDelete
+                                      ? () async {
+                                          await iamService.deleteUser(u.id);
+                                          _loadAllIamData();
+                                        }
+                                      : null,
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
-                    ],
-                  ),
-                  subtitle: Text(u.email, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      DropdownButton<String>(
-                        value: u.status,
-                        underline: const SizedBox(),
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                        items: ['ACTIVE', 'SUSPENDED', 'PENDING_ACTIVATION', 'DEACTIVATED']
-                            .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                            .toList(),
-                        onChanged: canUpdateStatus
-                            ? (val) async {
-                                if (val != null) {
-                                  await iamService.changeUserStatus(u.id, val);
-                                  _loadAllIamData();
-                                }
-                              }
-                            : null,
+                      );
+                    }
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                      leading: CircleAvatar(
+                        backgroundColor: AppColors.warmSand,
+                        child: Text(u.fullName[0], style: const TextStyle(color: AppColors.forestSage, fontWeight: FontWeight.bold)),
                       ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        onPressed: canAssign ? () => _showAssignRoleDialog(u) : null,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          foregroundColor: AppColors.forestSage,
-                        ),
-                        child: const Text('Assign Role', style: TextStyle(fontSize: 11)),
+                      title: Wrap(
+                        spacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(u.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          if (u.isPlatformSuperAdmin)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.shade50,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: Colors.purple.shade200),
+                              ),
+                              child: Text(
+                                'SUPERADMIN',
+                                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.purple.shade700),
+                              ),
+                            ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.earthyTerra),
-                        onPressed: canDelete
-                            ? () async {
-                                await iamService.deleteUser(u.id);
-                                _loadAllIamData();
-                              }
-                            : null,
+                      subtitle: Text(u.email, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          DropdownButton<String>(
+                            value: u.status,
+                            underline: const SizedBox(),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            items: ['ACTIVE', 'SUSPENDED', 'PENDING_ACTIVATION', 'DEACTIVATED']
+                                .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                                .toList(),
+                            onChanged: canUpdateStatus
+                                ? (val) async {
+                                    if (val != null) {
+                                      await iamService.changeUserStatus(u.id, val);
+                                      _loadAllIamData();
+                                    }
+                                  }
+                                : null,
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            onPressed: canAssign ? () => _showAssignRoleDialog(u) : null,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              foregroundColor: AppColors.forestSage,
+                            ),
+                            child: const Text('Assign Role', style: TextStyle(fontSize: 11)),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.earthyTerra),
+                            onPressed: canDelete
+                                ? () async {
+                                    await iamService.deleteUser(u.id);
+                                    _loadAllIamData();
+                                  }
+                                : null,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             ),
@@ -589,8 +702,11 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 10,
             children: [
               const Text(
                 'Role-Based Access Control (RBAC) Matrix',
@@ -685,8 +801,11 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 10,
             children: [
               const Text(
                 'User Groups & Directory Integrations',
@@ -751,8 +870,11 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 10,
             children: [
               const Text(
                 'Hierarchical Scope Tree',

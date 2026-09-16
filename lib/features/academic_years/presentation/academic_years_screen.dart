@@ -206,8 +206,11 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header Bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
             children: [
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,10 +262,16 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      Row(
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Container(
                             padding: const EdgeInsets.all(8),
@@ -272,11 +281,13 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                             ),
                             child: const Icon(Icons.star_rounded, color: AppColors.forestSage, size: 22),
                           ),
-                          const SizedBox(width: 12),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -293,7 +304,6 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
                                   Text(
                                     '${_activeYear!.startDate} to ${_activeYear!.endDate}',
                                     style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
@@ -429,9 +439,11 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                   children: [
                     Icon(Icons.format_list_bulleted_rounded, color: AppColors.forestSage, size: 20),
                     SizedBox(width: 8),
-                    Text(
-                      'All Institutional Calendars',
-                      style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                    Expanded(
+                      child: Text(
+                        'All Institutional Calendars',
+                        style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),
@@ -446,19 +458,24 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: isActive ? AppColors.forestSage : AppColors.borderLight),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Text(
                                   ay.name,
                                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                                 ),
-                                const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
@@ -483,7 +500,9 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                             ),
                           ],
                         ),
-                        Row(
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
                           children: [
                             OutlinedButton(
                               onPressed: canWrite ? () => _showAddTermDialog(ay.id) : null,
@@ -493,8 +512,7 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                               ),
                               child: const Text('+ Add Term', style: TextStyle(fontSize: 11)),
                             ),
-                            if (!isActive) ...[
-                              const SizedBox(width: 8),
+                            if (!isActive)
                               ElevatedButton(
                                 onPressed: canWrite ? () => _handleActivateYear(ay.id) : null,
                                 style: ElevatedButton.styleFrom(
@@ -504,7 +522,6 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                                 ),
                                 child: const Text('Activate', style: TextStyle(fontSize: 11)),
                               ),
-                            ],
                           ],
                         ),
                       ],

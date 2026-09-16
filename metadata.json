@@ -1,6 +1,0 @@
-{
-  "name": "Ilmiya",
-  "description": "Multiplatform school information system for iOS, Android, and Web featuring real-time grade tracking, secure teacher-student messaging, and push notifications.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

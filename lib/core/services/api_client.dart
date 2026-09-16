@@ -17,8 +17,14 @@ class ApiClient {
   factory ApiClient() => _instance;
   ApiClient._internal();
 
-  String _baseUrl = 'http://localhost:8080';
-  String tenantId = 'tenant-lincoln-high-001';
+  String _baseUrl = const String.fromEnvironment(
+    'ILMIYA_API_BASE_URL',
+    defaultValue: 'http://localhost:8080',
+  );
+  String tenantId = const String.fromEnvironment(
+    'ILMIYA_DEFAULT_TENANT_ID',
+    defaultValue: 'tenant-lincoln-high-001',
+  );
   String? token;
   String? refreshToken;
   bool isMockMode = true;

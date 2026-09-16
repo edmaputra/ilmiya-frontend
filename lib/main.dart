@@ -33,16 +33,16 @@ class IlmiyaApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
-      home: Consumer<AppState>(
-        builder: (context, state, _) {
+      home: Consumer2<AppState, AuthNotifier>(
+        builder: (context, state, auth, _) {
           return AdaptiveScaffold(
             body: IndexedStack(
               index: state.currentTab.clamp(0, 3),
-              children: const [
-                SchoolProfileScreen(),
-                AcademicYearsScreen(),
-                IamManagementScreen(),
-                PreviewScreen(),
+              children: [
+                SchoolProfileScreen(key: ValueKey('school_profile_${auth.tenantId}')),
+                AcademicYearsScreen(key: ValueKey('academic_years_${auth.tenantId}')),
+                IamManagementScreen(key: ValueKey('iam_management_${auth.tenantId}')),
+                const PreviewScreen(),
               ],
             ),
           );
