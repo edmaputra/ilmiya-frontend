@@ -1,3 +1,5 @@
+include: package:flutter_lints/flutter.yaml
+
 analyzer:
   exclude:
     - build/**
@@ -5,14 +7,21 @@ analyzer:
     - linux/**
     - macos/**
     - ios/**
+    - android/**
   errors:
+    missing_required_param: error
+    missing_return: error
+    dead_code: warning
     deprecated_member_use: ignore
-include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
+    always_declare_return_types: true
+    avoid_dynamic_calls: true
+    avoid_print: true
     prefer_const_constructors: true
     prefer_const_declarations: true
-    avoid_print: false
-    use_build_context_synchronously: false
+    prefer_final_fields: true
+    prefer_final_locals: true
+    unawaited_futures: true
     constant_identifier_names: false

@@ -32,7 +32,7 @@ class IamService {
       List<String> roles = ['USER'];
       List<String> permissions = [];
       String fullName = mockUser?.fullName ?? 'Academic Staff Member';
-      String userId = mockUser?.id ?? 'u-${DateTime.now().millisecondsSinceEpoch}';
+      final userId = mockUser?.id ?? 'u-${DateTime.now().millisecondsSinceEpoch}';
 
       if (email.contains('admin.utama') || (mockUser?.isPlatformSuperAdmin ?? false)) {
         roles = ['SUPERADMIN'];

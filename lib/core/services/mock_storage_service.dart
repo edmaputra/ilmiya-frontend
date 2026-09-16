@@ -627,7 +627,7 @@ class MockStorageService {
     if (req.parentId == null) {
       _scopes.add(newNode);
     } else {
-      bool added = _addChildToScopeNode(_scopes, req.parentId!, newNode);
+      final added = _addChildToScopeNode(_scopes, req.parentId!, newNode);
       if (!added) _scopes.add(newNode);
     }
     return newNode;

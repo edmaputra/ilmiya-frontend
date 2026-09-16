@@ -99,10 +99,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                   fullName: nameCtrl.text.trim(),
                   isPlatformSuperAdmin: isSuperAdmin,
                 ));
-                if (mounted) {
-                  Navigator.of(ctx).pop();
-                  _loadAllIamData();
-                }
+                if (ctx.mounted) Navigator.of(ctx).pop();
+                if (mounted) await _loadAllIamData();
               },
               child: const Text('Create User'),
             ),
@@ -157,9 +155,9 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                   roleId: selectedRoleId,
                   tenantId: user.id,
                 );
-                if (mounted) {
+                if (ctx.mounted) {
                   Navigator.of(ctx).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(content: Text('Role successfully assigned')),
                   );
                 }
@@ -259,10 +257,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                   description: descCtrl.text.trim(),
                   permissions: selectedPerms.toList(),
                 ));
-                if (mounted) {
-                  Navigator.of(ctx).pop();
-                  _loadAllIamData();
-                }
+                if (ctx.mounted) Navigator.of(ctx).pop();
+                if (mounted) await _loadAllIamData();
               },
               child: const Text('Create Role'),
             ),
@@ -312,10 +308,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                 description: descCtrl.text.trim(),
                 externalIdpGroupName: idpCtrl.text.trim().isNotEmpty ? idpCtrl.text.trim() : null,
               ));
-              if (mounted) {
-                Navigator.of(ctx).pop();
-                _loadAllIamData();
-              }
+              if (ctx.mounted) Navigator.of(ctx).pop();
+              if (mounted) await _loadAllIamData();
             },
             child: const Text('Create Group'),
           ),
@@ -357,10 +351,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                 name: nameCtrl.text.trim(),
                 parentId: parentId,
               ));
-              if (mounted) {
-                Navigator.of(ctx).pop();
-                _loadAllIamData();
-              }
+              if (ctx.mounted) Navigator.of(ctx).pop();
+              if (mounted) await _loadAllIamData();
             },
             child: const Text('Save Scope'),
           ),
@@ -586,7 +578,7 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                                       ? (val) async {
                                           if (val != null) {
                                             await iamService.changeUserStatus(u.id, val);
-                                            _loadAllIamData();
+                                            if (mounted) await _loadAllIamData();
                                           }
                                         }
                                       : null,
@@ -604,7 +596,7 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                                   onPressed: canDelete
                                       ? () async {
                                           await iamService.deleteUser(u.id);
-                                          _loadAllIamData();
+                                          if (mounted) await _loadAllIamData();
                                         }
                                       : null,
                                 ),
@@ -655,7 +647,7 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                                 ? (val) async {
                                     if (val != null) {
                                       await iamService.changeUserStatus(u.id, val);
-                                      _loadAllIamData();
+                                      if (mounted) await _loadAllIamData();
                                     }
                                   }
                                 : null,
@@ -675,7 +667,7 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                             onPressed: canDelete
                                 ? () async {
                                     await iamService.deleteUser(u.id);
-                                    _loadAllIamData();
+                                    if (mounted) await _loadAllIamData();
                                   }
                                 : null,
                           ),

@@ -52,9 +52,9 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
   @override
   Widget build(BuildContext context) {
     // Dynamic recalculation
-    double avgSimScore = _simulations.fold(0.0, (sum, s) => sum + s.simulatedScore) / _simulations.length;
-    double simUnweighted = (3.80 + (avgSimScore - 80) * 0.006).clamp(3.0, 4.0);
-    double simWeighted = (4.00 + (avgSimScore - 80) * 0.009).clamp(3.5, 5.0);
+    final avgSimScore = _simulations.fold(0.0, (sum, s) => sum + s.simulatedScore) / _simulations.length;
+    final simUnweighted = (3.80 + (avgSimScore - 80) * 0.006).clamp(3.0, 4.0);
+    final simWeighted = (4.00 + (avgSimScore - 80) * 0.009).clamp(3.5, 5.0);
 
     return Container(
       padding: const EdgeInsets.all(24),
