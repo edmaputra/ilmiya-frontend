@@ -3,10 +3,12 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:ilmiya_app/main.dart';
 import 'package:ilmiya_app/state/app_state.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
+import 'package:ilmiya_app/core/services/api_client.dart';
 
 final Uint8List _transparentImage = Uint8List.fromList([
   0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
@@ -186,6 +188,29 @@ void main() {
     appState.setTab(2);
     await tester.pumpAndSettle();
     expect(find.textContaining('Identity & Access Management'), findsOneWidget);
+
+    // Open mobile sidebar drawer and verify it is wrapped in SafeArea
+    final menuButton = find.byIcon(LucideIcons.menu);
+    expect(menuButton, findsOneWidget);
+    await tester.tap(menuButton);
+    await tester.pumpAndSettle();
+
+    // Verify Drawer and SafeArea inside it exist
+    expect(find.byType(Drawer), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(Drawer),
+        matching: find.byType(SafeArea),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Ilmiya'), findsWidgets);
+    expect(find.text('School Profile'), findsWidgets);
+
+    // Close the drawer
+    Navigator.of(tester.element(find.byType(Drawer))).pop();
+    await tester.pumpAndSettle();
+    expect(find.byType(Drawer), findsNothing);
   });
 
   testWidgets('Switching tenant updates dynamic school name in header and state', (WidgetTester tester) async {
@@ -217,5 +242,80 @@ void main() {
 
     // Subtitle in header navbar dynamically updates
     expect(find.text('SMA Negeri 1 Ilmiya'), findsWidgets);
+  });
+
+  testWidgets('IlmiyaApp renders cleanly and switches between Light and Dark mode without errors', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(createTestWidget());
+    await tester.pumpAndSettle();
+
+    // Toggle dark theme mode via topbar button
+    final themeToggle = find.byIcon(LucideIcons.moon);
+    expect(themeToggle, findsWidgets);
+    await tester.tap(themeToggle.first);
+    await tester.pumpAndSettle();
+
+    // Verify School Profile content renders cleanly in dark mode
+    expect(find.textContaining('SMA Negeri 1 Ilmiya'), findsWidgets);
+    expect(find.text('Operational Rules'), findsOneWidget);
+
+    // Switch to Academic Years tab in dark mode
+    await tester.tap(find.text('Academic Years').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Academic Years & Terms'), findsOneWidget);
+
+    // Switch to IAM tab in dark mode
+    await tester.tap(find.text('IAM Console').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Identity & Access Management (IAM)'), findsOneWidget);
+
+    // Switch back to light mode
+    final sunToggle = find.byIcon(LucideIcons.sun);
+    expect(sunToggle, findsWidgets);
+    await tester.tap(sunToggle.first);
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('Academic Years child term cards render with equal height and aligned action slots', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    ApiClient().tenantId = 'tenant-lincoln-high-001';
+
+    await tester.pumpWidget(createTestWidget());
+    await tester.pumpAndSettle();
+
+    // Navigate to Academic Years tab
+    await tester.tap(find.text('Academic Years').first);
+    await tester.pumpAndSettle();
+
+    // Verify Active Term breakdown section renders
+    expect(find.text('Terms & Semesters Breakdown'), findsOneWidget);
+
+    // Active term card displays the active indicator
+    expect(find.text('Active Term'), findsOneWidget);
+
+    // Planned term card displays the Activate Term button
+    expect(find.text('Activate Term'), findsOneWidget);
+
+    // Verify both child cards have equal height and width constraints
+    final termCardContainers = find.byWidgetPredicate((w) {
+      if (w is Container && w.constraints != null) {
+        return w.constraints!.minHeight == 112.0;
+      }
+      return false;
+    });
+    expect(termCardContainers, findsNWidgets(2));
+
+    final size1 = tester.getSize(termCardContainers.at(0));
+    final size2 = tester.getSize(termCardContainers.at(1));
+    expect(size1.height, equals(size2.height));
+    expect(size1.width, equals(size2.width));
   });
 }

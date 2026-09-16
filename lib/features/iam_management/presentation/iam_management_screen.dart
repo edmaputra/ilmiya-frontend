@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kite_ui/kite_ui.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
@@ -363,6 +365,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
     final auth = context.watch<AuthNotifier>();
     final canCreateUser = auth.hasPermission('iam:user:create');
     final canUpdateUserStatus = auth.hasPermission('iam:user:status');
@@ -373,7 +377,7 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
     final canCreateScope = auth.hasPermission('iam:scope:create');
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.forestSage));
+      return Center(child: CircularProgressIndicator(color: c.primary));
     }
 
     final filteredUsers = _users.where((u) {
@@ -391,17 +395,19 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
           LayoutBuilder(
             builder: (context, constraints) {
               final isNarrow = constraints.maxWidth < 720;
-              const titleColumn = Column(
+              final titleColumn = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Identity & Access Management (IAM)',
-                    style: TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: t.h2.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     'Enterprise ed-iam security console: Users, RBAC Matrix, Directory Groups, and Scopes.',
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: t.muted,
                   ),
                 ],
               );
@@ -411,14 +417,14 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                 child: TabBar(
                   controller: _tabController,
                   isScrollable: true,
-                  indicatorColor: AppColors.forestSage,
-                  labelColor: AppColors.forestSage,
-                  unselectedLabelColor: AppColors.textMuted,
+                  indicatorColor: c.primary,
+                  labelColor: c.foreground,
+                  unselectedLabelColor: c.mutedForeground,
                   tabs: const [
-                    Tab(icon: Icon(Icons.people_outline, size: 16), text: 'Users'),
-                    Tab(icon: Icon(Icons.shield_outlined, size: 16), text: 'Roles & RBAC'),
-                    Tab(icon: Icon(Icons.groups_outlined, size: 16), text: 'Groups'),
-                    Tab(icon: Icon(Icons.account_tree_outlined, size: 16), text: 'Scope Tree'),
+                    Tab(icon: Icon(LucideIcons.users, size: 16), text: 'Users'),
+                    Tab(icon: Icon(LucideIcons.shieldCheck, size: 16), text: 'Roles & RBAC'),
+                    Tab(icon: Icon(LucideIcons.layers, size: 16), text: 'Groups'),
+                    Tab(icon: Icon(LucideIcons.gitBranch, size: 16), text: 'Scope Tree'),
                   ],
                 ),
               );
@@ -437,7 +443,7 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Expanded(child: titleColumn),
+                  Expanded(child: titleColumn),
                   const SizedBox(width: 16),
                   tabBar,
                 ],
@@ -453,16 +459,16 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               controller: _tabController,
               children: [
                 // Tab 1: Users
-                _buildUsersTab(filteredUsers, canCreateUser, canUpdateUserStatus, canAssignRole, canDeleteUser),
+                _buildUsersTab(context, filteredUsers, canCreateUser, canUpdateUserStatus, canAssignRole, canDeleteUser),
 
                 // Tab 2: Roles
-                _buildRolesTab(canCreateRole),
+                _buildRolesTab(context, canCreateRole),
 
                 // Tab 3: Groups
-                _buildGroupsTab(canCreateGroup),
+                _buildGroupsTab(context, canCreateGroup),
 
                 // Tab 4: Scopes
-                _buildScopesTab(canCreateScope),
+                _buildScopesTab(context, canCreateScope),
               ],
             ),
           ),
@@ -471,14 +477,12 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
     );
   }
 
-  Widget _buildUsersTab(List<UserResponse> users, bool canCreate, bool canUpdateStatus, bool canAssign, bool canDelete) {
-    return Container(
+  Widget _buildUsersTab(BuildContext context, List<UserResponse> users, bool canCreate, bool canUpdateStatus, bool canAssign, bool canDelete) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
+
+    return KiteCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceWhite,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-      ),
       child: Column(
         children: [
           Row(
@@ -486,10 +490,12 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               Expanded(
                 child: TextField(
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search, size: 18),
+                    prefixIcon: Icon(LucideIcons.search, size: 18, color: c.mutedForeground),
                     hintText: 'Search user by name or email...',
+                    hintStyle: t.small.copyWith(color: c.mutedForeground),
                     isDense: true,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    fillColor: c.card,
+                    border: const OutlineInputBorder(borderRadius: KiteRadius.allMd),
                   ),
                   onChanged: (v) => setState(() => _searchQuery = v),
                 ),
@@ -497,11 +503,12 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: canCreate ? _showCreateUserDialog : null,
-                icon: Icon(canCreate ? Icons.add : Icons.lock_outline, size: 16),
+                icon: Icon(canCreate ? LucideIcons.plus : LucideIcons.lock, size: 16),
                 label: const Text('Create User'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.forestSage,
-                  foregroundColor: Colors.white,
+                  backgroundColor: c.primary,
+                  foregroundColor: c.primaryForeground,
+                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
@@ -510,7 +517,7 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
           Expanded(
             child: ListView.separated(
               itemCount: users.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              separatorBuilder: (_, __) => Divider(height: 1, color: c.border),
               itemBuilder: (ctx, i) {
                 final u = users[i];
                 return LayoutBuilder(
@@ -526,8 +533,11 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                               children: [
                                 CircleAvatar(
                                   radius: 18,
-                                  backgroundColor: AppColors.warmSand,
-                                  child: Text(u.fullName[0], style: const TextStyle(color: AppColors.forestSage, fontWeight: FontWeight.bold)),
+                                  backgroundColor: c.accent,
+                                  child: Text(
+                                    u.fullName.isNotEmpty ? u.fullName[0] : '?',
+                                    style: TextStyle(color: c.foreground, fontWeight: FontWeight.bold),
+                                  ),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -539,23 +549,15 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                                         runSpacing: 2,
                                         crossAxisAlignment: WrapCrossAlignment.center,
                                         children: [
-                                          Text(u.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                          Text(
+                                            u.fullName,
+                                            style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
+                                          ),
                                           if (u.isPlatformSuperAdmin)
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                              decoration: BoxDecoration(
-                                                color: Colors.purple.shade50,
-                                                borderRadius: BorderRadius.circular(6),
-                                                border: Border.all(color: Colors.purple.shade200),
-                                              ),
-                                              child: Text(
-                                                'SUPERADMIN',
-                                                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.purple.shade700),
-                                              ),
-                                            ),
+                                            const KiteBadge('SUPERADMIN', tone: KiteTone.warning),
                                         ],
                                       ),
-                                      Text(u.email, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                      Text(u.email, style: t.small.copyWith(fontSize: 11, color: c.mutedForeground)),
                                     ],
                                   ),
                                 ),
@@ -570,7 +572,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                                 DropdownButton<String>(
                                   value: u.status,
                                   underline: const SizedBox(),
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                  dropdownColor: c.card,
+                                  style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
                                   items: ['ACTIVE', 'SUSPENDED', 'PENDING_ACTIVATION', 'DEACTIVATED']
                                       .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                                       .toList(),
@@ -587,12 +590,14 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                                   onPressed: canAssign ? () => _showAssignRoleDialog(u) : null,
                                   style: OutlinedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    foregroundColor: AppColors.forestSage,
+                                    foregroundColor: c.primary,
+                                    side: BorderSide(color: c.border),
+                                    shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
                                   ),
                                   child: const Text('Assign Role', style: TextStyle(fontSize: 11)),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.earthyTerra),
+                                  icon: Icon(LucideIcons.trash2, size: 16, color: c.destructive),
                                   onPressed: canDelete
                                       ? () async {
                                           await iamService.deleteUser(u.id);
@@ -609,37 +614,30 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                     return ListTile(
                       contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                       leading: CircleAvatar(
-                        backgroundColor: AppColors.warmSand,
-                        child: Text(u.fullName[0], style: const TextStyle(color: AppColors.forestSage, fontWeight: FontWeight.bold)),
+                        backgroundColor: c.accent,
+                        child: Text(
+                          u.fullName.isNotEmpty ? u.fullName[0] : '?',
+                          style: TextStyle(color: c.foreground, fontWeight: FontWeight.bold),
+                        ),
                       ),
                       title: Wrap(
                         spacing: 8,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text(u.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text(u.fullName, style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
                           if (u.isPlatformSuperAdmin)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.purple.shade50,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: Colors.purple.shade200),
-                              ),
-                              child: Text(
-                                'SUPERADMIN',
-                                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.purple.shade700),
-                              ),
-                            ),
+                            const KiteBadge('SUPERADMIN', tone: KiteTone.warning),
                         ],
                       ),
-                      subtitle: Text(u.email, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      subtitle: Text(u.email, style: t.small.copyWith(fontSize: 11, color: c.mutedForeground)),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           DropdownButton<String>(
                             value: u.status,
                             underline: const SizedBox(),
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            dropdownColor: c.card,
+                            style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
                             items: ['ACTIVE', 'SUSPENDED', 'PENDING_ACTIVATION', 'DEACTIVATED']
                                 .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                                 .toList(),
@@ -657,13 +655,15 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                             onPressed: canAssign ? () => _showAssignRoleDialog(u) : null,
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              foregroundColor: AppColors.forestSage,
+                              foregroundColor: c.primary,
+                              side: BorderSide(color: c.border),
+                              shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
                             ),
                             child: const Text('Assign Role', style: TextStyle(fontSize: 11)),
                           ),
                           const SizedBox(width: 4),
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.earthyTerra),
+                            icon: Icon(LucideIcons.trash2, size: 16, color: c.destructive),
                             onPressed: canDelete
                                 ? () async {
                                     await iamService.deleteUser(u.id);
@@ -684,14 +684,12 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
     );
   }
 
-  Widget _buildRolesTab(bool canCreateRole) {
-    return Container(
+  Widget _buildRolesTab(BuildContext context, bool canCreateRole) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
+
+    return KiteCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceWhite,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-      ),
       child: Column(
         children: [
           Wrap(
@@ -700,15 +698,19 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
             spacing: 12,
             runSpacing: 10,
             children: [
-              const Text(
+              Text(
                 'Role-Based Access Control (RBAC) Matrix',
-                style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                style: t.large.copyWith(fontWeight: FontWeight.bold),
               ),
               ElevatedButton.icon(
                 onPressed: canCreateRole ? _showCreateRoleDialog : null,
-                icon: Icon(canCreateRole ? Icons.add : Icons.lock_outline, size: 16),
+                icon: Icon(canCreateRole ? LucideIcons.plus : LucideIcons.lock, size: 16),
                 label: const Text('Create Custom Role'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: c.primary,
+                  foregroundColor: c.primaryForeground,
+                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                ),
               ),
             ],
           ),
@@ -727,9 +729,9 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                 return Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.naturalParchment,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.borderLight),
+                    color: c.card,
+                    borderRadius: KiteRadius.allMd,
+                    border: Border.all(color: c.border),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -737,23 +739,22 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(r.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                          if (r.isSystemRole)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: AppColors.warmSand,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Text('SYSTEM', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.forestSage)),
+                          Expanded(
+                            child: Text(
+                              r.name,
+                              overflow: TextOverflow.ellipsis,
+                              style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
                             ),
+                          ),
+                          if (r.isSystemRole)
+                            const KiteBadge('SYSTEM', tone: KiteTone.info),
                         ],
                       ),
-                      Text(r.code, style: const TextStyle(fontSize: 10, fontFamily: 'monospace', color: AppColors.textMuted)),
+                      Text(r.code, style: t.small.copyWith(fontSize: 10, fontFamily: 'monospace', color: c.mutedForeground)),
                       const SizedBox(height: 6),
-                      Text(r.description ?? '', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary), maxLines: 2),
+                      Text(r.description ?? '', style: t.small.copyWith(fontSize: 11, color: c.mutedForeground), maxLines: 2),
                       const Spacer(),
-                      Text('Permissions (${r.permissions.length}):', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                      Text('Permissions (${r.permissions.length}):', style: t.small.copyWith(fontSize: 10, fontWeight: FontWeight.bold, color: c.foreground)),
                       const SizedBox(height: 4),
                       Expanded(
                         child: SingleChildScrollView(
@@ -763,11 +764,11 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                             children: r.permissions.map((p) => Container(
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: AppColors.borderLight),
+                                color: c.accent,
+                                borderRadius: KiteRadius.allSm,
+                                border: Border.all(color: c.border),
                               ),
-                              child: Text(p, style: const TextStyle(fontSize: 8, fontFamily: 'monospace')),
+                              child: Text(p, style: t.small.copyWith(fontSize: 8, fontFamily: 'monospace', color: c.foreground)),
                             )).toList(),
                           ),
                         ),
@@ -783,14 +784,12 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
     );
   }
 
-  Widget _buildGroupsTab(bool canCreateGroup) {
-    return Container(
+  Widget _buildGroupsTab(BuildContext context, bool canCreateGroup) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
+
+    return KiteCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceWhite,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-      ),
       child: Column(
         children: [
           Wrap(
@@ -799,15 +798,19 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
             spacing: 12,
             runSpacing: 10,
             children: [
-              const Text(
+              Text(
                 'User Groups & Directory Integrations',
-                style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                style: t.large.copyWith(fontWeight: FontWeight.bold),
               ),
               ElevatedButton.icon(
                 onPressed: canCreateGroup ? _showCreateGroupDialog : null,
-                icon: Icon(canCreateGroup ? Icons.add : Icons.lock_outline, size: 16),
+                icon: Icon(canCreateGroup ? LucideIcons.plus : LucideIcons.lock, size: 16),
                 label: const Text('Create Group'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: c.primary,
+                  foregroundColor: c.primaryForeground,
+                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                ),
               ),
             ],
           ),
@@ -821,22 +824,22 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                 return Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.naturalParchment,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.borderLight),
+                    color: c.card,
+                    borderRadius: KiteRadius.allMd,
+                    border: Border.all(color: c.border),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.groups_outlined, color: AppColors.forestSage, size: 24),
+                      Icon(LucideIcons.users, color: c.foreground, size: 22),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(g.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            Text('Code: ${g.code} • ${g.description ?? ''}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            Text(g.name, style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
+                            Text('Code: ${g.code} • ${g.description ?? ''}', style: t.small.copyWith(fontSize: 11, color: c.mutedForeground)),
                             if (g.externalIdpGroupName != null)
-                              Text('IdP Mapping: ${g.externalIdpGroupName}', style: const TextStyle(fontSize: 10, color: AppColors.forestSage, fontFamily: 'monospace')),
+                              Text('IdP Mapping: ${g.externalIdpGroupName}', style: t.small.copyWith(fontSize: 10, color: c.primary, fontFamily: 'monospace')),
                           ],
                         ),
                       ),
@@ -851,14 +854,12 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
     );
   }
 
-  Widget _buildScopesTab(bool canCreateScope) {
-    return Container(
+  Widget _buildScopesTab(BuildContext context, bool canCreateScope) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
+
+    return KiteCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceWhite,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -868,22 +869,26 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
             spacing: 12,
             runSpacing: 10,
             children: [
-              const Text(
+              Text(
                 'Hierarchical Scope Tree',
-                style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                style: t.large.copyWith(fontWeight: FontWeight.bold),
               ),
               ElevatedButton.icon(
                 onPressed: canCreateScope ? () => _showCreateScopeDialog(parentId: null) : null,
-                icon: Icon(canCreateScope ? Icons.add : Icons.lock_outline, size: 16),
+                icon: Icon(canCreateScope ? LucideIcons.plus : LucideIcons.lock, size: 16),
                 label: const Text('Create Root Scope'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: c.primary,
+                  foregroundColor: c.primaryForeground,
+                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 14),
           Expanded(
             child: ListView(
-              children: _scopes.map((s) => _buildScopeNodeWidget(s, canCreateScope)).toList(),
+              children: _scopes.map((s) => _buildScopeNodeWidget(context, s, canCreateScope)).toList(),
             ),
           ),
         ],
@@ -891,7 +896,10 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
     );
   }
 
-  Widget _buildScopeNodeWidget(ScopeTreeNode node, bool canCreateScope) {
+  Widget _buildScopeNodeWidget(BuildContext context, ScopeTreeNode node, bool canCreateScope) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: EdgeInsets.only(left: (node.depth * 20.0)),
@@ -901,33 +909,33 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: node.depth == 0 ? AppColors.warmSand : AppColors.naturalParchment,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.borderLight),
+              color: node.depth == 0 ? c.accent.withOpacity(0.5) : c.card,
+              borderRadius: KiteRadius.allMd,
+              border: Border.all(color: c.border),
             ),
             child: Row(
               children: [
                 Icon(
-                  node.depth == 0 ? Icons.account_balance_outlined : Icons.folder_open_outlined,
+                  node.depth == 0 ? LucideIcons.landmark : LucideIcons.folderTree,
                   size: 16,
-                  color: AppColors.forestSage,
+                  color: c.foreground,
                 ),
                 const SizedBox(width: 8),
-                Text(node.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                Text(node.name, style: t.small.copyWith(fontSize: 12, fontWeight: FontWeight.bold, color: c.foreground)),
                 const SizedBox(width: 8),
-                Text(node.code, style: const TextStyle(fontSize: 10, fontFamily: 'monospace', color: AppColors.textMuted)),
+                Text(node.code, style: t.small.copyWith(fontSize: 10, fontFamily: 'monospace', color: c.mutedForeground)),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: canCreateScope ? () => _showCreateScopeDialog(parentId: node.id) : null,
-                  icon: Icon(canCreateScope ? Icons.add : Icons.lock_outline, size: 12),
+                  icon: Icon(canCreateScope ? LucideIcons.plus : LucideIcons.lock, size: 12),
                   label: const Text('Add Child', style: TextStyle(fontSize: 10)),
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero, foregroundColor: c.primary),
                 ),
               ],
             ),
           ),
           if (node.children.isNotEmpty)
-            ...node.children.map((c) => _buildScopeNodeWidget(c, canCreateScope)),
+            ...node.children.map((child) => _buildScopeNodeWidget(context, child, canCreateScope)),
         ],
       ),
     );

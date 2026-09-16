@@ -24,10 +24,12 @@ class AppState extends ChangeNotifier {
   NotificationItem? _activeToast;
   bool _soundEnabled = true;
   Timer? _toastTimer;
+  ThemeMode _themeMode = ThemeMode.light;
 
   // Getters
   UserRole get currentRole => _currentRole;
   int get currentTab => _currentTab;
+  ThemeMode get themeMode => _themeMode;
   List<Course> get courses => _courses;
   List<NotificationItem> get notifications => _notifications;
   List<ChatChannel> get channels => _channels;
@@ -92,6 +94,16 @@ class AppState extends ChangeNotifier {
 
   void setTab(int index) {
     _currentTab = index;
+    notifyListeners();
+  }
+
+  void setThemeMode(ThemeMode mode) {
+    _themeMode = mode;
+    notifyListeners();
+  }
+
+  void toggleThemeMode() {
+    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
   }
 

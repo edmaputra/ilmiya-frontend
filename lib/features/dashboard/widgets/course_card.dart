@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kite_ui/kite_ui.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../core/models/course.dart';
 import '../../../state/app_state.dart';
 
@@ -11,6 +11,9 @@ class CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
+
     return InkWell(
       borderRadius: BorderRadius.circular(24),
       onTap: () {
@@ -19,9 +22,9 @@ class CourseCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: c.card,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.borderLight),
+          border: Border.all(color: c.border),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.02),
@@ -62,10 +65,9 @@ class CourseCard extends StatelessWidget {
                     children: [
                       Text(
                         course.name,
-                        style: const TextStyle(
-                          fontSize: 13,
+                        style: t.small.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: c.foreground,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -73,9 +75,9 @@ class CourseCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         '${course.teacherName} • ${course.period.split(' ')[0]}',
-                        style: const TextStyle(
+                        style: t.small.copyWith(
                           fontSize: 11,
-                          color: AppColors.textMuted,
+                          color: c.mutedForeground,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -106,10 +108,10 @@ class CourseCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       '${course.currentPercentage}%',
-                      style: const TextStyle(
+                      style: t.small.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textMuted,
+                        color: c.mutedForeground,
                       ),
                     ),
                   ],
@@ -124,7 +126,7 @@ class CourseCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               child: LinearProgressIndicator(
                 value: (course.currentPercentage / 100).clamp(0.0, 1.0),
-                backgroundColor: AppColors.borderLight,
+                backgroundColor: c.border,
                 valueColor: AlwaysStoppedAnimation<Color>(course.color),
                 minHeight: 6,
               ),
@@ -134,8 +136,8 @@ class CourseCard extends StatelessWidget {
 
             Container(
               padding: const EdgeInsets.only(top: 8),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: AppColors.borderLight)),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: c.border)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,9 +145,9 @@ class CourseCard extends StatelessWidget {
                   Flexible(
                     child: Text(
                       'Room: ${course.room}',
-                      style: const TextStyle(
+                      style: t.small.copyWith(
                         fontSize: 11,
-                        color: AppColors.textMuted,
+                        color: c.mutedForeground,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -153,10 +155,10 @@ class CourseCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     '${course.assignments.length} assignments',
-                    style: const TextStyle(
+                    style: t.small.copyWith(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      color: c.mutedForeground,
                     ),
                   ),
                 ],

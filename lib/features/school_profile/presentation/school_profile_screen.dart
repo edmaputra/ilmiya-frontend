@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kite_ui/kite_ui.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
@@ -261,12 +263,14 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
     final auth = context.watch<AuthNotifier>();
     final canEditProfile = auth.hasPermission('school:profile:write');
     final canManageSettings = auth.hasPermission('school:settings:manage');
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.forestSage));
+      return Center(child: CircularProgressIndicator(color: c.primary));
     }
 
     if (_error != null) {
@@ -274,9 +278,9 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.earthyTerra),
+            const Icon(LucideIcons.circleAlert, size: 48, color: AppColors.earthyTerra),
             const SizedBox(height: 12),
-            Text(_error!),
+            Text(_error!, style: t.p),
             const SizedBox(height: 12),
             ElevatedButton(onPressed: _loadProfile, child: const Text('Retry')),
           ],
@@ -335,7 +339,7 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                         ),
                         child: const Center(
                           child: Icon(
-                            Icons.account_balance_rounded,
+                            LucideIcons.landmark,
                             color: Colors.white,
                             size: 22,
                           ),
@@ -343,44 +347,31 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                       ),
                       Text(
                         p.name,
-                        style: const TextStyle(
-                          fontFamily: 'serif',
-                          fontSize: 22,
+                        style: t.h2.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFDEF7EC),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          p.status,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF03543F),
-                          ),
-                        ),
+                      KiteBadge(
+                        p.status,
+                        tone: KiteTone.success,
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Tenant ID: ${p.tenantId} • Code: ${p.institutionCode}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: t.muted,
                   ),
                 ],
               ),
               OutlinedButton.icon(
                 onPressed: canEditProfile ? _showEditProfileDialog : null,
-                icon: Icon(canEditProfile ? Icons.edit : Icons.lock_outline, size: 16),
+                icon: Icon(canEditProfile ? LucideIcons.pencil : LucideIcons.lock, size: 16),
                 label: const Text('Edit Profile'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.forestSage,
-                  side: const BorderSide(color: AppColors.borderMedium),
+                  foregroundColor: c.foreground,
+                  side: BorderSide(color: c.border),
+                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
@@ -399,42 +390,33 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                   // Main Info Card
                   Expanded(
                     flex: isWide ? 6 : 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceWhite,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.borderLight),
-                        boxShadow: const [
-                          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4)),
-                        ],
-                      ),
+                    child: KiteCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
-                              Icon(Icons.account_balance_outlined, color: AppColors.forestSage, size: 20),
-                              SizedBox(width: 8),
+                              Icon(LucideIcons.landmark, color: c.foreground, size: 18),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'Institutional Details',
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: t.large.copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ],
                           ),
-                          const Divider(height: 24),
-                          _infoRow(Icons.pin_drop_outlined, 'Address', p.address),
+                          Divider(height: 24, color: c.border),
+                          _infoRow(context, LucideIcons.mapPin, 'Address', p.address),
                           const SizedBox(height: 12),
-                          _infoRow(Icons.email_outlined, 'Contact Email', p.contactEmail),
+                          _infoRow(context, LucideIcons.mail, 'Contact Email', p.contactEmail),
                           const SizedBox(height: 12),
-                          _infoRow(Icons.phone_outlined, 'Contact Phone', p.contactPhone),
+                          _infoRow(context, LucideIcons.phone, 'Contact Phone', p.contactPhone),
                           const SizedBox(height: 12),
-                          _infoRow(Icons.verified_outlined, 'Govt Registration (NPSN)', p.governmentRegistrationNumber ?? '-'),
+                          _infoRow(context, LucideIcons.badgeCheck, 'Govt Registration (NPSN)', p.governmentRegistrationNumber ?? '-'),
                           const SizedBox(height: 12),
-                          _infoRow(Icons.workspace_premium_outlined, 'Accreditation', '${p.accreditationStatus ?? '-'} (${p.accreditationBody ?? ''})'),
+                          _infoRow(context, LucideIcons.award, 'Accreditation', '${p.accreditationStatus ?? '-'} (${p.accreditationBody ?? ''})'),
                         ],
                       ),
                     ),
@@ -445,32 +427,23 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                   // Operational Settings Card
                   Expanded(
                     flex: isWide ? 4 : 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceWhite,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.borderLight),
-                        boxShadow: const [
-                          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4)),
-                        ],
-                      ),
+                    child: KiteCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Expanded(
+                              Expanded(
                                 child: Row(
                                   children: [
-                                    Icon(Icons.tune_rounded, color: AppColors.forestSage, size: 20),
-                                    SizedBox(width: 8),
+                                    Icon(LucideIcons.sliders, color: c.foreground, size: 18),
+                                    const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         'Operational Rules',
                                         overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                                        style: t.large.copyWith(fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ],
@@ -478,13 +451,14 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                               ),
                               TextButton.icon(
                                 onPressed: canManageSettings ? _showSettingsDialog : null,
-                                icon: Icon(canManageSettings ? Icons.settings : Icons.lock_outline, size: 14),
+                                icon: Icon(canManageSettings ? LucideIcons.settings : LucideIcons.lock, size: 14),
                                 label: const Text('Configure', style: TextStyle(fontSize: 12)),
+                                style: TextButton.styleFrom(foregroundColor: c.primary),
                               ),
                             ],
                           ),
-                          const Divider(height: 24),
-                          const Text('Active Working Days', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          Divider(height: 24, color: c.border),
+                          Text('Active Working Days', style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 6,
@@ -492,36 +466,42 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                             children: _allDays.map((d) {
                               final active = p.workingDays.contains(d);
                               return Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: active ? AppColors.warmSand : AppColors.surfaceMuted,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: active ? AppColors.forestSage : AppColors.borderLight),
+                                  color: active ? c.accent : c.muted.withOpacity(0.5),
+                                  borderRadius: KiteRadius.allMd,
+                                  border: Border.all(color: active ? c.primary : c.border),
                                 ),
                                 child: Text(
                                   d.substring(0, 3),
-                                  style: TextStyle(
+                                  style: t.small.copyWith(
                                     fontSize: 11,
                                     fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                                    color: active ? AppColors.forestSage : AppColors.textMuted,
+                                    color: active ? c.foreground : c.mutedForeground,
                                   ),
                                 ),
                               );
                             }).toList(),
                           ),
                           const SizedBox(height: 16),
-                          const Text('Curriculum & Grading', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text('Curriculum & Grading', style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
                           const SizedBox(height: 4),
                           Text(
                             p.gradingPreference.replaceAll('_', ' '),
-                            style: const TextStyle(fontSize: 12, color: AppColors.forestSage, fontWeight: FontWeight.w600),
+                            style: t.small.copyWith(
+                              color: c.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           const SizedBox(height: 12),
-                          const Text('Academic Term Layout', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text('Academic Term Layout', style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
                           const SizedBox(height: 4),
                           Text(
                             p.termLayout,
-                            style: const TextStyle(fontSize: 12, color: AppColors.forestSage, fontWeight: FontWeight.w600),
+                            style: t.small.copyWith(
+                              color: c.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),
@@ -536,20 +516,22 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
     );
   }
 
-  Widget _infoRow(IconData icon, String label, String value) {
+  Widget _infoRow(BuildContext context, IconData icon, String label, String value) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: AppColors.textMuted),
+        Icon(icon, size: 16, color: c.mutedForeground),
         const SizedBox(width: 8),
         SizedBox(
-          width: 130,
-          child: Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+          width: 140,
+          child: Text(label, style: t.small.copyWith(color: c.mutedForeground)),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            style: t.small.copyWith(fontWeight: FontWeight.w600, color: c.foreground),
           ),
         ),
       ],

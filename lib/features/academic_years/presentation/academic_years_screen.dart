@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kite_ui/kite_ui.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/academic_year.dart';
@@ -174,11 +176,13 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
     final auth = context.watch<AuthNotifier>();
     final canWrite = auth.hasPermission('academic:year:write');
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.forestSage));
+      return Center(child: CircularProgressIndicator(color: c.primary));
     }
 
     if (_error != null) {
@@ -186,9 +190,9 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.earthyTerra),
+            const Icon(LucideIcons.circleAlert, size: 48, color: AppColors.earthyTerra),
             const SizedBox(height: 12),
-            Text(_error!),
+            Text(_error!, style: t.p),
             const SizedBox(height: 12),
             ElevatedButton(onPressed: _loadAcademicYears, child: const Text('Retry')),
           ],
@@ -208,34 +212,32 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Academic Years & Terms',
-                    style: TextStyle(
-                      fontFamily: 'serif',
-                      fontSize: 22,
+                    style: t.h2.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     'Configure institutional academic calendar periods and term boundaries.',
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: t.muted,
                   ),
                 ],
               ),
               ElevatedButton.icon(
                 onPressed: canWrite ? _showCreateYearDialog : null,
-                icon: Icon(canWrite ? Icons.add_rounded : Icons.lock_outline, size: 16),
+                icon: Icon(canWrite ? LucideIcons.plus : LucideIcons.lock, size: 16),
                 label: const Text('New Academic Year'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.forestSage,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey.shade300,
-                  disabledForegroundColor: Colors.grey.shade600,
+                  backgroundColor: c.primary,
+                  foregroundColor: c.primaryForeground,
+                  disabledBackgroundColor: c.muted,
+                  disabledForegroundColor: c.mutedForeground,
+                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
@@ -245,16 +247,7 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
 
           // Active Year Card
           if (_activeYear != null) ...[
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceWhite,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.forestSage.withOpacity(0.4), width: 1.5),
-                boxShadow: const [
-                  BoxShadow(color: Color(0x0A000000), blurRadius: 12, offset: Offset(0, 4)),
-                ],
-              ),
+            KiteCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -272,10 +265,10 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppColors.warmSand,
-                              borderRadius: BorderRadius.circular(12),
+                              color: c.accent,
+                              borderRadius: KiteRadius.allMd,
                             ),
-                            child: const Icon(Icons.star_rounded, color: AppColors.forestSage, size: 22),
+                            child: Icon(LucideIcons.star, color: c.primary, size: 20),
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,35 +278,21 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                                 runSpacing: 4,
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFDEF7EC),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Text(
-                                      'CURRENTLY ACTIVE',
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF03543F),
-                                      ),
-                                    ),
+                                  const KiteBadge(
+                                    'CURRENTLY ACTIVE',
+                                    tone: KiteTone.success,
                                   ),
                                   Text(
                                     '${_activeYear!.startDate} to ${_activeYear!.endDate}',
-                                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                                    style: t.small.copyWith(color: c.mutedForeground),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 _activeYear!.name,
-                                style: const TextStyle(
-                                  fontFamily: 'serif',
-                                  fontSize: 18,
+                                style: t.large.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
                                 ),
                               ),
                             ],
@@ -322,23 +301,24 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                       ),
                       OutlinedButton.icon(
                         onPressed: canWrite ? () => _showAddTermDialog(_activeYear!.id) : null,
-                        icon: Icon(canWrite ? Icons.add : Icons.lock_outline, size: 14),
+                        icon: Icon(canWrite ? LucideIcons.plus : LucideIcons.lock, size: 14),
                         label: const Text('Add Term'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.forestSage,
-                          side: const BorderSide(color: AppColors.borderMedium),
+                          foregroundColor: c.foreground,
+                          side: BorderSide(color: c.border),
+                          shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
                         ),
                       ),
                     ],
                   ),
-                  const Divider(height: 24),
-                  const Text(
+                  Divider(height: 24, color: c.border),
+                  Text(
                     'Terms & Semesters Breakdown',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
                   ),
                   const SizedBox(height: 12),
                   if (_activeYear!.terms.isEmpty)
-                    const Text('No terms configured yet.', style: TextStyle(fontSize: 12, color: AppColors.textMuted))
+                    Text('No terms configured yet.', style: t.small.copyWith(color: c.mutedForeground))
                   else
                     Wrap(
                       spacing: 12,
@@ -347,65 +327,100 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                         final isTermActive = term.status == 'ACTIVE';
                         return Container(
                           width: 240,
+                          constraints: const BoxConstraints(minHeight: 112),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isTermActive ? AppColors.warmSand : AppColors.surfaceWhite,
-                            borderRadius: BorderRadius.circular(14),
+                            color: isTermActive ? c.accent : c.card,
+                            borderRadius: KiteRadius.allMd,
                             border: Border.all(
-                              color: isTermActive ? AppColors.forestSage : AppColors.borderLight,
+                              color: isTermActive ? c.primary : c.border,
                               width: isTermActive ? 1.5 : 1.0,
                             ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      term.name,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: isTermActive ? AppColors.forestSage : AppColors.surfaceMuted,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      term.status,
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.bold,
-                                        color: isTermActive ? Colors.white : AppColors.textSecondary,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          term.name,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
+                                        ),
                                       ),
-                                    ),
+                                      KiteBadge(
+                                        term.status,
+                                        tone: isTermActive ? KiteTone.success : KiteTone.neutral,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${term.startDate} → ${term.endDate}',
+                                    style: t.small.copyWith(fontSize: 10, color: c.mutedForeground),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${term.startDate} → ${term.endDate}',
-                                style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 28,
+                                child: isTermActive
+                                    ? Container(
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.forestSage.withOpacity(0.12),
+                                          borderRadius: KiteRadius.allSm,
+                                        ),
+                                        child: const Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(LucideIcons.check, size: 12, color: AppColors.forestSage),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              'Active Term',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppColors.forestSage,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : (term.status == 'CONCLUDED'
+                                        ? Container(
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              color: c.muted.withOpacity(0.35),
+                                              borderRadius: KiteRadius.allSm,
+                                            ),
+                                            child: Text(
+                                              'Term Concluded',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: c.mutedForeground,
+                                              ),
+                                            ),
+                                          )
+                                        : OutlinedButton(
+                                            onPressed: canWrite ? () => _handleActivateTerm(_activeYear!.id, term.id) : null,
+                                            style: OutlinedButton.styleFrom(
+                                              padding: EdgeInsets.zero,
+                                              foregroundColor: c.primary,
+                                              side: BorderSide(color: c.border),
+                                              shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
+                                            ),
+                                            child: const Text('Activate Term', style: TextStyle(fontSize: 10)),
+                                          )),
                               ),
-                              if (!isTermActive && term.status != 'CONCLUDED') ...[
-                                const SizedBox(height: 8),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 26,
-                                  child: OutlinedButton(
-                                    onPressed: canWrite ? () => _handleActivateTerm(_activeYear!.id, term.id) : null,
-                                    style: OutlinedButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      foregroundColor: AppColors.forestSage,
-                                    ),
-                                    child: const Text('Activate Term', style: TextStyle(fontSize: 10)),
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         );
@@ -418,41 +433,32 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
           ],
 
           // Catalog
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceWhite,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.borderLight),
-              boxShadow: const [
-                BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4)),
-              ],
-            ),
+          KiteCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.format_list_bulleted_rounded, color: AppColors.forestSage, size: 20),
-                    SizedBox(width: 8),
+                    Icon(LucideIcons.calendarDays, color: c.foreground, size: 18),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'All Institutional Calendars',
-                        style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold),
+                        style: t.large.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
                 ),
-                const Divider(height: 24),
+                Divider(height: 24, color: c.border),
                 ..._academicYears.map((ay) {
                   final isActive = ay.status == 'ACTIVE';
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: isActive ? AppColors.warmSand.withOpacity(0.3) : AppColors.naturalParchment,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: isActive ? AppColors.forestSage : AppColors.borderLight),
+                      color: isActive ? c.accent.withOpacity(0.4) : c.card,
+                      borderRadius: KiteRadius.allMd,
+                      border: Border.all(color: isActive ? c.primary : c.border),
                     ),
                     child: Wrap(
                       spacing: 12,
@@ -470,29 +476,18 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                               children: [
                                 Text(
                                   ay.name,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                  style: t.small.copyWith(fontSize: 13, fontWeight: FontWeight.bold, color: c.foreground),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: isActive ? const Color(0xFFDEF7EC) : AppColors.surfaceMuted,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    ay.status,
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                      color: isActive ? const Color(0xFF03543F) : AppColors.textMuted,
-                                    ),
-                                  ),
+                                KiteBadge(
+                                  ay.status,
+                                  tone: isActive ? KiteTone.success : KiteTone.neutral,
                                 ),
                               ],
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'Duration: ${ay.startDate} to ${ay.endDate} • ${ay.terms.length} Terms',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              style: t.small.copyWith(fontSize: 11, color: c.mutedForeground),
                             ),
                           ],
                         ),
@@ -504,7 +499,9 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                               onPressed: canWrite ? () => _showAddTermDialog(ay.id) : null,
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                foregroundColor: AppColors.textPrimary,
+                                foregroundColor: c.foreground,
+                                side: BorderSide(color: c.border),
+                                shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
                               ),
                               child: const Text('+ Add Term', style: TextStyle(fontSize: 11)),
                             ),
@@ -512,11 +509,35 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                               ElevatedButton(
                                 onPressed: canWrite ? () => _handleActivateYear(ay.id) : null,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.forestSage,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: c.primary,
+                                  foregroundColor: c.primaryForeground,
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
                                 ),
                                 child: const Text('Activate', style: TextStyle(fontSize: 11)),
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.forestSage.withOpacity(0.12),
+                                  borderRadius: KiteRadius.allSm,
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(LucideIcons.check, size: 12, color: AppColors.forestSage),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Active',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.forestSage,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                           ],
                         ),
