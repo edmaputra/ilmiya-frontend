@@ -8,8 +8,8 @@ class NotificationService {
     try {
       if (!kIsWeb) {
         // Haptic feedback on physical mobile platforms
-        HapticFeedback.mediumImpact();
-        SystemSound.play(SystemSoundType.alert);
+        await HapticFeedback.mediumImpact();
+        await SystemSound.play(SystemSoundType.alert);
       }
     } catch (_) {
       // Ignored if sound is restricted by browser or platform

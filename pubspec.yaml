@@ -28,8 +28,30 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+
+# ── App Icon Generation ────────────────────────────────────────────────────────
+# Run: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/icons/icon.png"
+  # iOS — transparent background, let iOS apply its own rounded-rect mask
+  ios: true
+  remove_alpha_ios: false
+  # Android icons already generated into mipmap-* dirs; manifest not present
+  android: false
+  # macOS
+  macos:
+    generate: true
+    image_path: "assets/icons/icon.png"
+  # Web
+  web:
+    generate: true
+    image_path: "assets/icons/icon.png"
+    background_color: "#FFFFFF"
+    theme_color: "#1E6570"
 
 flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/icons/

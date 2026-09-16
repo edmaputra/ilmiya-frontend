@@ -33,6 +33,18 @@ class IlmiyaApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
+      // Clamp system font scaling (iOS & Android accessibility "Large Text"
+      // setting) to a neutral 1.0 so the UI layout stays predictable across
+      // devices. Web and desktop are unaffected because their textScaler is
+      // already 1.0 by default.
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.0),
+          ),
+          child: child!,
+        );
+      },
       home: Consumer2<AppState, AuthNotifier>(
         builder: (context, state, auth, _) {
           return AdaptiveScaffold(

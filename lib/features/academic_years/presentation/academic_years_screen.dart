@@ -86,10 +86,8 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                 startDate: startCtrl.text.trim(),
                 endDate: endCtrl.text.trim(),
               ));
-              if (mounted) {
-                Navigator.of(ctx).pop();
-                _loadAcademicYears();
-              }
+              if (ctx.mounted) Navigator.of(ctx).pop();
+              if (mounted) await _loadAcademicYears();
             },
             child: const Text('Create Calendar Year'),
           ),
@@ -153,10 +151,8 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                   startDate: startCtrl.text.trim(),
                   endDate: endCtrl.text.trim(),
                 ));
-                if (mounted) {
-                  Navigator.of(ctx).pop();
-                  _loadAcademicYears();
-                }
+                if (ctx.mounted) Navigator.of(ctx).pop();
+                if (mounted) await _loadAcademicYears();
               },
               child: const Text('Add Term'),
             ),
@@ -168,12 +164,12 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
 
   Future<void> _handleActivateYear(String yearId) async {
     await academicYearService.activateYear(yearId);
-    _loadAcademicYears();
+    if (mounted) await _loadAcademicYears();
   }
 
   Future<void> _handleActivateTerm(String yearId, String termId) async {
     await academicYearService.activateTerm(yearId, termId);
-    _loadAcademicYears();
+    if (mounted) await _loadAcademicYears();
   }
 
   @override

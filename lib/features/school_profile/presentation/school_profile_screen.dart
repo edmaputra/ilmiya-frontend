@@ -140,8 +140,8 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                   governmentRegistrationNumber: npsnCtrl.text.trim().isNotEmpty ? npsnCtrl.text.trim() : null,
                   accreditationStatus: accredStatus,
                 ));
-                setState(() => _profile = updated);
-                if (mounted) Navigator.of(ctx).pop();
+                if (mounted) setState(() => _profile = updated);
+                if (ctx.mounted) Navigator.of(ctx).pop();
               },
               child: const Text('Save Changes'),
             ),
@@ -153,7 +153,7 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
 
   void _showSettingsDialog() {
     if (_profile == null) return;
-    List<String> selectedDays = List.from(_profile!.workingDays);
+    final selectedDays = List<String>.from(_profile!.workingDays);
     String grading = _profile!.gradingPreference;
     String termLayout = _profile!.termLayout;
 
@@ -248,8 +248,8 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                   gradingPreference: grading,
                   termLayout: termLayout,
                 ));
-                setState(() => _profile = updated);
-                if (mounted) Navigator.of(ctx).pop();
+                if (mounted) setState(() => _profile = updated);
+                if (ctx.mounted) Navigator.of(ctx).pop();
               },
               child: const Text('Save Settings'),
             ),
@@ -303,8 +303,44 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                 children: [
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 8,
+                    spacing: 10,
+                    runSpacing: 6,
                     children: [
+                      // School icon / logo placeholder
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF2D7A82),
+                              Color(0xFF1E6570),
+                              Color(0xFF144C57),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.12),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.account_balance_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
                       Text(
                         p.name,
                         style: const TextStyle(
@@ -331,7 +367,7 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 6),
                   Text(
                     'Tenant ID: ${p.tenantId} • Code: ${p.institutionCode}',
                     style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),

@@ -212,7 +212,7 @@ void main() {
     expect(find.text('Lincoln High School'), findsWidgets);
 
     // Switch tenant to SMAN 1 Ilmiya
-    authNotifier.switchTenant('tenant-sma1-ilmiya-002');
+    await authNotifier.switchTenant('tenant-sma1-ilmiya-002');
     await tester.pumpAndSettle();
 
     // Subtitle in header navbar dynamically updates
