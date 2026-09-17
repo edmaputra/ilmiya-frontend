@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:kite_ui/shadcn.dart';
 import 'package:provider/provider.dart';
+
 import 'core/theme/app_theme.dart';
+import 'features/academic_years/presentation/academic_years_screen.dart';
+import 'features/dashboard/presentation/dashboard_screen.dart';
+import 'features/grades/presentation/grades_screen.dart';
+import 'features/iam_management/presentation/iam_management_screen.dart';
+import 'features/messaging/presentation/messaging_screen.dart';
+import 'features/notifications/presentation/notifications_screen.dart';
+import 'features/preview/presentation/preview_screen.dart';
+import 'features/school_profile/presentation/school_profile_screen.dart';
+import 'shared_widgets/adaptive_scaffold.dart';
 import 'state/app_state.dart';
 import 'state/auth_notifier.dart';
-import 'shared_widgets/adaptive_scaffold.dart';
-import 'features/school_profile/presentation/school_profile_screen.dart';
-import 'features/academic_years/presentation/academic_years_screen.dart';
-import 'features/iam_management/presentation/iam_management_screen.dart';
-import 'features/preview/presentation/preview_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,38 +33,44 @@ class IlmiyaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Ilmiya - School Information System',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
-      // Clamp system font scaling (iOS & Android accessibility "Large Text"
-      // setting) to a neutral 1.0 so the UI layout stays predictable across
-      // devices. Web and desktop are unaffected because their textScaler is
-      // already 1.0 by default.
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: const TextScaler.linear(1.0),
-          ),
-          child: child!,
-        );
-      },
-      home: Consumer2<AppState, AuthNotifier>(
-        builder: (context, state, auth, _) {
-          return AdaptiveScaffold(
-            body: IndexedStack(
-              index: state.currentTab.clamp(0, 3),
-              children: [
-                SchoolProfileScreen(key: ValueKey('school_profile_${auth.tenantId}')),
-                AcademicYearsScreen(key: ValueKey('academic_years_${auth.tenantId}')),
-                IamManagementScreen(key: ValueKey('iam_management_${auth.tenantId}')),
-                const PreviewScreen(),
-              ],
+    final appState = context.watch<AppState>();
+    final isDark = appState.themeMode == ThemeMode.dark;
+
+    return ShadTheme(
+      data: isDark ? AppTheme.shadDarkTheme : AppTheme.shadLightTheme,
+      child: MaterialApp(
+        title: 'Ilmiya - School Information System',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: appState.themeMode,
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(1.0),
             ),
+            child: child!,
           );
         },
+        home: Consumer2<AppState, AuthNotifier>(
+          builder: (context, state, auth, _) {
+            return AdaptiveScaffold(
+              body: IndexedStack(
+                index: state.currentTab.clamp(0, 7),
+                children: [
+                  SchoolProfileScreen(key: ValueKey('school_profile_${auth.tenantId}')),
+                  AcademicYearsScreen(key: ValueKey('academic_years_${auth.tenantId}')),
+                  IamManagementScreen(key: ValueKey('iam_management_${auth.tenantId}')),
+                  const PreviewScreen(),
+                  DashboardScreen(key: ValueKey('dashboard_${auth.tenantId}')),
+                  const GradesScreen(),
+                  const MessagingScreen(),
+                  const NotificationsScreen(),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

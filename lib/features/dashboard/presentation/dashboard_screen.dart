@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:kite_ui/kite_ui.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/constants/app_colors.dart';
-import '../../../core/models/user_profile.dart';
 import '../../../core/models/notification_item.dart';
+import '../../../core/models/user_profile.dart';
 import '../../../state/app_state.dart';
-import '../widgets/gpa_summary_card.dart';
+import '../../../state/auth_notifier.dart';
 import '../widgets/course_card.dart';
 import '../widgets/schedule_widget.dart';
 
@@ -14,25 +17,32 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final auth = context.watch<AuthNotifier>();
     final user = state.currentUser;
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final isDesktop = MediaQuery.of(context).size.width >= 1024;
+
+    final schoolName = auth.tenantId == 'tenant-lincoln-high-001'
+        ? 'Lincoln High School'
+        : auth.tenantId == 'tenant-sma1-ilmiya-002'
+            ? 'SMA Negeri 1 Ilmiya'
+            : auth.tenantId;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      padding: const EdgeInsets.all(KiteSpace.xl),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Welcome Hero Banner
-          _buildHeroBanner(context, user, state),
+          // 1. Welcome & School Header Bar
+          _buildHeaderBanner(context, user, schoolName, state),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: KiteSpace.xl),
 
-          // 2. Metrics Row
-          const MetricsRow(),
+          // 2. Kite KPI Stat Grid
+          _buildKpiStatGrid(context, state),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: KiteSpace.xl),
 
-          // 3. Split Content: Courses (Left) & Schedule/Feed (Right)
+          // 3. Main Content: Courses (Left) & Timetable / Live Stream (Right)
           if (isDesktop)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,39 +51,44 @@ class DashboardScreen extends StatelessWidget {
                   flex: 7,
                   child: _buildCoursesSection(context, state),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: KiteSpace.xl),
                 Expanded(
-                  flex: 4,
+                  flex: 5,
                   child: _buildSideSection(context, state),
                 ),
               ],
             )
-          else
-            Column(
-              children: [
-                _buildCoursesSection(context, state),
-                const SizedBox(height: 24),
-                _buildSideSection(context, state),
-              ],
-            ),
+          else ...[
+            _buildCoursesSection(context, state),
+            const SizedBox(height: KiteSpace.xl),
+            _buildSideSection(context, state),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildHeroBanner(BuildContext context, UserProfile user, AppState state) {
+  Widget _buildHeaderBanner(
+    BuildContext context,
+    UserProfile user,
+    String schoolName,
+    AppState state,
+  ) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(KiteSpace.xl),
       decoration: BoxDecoration(
-        color: AppColors.forestSage,
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: AppColors.forestSageDark),
+        color: isDark ? const Color(0xFF262925) : Colors.white,
+        borderRadius: KiteRadius.allLg,
+        border: Border.all(color: c.border),
         boxShadow: [
           BoxShadow(
-            color: AppColors.forestSage.withOpacity(0.2),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -83,128 +98,87 @@ class DashboardScreen extends StatelessWidget {
 
           return Flex(
             direction: isWide ? Axis.horizontal : Axis.vertical,
-            crossAxisAlignment: isWide ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            crossAxisAlignment:
+                isWide ? CrossAxisAlignment.center : CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                flex: isWide ? 6 : 0,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.warmSand,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.borderLight),
-                          ),
-                          child: Text(
-                            '${user.role.displayName} Portal',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.1,
-                              color: AppColors.forestSage,
-                            ),
-                          ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const KiteBadge('2025/2026 Term 2 Active', tone: KiteTone.success),
+                      const SizedBox(width: KiteSpace.sm),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: c.muted,
+                          borderRadius: BorderRadius.circular(999),
                         ),
-                        const SizedBox(width: 8),
-                        const Row(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.shield_outlined, size: 14, color: AppColors.warmSand),
-                            SizedBox(width: 4),
+                            const Icon(LucideIcons.shieldCheck, size: 12, color: AppColors.forestSage),
+                            const SizedBox(width: 4),
                             Text(
-                              'FERPA Compliant • E2EE Active',
+                              'FERPA & RBAC Verified',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.white70,
+                                fontWeight: FontWeight.w600,
+                                color: c.mutedForeground,
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Welcome back, ${user.name}',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getRoleSubtitle(user),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                  const SizedBox(height: KiteSpace.sm),
+                  Text(
+                    'Welcome back, ${user.name}',
+                    style: t.h3.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$schoolName • Administrative Portal & Student Information Control',
+                    style: t.muted.copyWith(fontSize: 13),
+                  ),
+                ],
               ),
-
-              if (!isWide) const SizedBox(height: 18),
-
-              // Action shortcuts
+              if (!isWide) const SizedBox(height: KiteSpace.md),
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: KiteSpace.sm,
+                runSpacing: KiteSpace.sm,
                 children: [
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.warmSand,
-                      foregroundColor: AppColors.forestSage,
-                      elevation: 0,
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      side: BorderSide(color: c.border),
                     ),
-                    icon: const Icon(Icons.calculate_outlined, size: 16),
-                    label: const Text(
-                      'What-If GPA',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-                    ),
+                    icon: const Icon(LucideIcons.calendar, size: 15),
+                    label: const Text('Academic Terms', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                     onPressed: () => state.setTab(1),
                   ),
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white30),
-                      backgroundColor: Colors.white.withOpacity(0.15),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      side: BorderSide(color: c.border),
                     ),
-                    icon: const Icon(Icons.picture_as_pdf_outlined, size: 16, color: AppColors.warmSand),
-                    label: const Text(
-                      'Transcript PDF',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-                    ),
-                    onPressed: () => state.setTab(1),
+                    icon: const Icon(LucideIcons.graduationCap, size: 15),
+                    label: const Text('Gradebook', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    onPressed: () => state.setTab(5),
                   ),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.forestSage,
                       foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white30),
-                      backgroundColor: Colors.white.withOpacity(0.15),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    icon: const Icon(Icons.chat_bubble_outline, size: 16, color: AppColors.warmSand),
-                    label: const Text(
-                      'Teacher Chat',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-                    ),
+                    icon: const Icon(LucideIcons.userPlus, size: 15),
+                    label: const Text('IAM Console', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                     onPressed: () => state.setTab(2),
                   ),
                 ],
@@ -216,52 +190,80 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  String _getRoleSubtitle(UserProfile user) {
-    switch (user.role) {
-      case UserRole.student:
-        return '${user.gradeLevel} • ID: ${user.schoolId} • Lincoln High STEM Academy';
-      case UserRole.teacher:
-        return '${user.department} • 4 Active Sections • 118 Students';
-      case UserRole.parent:
-        return 'Viewing Academic Record for Alex Rivera (Grade 11)';
-      case UserRole.admin:
-        return 'Lincoln District High School • Central Administrative Control';
-    }
+  Widget _buildKpiStatGrid(BuildContext context, AppState state) {
+    final gpa = state.cumulativeGpa;
+
+    return KiteStatGrid(
+      height: 145,
+      minTileWidth: 200,
+      children: [
+        const KiteStat(
+          label: 'Total Enrolled Students',
+          value: '1,248',
+          delta: '+4.2% vs prior term',
+          deltaTone: KiteTone.success,
+          padding: EdgeInsets.all(KiteSpace.lg),
+        ),
+        const KiteStat(
+          label: 'Active Faculty & Staff',
+          value: '94',
+          delta: '100% active IAM access',
+          deltaTone: KiteTone.info,
+          padding: EdgeInsets.all(KiteSpace.lg),
+        ),
+        const KiteStat(
+          label: 'Daily Attendance Rate',
+          value: '96.4%',
+          delta: '+1.1% above target',
+          deltaTone: KiteTone.success,
+          padding: EdgeInsets.all(KiteSpace.lg),
+        ),
+        KiteStat(
+          label: 'Cumulative GPA',
+          value: gpa['unweighted'] ?? '3.88',
+          delta: 'Weighted honors: ${gpa['weighted'] ?? '4.12'}',
+          deltaTone: KiteTone.info,
+          padding: const EdgeInsets.all(KiteSpace.lg),
+        ),
+      ],
+    );
   }
 
   Widget _buildCoursesSection(BuildContext context, AppState state) {
+    final t = KiteText.of(context);
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 8,
           children: [
-            const Row(
+            Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.book_outlined, size: 18, color: AppColors.forestSage),
-                SizedBox(width: 8),
-                Text(
-                  'Active Academic Courses',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
+                const Icon(LucideIcons.bookOpen, size: 18, color: AppColors.forestSage),
+                const SizedBox(width: KiteSpace.sm),
+                Text('Active Academic Courses', style: t.h4),
               ],
             ),
             TextButton.icon(
-              onPressed: () => state.setTab(1),
+              onPressed: () => state.setTab(5),
               icon: const Text(
-                'Full gradebook',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.forestSage),
+                'Full Coursework & Grades',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.forestSage,
+                ),
               ),
-              label: const Icon(Icons.arrow_outward, size: 14, color: AppColors.forestSage),
+              label: const Icon(LucideIcons.arrowUpRight, size: 14, color: AppColors.forestSage),
             ),
           ],
         ),
-
-        const SizedBox(height: 12),
+        const SizedBox(height: KiteSpace.md),
 
         LayoutBuilder(
           builder: (context, constraints) {
@@ -271,9 +273,9 @@ class DashboardScreen extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: count,
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 14,
-                childAspectRatio: count == 1 ? 2.4 : 1.75,
+                crossAxisSpacing: KiteSpace.md,
+                mainAxisSpacing: KiteSpace.md,
+                childAspectRatio: count == 1 ? 2.3 : 1.7,
               ),
               itemCount: state.courses.length,
               itemBuilder: (context, index) {
@@ -283,62 +285,55 @@ class DashboardScreen extends StatelessWidget {
           },
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: KiteSpace.lg),
 
-        // Upcoming submission banner
+        // Upcoming Submission Alert Card
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(KiteSpace.lg),
           decoration: BoxDecoration(
-            color: AppColors.warmSand,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.borderMedium),
+            color: const Color(0xFFFEF9C3).withOpacity(0.5),
+            borderRadius: KiteRadius.allLg,
+            border: Border.all(color: const Color(0xFFFDE047)),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.borderLight,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.borderMedium),
+                  color: const Color(0xFFFEF08A),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.access_time, color: AppColors.earthyTerra, size: 20),
+                child: const Icon(LucideIcons.clock, color: Color(0xFF854D0E), size: 18),
               ),
-              const SizedBox(width: 14),
-              const Expanded(
+              const SizedBox(width: KiteSpace.md),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'UPCOMING SUBMISSION PENDING',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.1,
-                        color: AppColors.earthyTerra,
+                        letterSpacing: 0.8,
+                        color: Color(0xFF854D0E),
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Final Term Capstone: Distributed State Machine (CS-301) • Due Apr 18',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
+                      'Final Term Capstone: Distributed State Machine (CS-301) • Due Friday',
+                      style: t.small.copyWith(fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
+              FilledButton(
+                style: FilledButton.styleFrom(
                   backgroundColor: AppColors.forestSage,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                onPressed: () => state.setTab(1),
+                onPressed: () => state.setTab(5),
                 child: const Text('View Rubric', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
               ),
             ],
@@ -349,86 +344,57 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildSideSection(BuildContext context, AppState state) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
+
     return Column(
       children: [
-        // 1. Schedule Card
+        // 1. Weekly Schedule & Timetable
         const ScheduleWidget(),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: KiteSpace.xl),
 
-        // 2. Live Notifications Stream Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: AppColors.borderLight),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        // 2. Kite-styled Live Stream Feed Card
+        KiteCard(
+          title: 'Live Activity & Notifications',
+          trailing: InkWell(
+            onTap: () => state.simulateNotification('grade'),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(LucideIcons.sparkles, size: 12, color: AppColors.earthyTerra),
+                const SizedBox(width: 4),
+                Text(
+                  'Simulate',
+                  style: t.small.copyWith(
+                    color: AppColors.forestSage,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.notifications_outlined, size: 16, color: AppColors.forestSage),
-                      SizedBox(width: 8),
-                      Text(
-                        'Live Stream',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  InkWell(
-                    onTap: () => state.simulateNotification('grade'),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.auto_awesome, size: 12, color: AppColors.earthyTerra),
-                        SizedBox(width: 4),
-                        Text(
-                          'Simulate',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.forestSage,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: state.notifications.take(3).length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, __) => const SizedBox(height: KiteSpace.sm),
                 itemBuilder: (context, index) {
                   final notif = state.notifications[index];
+                  final isMsg = notif.category == NotificationCategory.message;
+
                   return InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () => state.setTab(notif.category == NotificationCategory.message ? 2 : 3),
+                    borderRadius: KiteRadius.allMd,
+                    onTap: () => state.setTab(isMsg ? 6 : 7),
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(KiteSpace.md),
                       decoration: BoxDecoration(
-                        color: notif.read ? AppColors.naturalParchment.withOpacity(0.6) : AppColors.naturalParchment,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.borderMedium),
+                        color: notif.read ? c.background : c.muted.withOpacity(0.5),
+                        borderRadius: KiteRadius.allMd,
+                        border: Border.all(color: c.border),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,21 +405,14 @@ class DashboardScreen extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   notif.title,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textPrimary,
-                                  ),
+                                  style: t.small.copyWith(fontWeight: FontWeight.w700),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               Text(
                                 notif.timestamp,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.textMuted,
-                                ),
+                                style: t.muted.copyWith(fontSize: 10),
                               ),
                             ],
                           ),
@@ -462,17 +421,21 @@ class DashboardScreen extends StatelessWidget {
                             notif.message,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textSecondary,
-                              height: 1.3,
-                            ),
+                            style: t.muted.copyWith(fontSize: 12),
                           ),
                         ],
                       ),
                     ),
                   );
                 },
+              ),
+              const SizedBox(height: KiteSpace.sm),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => state.setTab(7),
+                  icon: const Text('View All Notifications', style: TextStyle(fontSize: 12)),
+                  label: const Icon(LucideIcons.arrowRight, size: 14),
+                ),
               ),
             ],
           ),

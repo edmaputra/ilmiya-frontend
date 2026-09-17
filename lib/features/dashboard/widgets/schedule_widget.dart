@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:kite_ui/kite_ui.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../state/app_state.dart';
 
 class ScheduleWidget extends StatelessWidget {
@@ -8,42 +9,31 @@ class ScheduleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = KiteColors.of(context);
+    final t = KiteText.of(context);
     final state = context.watch<AppState>();
     final schedule = state.schedule;
 
-    return Container(
+    return KiteCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Flexible(
+              Flexible(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.forestSage),
-                    SizedBox(width: 8),
+                    Icon(LucideIcons.calendar, size: 16, color: c.primary),
+                    const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         "Today's Schedule",
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: t.small.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: c.foreground,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -51,21 +41,9 @@ class ScheduleWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.warmSand,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: const Text(
-                  'Period 3 Active',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.forestSage,
-                  ),
-                ),
+              const KiteBadge(
+                'Period 3 Active',
+                tone: KiteTone.info,
               ),
             ],
           ),
@@ -84,10 +62,10 @@ class ScheduleWidget extends StatelessWidget {
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isActive ? AppColors.warmSand : AppColors.naturalParchment,
-                  borderRadius: BorderRadius.circular(16),
+                  color: isActive ? c.accent : c.card,
+                  borderRadius: KiteRadius.allMd,
                   border: Border.all(
-                    color: isActive ? AppColors.forestSage.withOpacity(0.4) : AppColors.borderLight,
+                    color: isActive ? c.primary : c.border,
                   ),
                 ),
                 child: Row(
@@ -107,18 +85,17 @@ class ScheduleWidget extends StatelessWidget {
                         children: [
                           Text(
                             item.courseName,
-                            style: TextStyle(
-                              fontSize: 12,
+                            style: t.small.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: isActive ? AppColors.forestSage : AppColors.textPrimary,
+                              color: isActive ? c.primary : c.foreground,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             '${item.time} • ${item.room}',
-                            style: const TextStyle(
+                            style: t.small.copyWith(
                               fontSize: 10,
-                              color: AppColors.textMuted,
+                              color: c.mutedForeground,
                             ),
                           ),
                         ],
@@ -126,10 +103,10 @@ class ScheduleWidget extends StatelessWidget {
                     ),
                     Text(
                       item.teacher,
-                      style: const TextStyle(
+                      style: t.small.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+                        color: c.mutedForeground,
                       ),
                     ),
                   ],

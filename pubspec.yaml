@@ -23,6 +23,13 @@ dependencies:
   # Icons & Charts
   cupertino_icons: ^1.0.8
   http: ^1.6.0
+  fl_chart: ^1.2.0
+  lucide_icons_flutter: ^3.1.20
+
+  # Kite UI & Shadcn Design System
+  shadcn_ui: ^0.55.1
+  kite_ui:
+    path: packages/kite_ui
 
 dev_dependencies:
   flutter_test:
