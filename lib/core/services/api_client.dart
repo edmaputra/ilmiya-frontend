@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ApiException implements Exception {
@@ -12,7 +13,7 @@ class ApiException implements Exception {
   String toString() => 'ApiException($statusCode): $message';
 }
 
-class ApiClient {
+class ApiClient extends ChangeNotifier {
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;
   ApiClient._internal();
@@ -21,20 +22,44 @@ class ApiClient {
     'ILMIYA_API_BASE_URL',
     defaultValue: 'http://localhost:8080',
   );
-  String tenantId = const String.fromEnvironment(
+  String _tenantId = const String.fromEnvironment(
     'ILMIYA_DEFAULT_TENANT_ID',
     defaultValue: 'tenant-lincoln-high-001',
   );
   String? token;
   String? refreshToken;
-  bool isMockMode = true;
+  bool _isMockMode = true;
   bool _isRefreshing = false;
 
   final List<void Function()> _onAuthExpiredListeners = [];
 
+  bool get isMockMode => _isMockMode;
+  set isMockMode(bool value) {
+    if (_isMockMode != value) {
+      _isMockMode = value;
+      notifyListeners();
+    }
+  }
+
+  void toggleMockMode() {
+    isMockMode = !_isMockMode;
+  }
+
+  String get tenantId => _tenantId;
+  set tenantId(String value) {
+    if (_tenantId != value) {
+      _tenantId = value;
+      notifyListeners();
+    }
+  }
+
   String get baseUrl => _baseUrl;
   set baseUrl(String url) {
-    _baseUrl = url.replaceAll(RegExp(r'/+$'), '');
+    final cleaned = url.replaceAll(RegExp(r'/+$'), '');
+    if (_baseUrl != cleaned) {
+      _baseUrl = cleaned;
+      notifyListeners();
+    }
   }
 
   void Function() onAuthExpired(void Function() listener) {

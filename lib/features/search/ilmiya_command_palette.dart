@@ -171,7 +171,7 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
         icon: LucideIcons.server,
         subtitle: apiClient.isMockMode ? 'Connect to backend at ${apiClient.baseUrl}' : 'Use fast in-memory simulation',
         onSelect: () {
-          apiClient.isMockMode = !apiClient.isMockMode;
+          apiClient.toggleMockMode();
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

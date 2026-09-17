@@ -89,51 +89,23 @@ class IamService {
       );
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/auth/login',
-        method: 'POST',
-        body: req.toJson(),
-      );
-      final resp = TokenResponse.fromJson(json as Map<String, dynamic>);
-      _apiClient.token = resp.accessToken;
-      if (resp.refreshToken.isNotEmpty) {
-        _apiClient.refreshToken = resp.refreshToken;
-      }
-      if (resp.tenantId.isNotEmpty) {
-        _apiClient.tenantId = resp.tenantId;
-      }
-      try {
-        await getMe();
-      } catch (_) {}
-      return resp;
-    } catch (e) {
-      // Fallback
-      final token = 'mock-jwt-token-${DateTime.now().millisecondsSinceEpoch}';
-      final refreshToken = 'mock-refresh-${DateTime.now().millisecondsSinceEpoch}';
-      _apiClient.token = token;
-      _apiClient.refreshToken = refreshToken;
-
-      _cachedProfile = UserProfileResponse(
-        id: 'u-11111111-1111-1111-1111-111111111111',
-        email: email.isNotEmpty ? email : 'admin.utama@ilmiya.edu',
-        fullName: 'Dr. Sarah Jenkins (Head Administrator)',
-        tenantId: _apiClient.tenantId,
-        roles: ['SUPERADMIN'],
-        permissions: ['*'],
-        scopes: ['/CAMPUS_MAIN'],
-      );
-
-      return TokenResponse(
-        accessToken: token,
-        refreshToken: refreshToken,
-        tokenType: 'Bearer',
-        expiresIn: 3600,
-        tenantId: _apiClient.tenantId,
-        roles: ['SUPERADMIN'],
-        permissions: ['*'],
-      );
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/auth/login',
+      method: 'POST',
+      body: req.toJson(),
+    );
+    final resp = TokenResponse.fromJson(json as Map<String, dynamic>);
+    _apiClient.token = resp.accessToken;
+    if (resp.refreshToken.isNotEmpty) {
+      _apiClient.refreshToken = resp.refreshToken;
     }
+    if (resp.tenantId.isNotEmpty) {
+      _apiClient.tenantId = resp.tenantId;
+    }
+    try {
+      await getMe();
+    } catch (_) {}
+    return resp;
   }
 
   Future<UserProfileResponse> getMe() async {
@@ -152,25 +124,16 @@ class IamService {
       );
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/auth/me',
-        method: 'GET',
-      );
-      _cachedProfile = UserProfileResponse.fromJson(json as Map<String, dynamic>);
-      return _cachedProfile!;
-    } catch (_) {
-      if (_cachedProfile != null) return _cachedProfile!;
-      return UserProfileResponse(
-        id: 'u-11111111-1111-1111-1111-111111111111',
-        email: 'admin.utama@ilmiya.edu',
-        fullName: 'Dr. Sarah Jenkins (Head Administrator)',
-        tenantId: _apiClient.tenantId,
-        roles: ['SUPERADMIN'],
-        permissions: ['*'],
-        scopes: ['/CAMPUS_MAIN'],
-      );
+    if (_apiClient.token == null) {
+      throw ApiException(401, 'No active authentication session in Live mode.');
     }
+
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/auth/me',
+      method: 'GET',
+    );
+    _cachedProfile = UserProfileResponse.fromJson(json as Map<String, dynamic>);
+    return _cachedProfile!;
   }
 
   void logout() {
@@ -201,34 +164,18 @@ class IamService {
       );
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/auth/switch-tenant',
-        method: 'POST',
-        headers: {'X-Tenant-ID': targetTenantId},
-        body: {'tenantId': targetTenantId},
-      );
-      final resp = TokenResponse.fromJson(json as Map<String, dynamic>);
-      _apiClient.token = resp.accessToken;
-      if (resp.refreshToken.isNotEmpty) {
-        _apiClient.refreshToken = resp.refreshToken;
-      }
-      return resp;
-    } catch (_) {
-      final token = 'mock-jwt-switched-${DateTime.now().millisecondsSinceEpoch}';
-      final refreshToken = 'mock-refresh-${DateTime.now().millisecondsSinceEpoch}';
-      _apiClient.token = token;
-      _apiClient.refreshToken = refreshToken;
-      return TokenResponse(
-        accessToken: token,
-        refreshToken: refreshToken,
-        tokenType: 'Bearer',
-        expiresIn: 3600,
-        tenantId: targetTenantId,
-        roles: ['SUPERADMIN'],
-        permissions: ['*'],
-      );
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/auth/switch-tenant',
+      method: 'POST',
+      headers: {'X-Tenant-ID': targetTenantId},
+      body: {'tenantId': targetTenantId},
+    );
+    final resp = TokenResponse.fromJson(json as Map<String, dynamic>);
+    _apiClient.token = resp.accessToken;
+    if (resp.refreshToken.isNotEmpty) {
+      _apiClient.refreshToken = resp.refreshToken;
     }
+    return resp;
   }
 
   // ================= User Management Endpoints =================
@@ -237,62 +184,46 @@ class IamService {
     if (_apiClient.isMockMode) {
       return _mockStorage.listUsers();
     }
-    try {
-      final json = await _apiClient.request(endpoint: '/api/v1/users', method: 'GET');
-      return (json as List<dynamic>)
-          .map((u) => UserResponse.fromJson(u as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return _mockStorage.listUsers();
-    }
+    final json = await _apiClient.request(endpoint: '/api/v1/users', method: 'GET');
+    return (json as List<dynamic>)
+        .map((u) => UserResponse.fromJson(u as Map<String, dynamic>))
+        .toList();
   }
 
   Future<UserResponse> createUser(CreateUserRequest req) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.createUser(req);
     }
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/users',
-        method: 'POST',
-        body: req.toJson(),
-      );
-      return UserResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.createUser(req);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/users',
+      method: 'POST',
+      body: req.toJson(),
+    );
+    return UserResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<UserResponse> updateUser(String id, String fullName) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.updateUser(id, fullName);
     }
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/users/$id',
-        method: 'PUT',
-        body: {'fullName': fullName},
-      );
-      return UserResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.updateUser(id, fullName);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/users/$id',
+      method: 'PUT',
+      body: {'fullName': fullName},
+    );
+    return UserResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<UserResponse> changeUserStatus(String id, String status) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.changeUserStatus(id, status);
     }
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/users/$id/status',
-        method: 'PATCH',
-        body: {'status': status},
-      );
-      return UserResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.changeUserStatus(id, status);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/users/$id/status',
+      method: 'PATCH',
+      body: {'status': status},
+    );
+    return UserResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<void> deleteUser(String id) async {
@@ -300,11 +231,7 @@ class IamService {
       _mockStorage.deleteUser(id);
       return;
     }
-    try {
-      await _apiClient.request(endpoint: '/api/v1/users/$id', method: 'DELETE');
-    } catch (_) {
-      _mockStorage.deleteUser(id);
-    }
+    await _apiClient.request(endpoint: '/api/v1/users/$id', method: 'DELETE');
   }
 
   Future<UserRoleAssignmentResponse> assignRole({
@@ -321,42 +248,29 @@ class IamService {
         scopeNodeId: scopeNodeId,
       );
     }
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/users/$userId/roles',
-        method: 'POST',
-        body: {
-          'roleId': roleId,
-          'tenantId': tenantId,
-          if (scopeNodeId != null) 'scopeNodeId': scopeNodeId,
-        },
-      );
-      return UserRoleAssignmentResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.assignUserRole(
-        userId: userId,
-        roleId: roleId,
-        tenantId: tenantId,
-        scopeNodeId: scopeNodeId,
-      );
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/users/$userId/roles',
+      method: 'POST',
+      body: {
+        'roleId': roleId,
+        'tenantId': tenantId,
+        if (scopeNodeId != null) 'scopeNodeId': scopeNodeId,
+      },
+    );
+    return UserRoleAssignmentResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<List<UserRoleAssignmentResponse>> getUserRoles(String userId) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.getUserRoles(userId);
     }
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/users/$userId/roles',
-        method: 'GET',
-      );
-      return (json as List<dynamic>)
-          .map((r) => UserRoleAssignmentResponse.fromJson(r as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return _mockStorage.getUserRoles(userId);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/users/$userId/roles',
+      method: 'GET',
+    );
+    return (json as List<dynamic>)
+        .map((r) => UserRoleAssignmentResponse.fromJson(r as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> revokeRole(String userId, String assignmentId) async {
@@ -364,14 +278,10 @@ class IamService {
       _mockStorage.revokeUserRole(assignmentId);
       return;
     }
-    try {
-      await _apiClient.request(
-        endpoint: '/api/v1/users/$userId/roles/$assignmentId',
-        method: 'DELETE',
-      );
-    } catch (_) {
-      _mockStorage.revokeUserRole(assignmentId);
-    }
+    await _apiClient.request(
+      endpoint: '/api/v1/users/$userId/roles/$assignmentId',
+      method: 'DELETE',
+    );
   }
 
   // ================= Roles Endpoints =================
@@ -380,30 +290,22 @@ class IamService {
     if (_apiClient.isMockMode) {
       return _mockStorage.listRoles(_apiClient.tenantId);
     }
-    try {
-      final json = await _apiClient.request(endpoint: '/api/v1/roles', method: 'GET');
-      return (json as List<dynamic>)
-          .map((r) => RoleResponse.fromJson(r as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return _mockStorage.listRoles(_apiClient.tenantId);
-    }
+    final json = await _apiClient.request(endpoint: '/api/v1/roles', method: 'GET');
+    return (json as List<dynamic>)
+        .map((r) => RoleResponse.fromJson(r as Map<String, dynamic>))
+        .toList();
   }
 
   Future<RoleResponse> createRole(CreateRoleRequest req) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.createRole(_apiClient.tenantId, req);
     }
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/roles',
-        method: 'POST',
-        body: req.toJson(),
-      );
-      return RoleResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.createRole(_apiClient.tenantId, req);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/roles',
+      method: 'POST',
+      body: req.toJson(),
+    );
+    return RoleResponse.fromJson(json as Map<String, dynamic>);
   }
 
   // ================= Groups Endpoints =================
@@ -412,30 +314,22 @@ class IamService {
     if (_apiClient.isMockMode) {
       return _mockStorage.listGroups(_apiClient.tenantId);
     }
-    try {
-      final json = await _apiClient.request(endpoint: '/api/v1/groups', method: 'GET');
-      return (json as List<dynamic>)
-          .map((g) => GroupResponse.fromJson(g as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return _mockStorage.listGroups(_apiClient.tenantId);
-    }
+    final json = await _apiClient.request(endpoint: '/api/v1/groups', method: 'GET');
+    return (json as List<dynamic>)
+        .map((g) => GroupResponse.fromJson(g as Map<String, dynamic>))
+        .toList();
   }
 
   Future<GroupResponse> createGroup(CreateGroupRequest req) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.createGroup(_apiClient.tenantId, req);
     }
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/groups',
-        method: 'POST',
-        body: req.toJson(),
-      );
-      return GroupResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.createGroup(_apiClient.tenantId, req);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/groups',
+      method: 'POST',
+      body: req.toJson(),
+    );
+    return GroupResponse.fromJson(json as Map<String, dynamic>);
   }
 
   // ================= Scopes Endpoints =================
@@ -444,30 +338,22 @@ class IamService {
     if (_apiClient.isMockMode) {
       return _mockStorage.getScopeTree(_apiClient.tenantId);
     }
-    try {
-      final json = await _apiClient.request(endpoint: '/api/v1/scopes/tree', method: 'GET');
-      return (json as List<dynamic>)
-          .map((s) => ScopeTreeNode.fromJson(s as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return _mockStorage.getScopeTree(_apiClient.tenantId);
-    }
+    final json = await _apiClient.request(endpoint: '/api/v1/scopes/tree', method: 'GET');
+    return (json as List<dynamic>)
+        .map((s) => ScopeTreeNode.fromJson(s as Map<String, dynamic>))
+        .toList();
   }
 
   Future<ScopeTreeNode> createScope(CreateScopeRequest req) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.createScope(_apiClient.tenantId, req);
     }
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/scopes',
-        method: 'POST',
-        body: req.toJson(),
-      );
-      return ScopeTreeNode.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.createScope(_apiClient.tenantId, req);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/scopes',
+      method: 'POST',
+      body: req.toJson(),
+    );
+    return ScopeTreeNode.fromJson(json as Map<String, dynamic>);
   }
 }
 

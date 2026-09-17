@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kite_ui/shadcn.dart';
 import 'package:provider/provider.dart';
 
+import 'core/services/api_client.dart';
 import 'core/theme/app_theme.dart';
 import 'features/academic_years/presentation/academic_years_screen.dart';
 import 'features/dashboard/presentation/dashboard_screen.dart';
@@ -20,6 +21,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: apiClient),
         ChangeNotifierProvider(create: (_) => AppState()),
         ChangeNotifierProvider(create: (_) => AuthNotifier()),
       ],
@@ -54,20 +56,26 @@ class IlmiyaApp extends StatelessWidget {
         },
         home: Consumer2<AppState, AuthNotifier>(
           builder: (context, state, auth, _) {
-            return AdaptiveScaffold(
-              body: IndexedStack(
-                index: state.currentTab.clamp(0, 7),
-                children: [
-                  SchoolProfileScreen(key: ValueKey('school_profile_${auth.tenantId}')),
-                  AcademicYearsScreen(key: ValueKey('academic_years_${auth.tenantId}')),
-                  IamManagementScreen(key: ValueKey('iam_management_${auth.tenantId}')),
-                  const PreviewScreen(),
-                  DashboardScreen(key: ValueKey('dashboard_${auth.tenantId}')),
-                  const GradesScreen(),
-                  const MessagingScreen(),
-                  const NotificationsScreen(),
-                ],
-              ),
+            return ListenableBuilder(
+              listenable: apiClient,
+              builder: (context, _) {
+                final modeSuffix = apiClient.isMockMode ? 'mock' : 'live';
+                return AdaptiveScaffold(
+                  body: IndexedStack(
+                    index: state.currentTab.clamp(0, 7),
+                    children: [
+                      SchoolProfileScreen(key: ValueKey('school_profile_${auth.tenantId}_$modeSuffix')),
+                      AcademicYearsScreen(key: ValueKey('academic_years_${auth.tenantId}_$modeSuffix')),
+                      IamManagementScreen(key: ValueKey('iam_management_${auth.tenantId}_$modeSuffix')),
+                      const PreviewScreen(),
+                      DashboardScreen(key: ValueKey('dashboard_${auth.tenantId}')),
+                      const GradesScreen(),
+                      const MessagingScreen(),
+                      const NotificationsScreen(),
+                    ],
+                  ),
+                );
+              },
             );
           },
         ),
