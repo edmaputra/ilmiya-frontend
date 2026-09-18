@@ -30,8 +30,8 @@ class ApiClient extends ChangeNotifier {
   String? refreshToken;
   bool _isMockMode = true;
   bool _isRefreshing = false;
-
   final List<Function> _onAuthExpiredListeners = [];
+  final List<Function> _onAccessDeniedListeners = [];
 
   bool get isMockMode => _isMockMode;
   set isMockMode(bool value) {
@@ -83,6 +83,22 @@ class ApiClient extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  void Function() onAccessDenied(Function listener) {
+    _onAccessDeniedListeners.add(listener);
+    return () => _onAccessDeniedListeners.remove(listener);
+  }
+
+  void triggerAccessDenied([String? reason]) {
+    final msg = reason ?? 'Access denied (403): You do not have sufficient permission to access this resource.';
+    for (final listener in List.of(_onAccessDeniedListeners)) {
+      try {
+        (listener as dynamic)(msg);
+      } catch (_) {
+        (listener as dynamic)();
+      }
+    }
   }
 
   Future<dynamic> request({
@@ -187,12 +203,14 @@ class ApiClient extends ChangeNotifier {
         }
       } catch (_) {}
 
-      // Security guard: 401 Unauthorized (session expired/invalid) or 403 Forbidden on auth checks
+      // Security guard:
+      // 401 Unauthorized -> Session expired, token cleared, redirect to login
+      // 403 Forbidden    -> Access denied, keep session, stay on page, show error message
       if (!endpoint.contains('/api/v1/auth/login')) {
         if (response.statusCode == 401) {
           triggerAuthExpired('Session expired (401): $message');
-        } else if (response.statusCode == 403 && endpoint.startsWith('/api/v1/auth/')) {
-          triggerAuthExpired('Access forbidden (403): $message');
+        } else if (response.statusCode == 403) {
+          triggerAccessDenied('Access denied (403): $message');
         }
       }
 

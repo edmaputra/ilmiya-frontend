@@ -45,30 +45,30 @@ void main() {
       unsubscribe();
     });
 
-    test('403 response triggers triggerAuthExpired with forbidden reason', () {
-      String? expiredReason;
-      final unsubscribe = client.onAuthExpired(([reason]) {
-        expiredReason = reason;
+    test('403 response triggers triggerAccessDenied without clearing token or session', () {
+      String? deniedReason;
+      final unsubscribe = client.onAccessDenied(([reason]) {
+        deniedReason = reason;
       });
 
-      client.triggerAuthExpired('Access forbidden (403): Insufficient permissions');
+      client.triggerAccessDenied('Access denied (403): Insufficient permissions');
 
-      expect(expiredReason, contains('Access forbidden (403)'));
-      expect(client.token, isNull);
+      expect(deniedReason, contains('Access denied (403)'));
+      expect(client.token, equals('test-token'));
 
       unsubscribe();
     });
 
-    test('AuthNotifier transitions isAuthenticated to false on auth expired', () async {
+    test('AuthNotifier remains authenticated on 403 access denied', () async {
       final auth = AuthNotifier(apiClient: client);
       await auth.refreshProfile();
       expect(auth.isAuthenticated, isTrue);
 
-      client.triggerAuthExpired('Access forbidden (403): Tenant access revoked');
+      client.triggerAccessDenied('Access denied (403): Lacks permission iam:user:read');
 
-      expect(auth.isAuthenticated, isFalse);
-      expect(auth.user, isNull);
-      expect(auth.error, contains('Access forbidden (403)'));
+      expect(auth.isAuthenticated, isTrue);
+      expect(auth.user, isNotNull);
+      expect(client.token, equals('test-token'));
     });
 
     testWidgets('App renders LoginScreen when auth is not authenticated', (tester) async {
@@ -140,6 +140,41 @@ void main() {
       // Back into main layout
       expect(find.byType(AdaptiveScaffold), findsOneWidget);
       expect(find.byType(LoginScreen), findsNothing);
+    });
+
+    testWidgets('App stays on current screen and shows error message on 403 access denied', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final auth = AuthNotifier(apiClient: client);
+      await auth.refreshProfile();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: client),
+            ChangeNotifierProvider(create: (_) => AppState()),
+            ChangeNotifierProvider.value(value: auth),
+          ],
+          child: const IlmiyaApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Initially on AdaptiveScaffold
+      expect(find.byType(AdaptiveScaffold), findsOneWidget);
+      expect(find.byType(LoginScreen), findsNothing);
+
+      // Backend returns 403 Access Denied
+      client.triggerAccessDenied('Access denied (403): Actor lacks required permission(s): [iam:user:read]');
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verified: User is NOT kicked to LoginScreen
+      expect(find.byType(AdaptiveScaffold), findsOneWidget);
+      expect(find.byType(LoginScreen), findsNothing);
+      expect(find.textContaining('Access denied (403)'), findsOneWidget);
     });
   });
 }

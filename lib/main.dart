@@ -18,13 +18,10 @@ import 'state/app_state.dart';
 import 'state/auth_notifier.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  apiClient.onAuthExpired((_) {
-    appNavigatorKey.currentState?.popUntil((route) => route.isFirst);
-  });
-
   runApp(
     MultiProvider(
       providers: [
@@ -37,8 +34,55 @@ void main() {
   );
 }
 
-class IlmiyaApp extends StatelessWidget {
+class IlmiyaApp extends StatefulWidget {
   const IlmiyaApp({super.key});
+
+  @override
+  State<IlmiyaApp> createState() => _IlmiyaAppState();
+}
+
+class _IlmiyaAppState extends State<IlmiyaApp> {
+  void Function()? _unsubAuthExpired;
+  void Function()? _unsubAccessDenied;
+
+  @override
+  void initState() {
+    super.initState();
+    _unsubAuthExpired = apiClient.onAuthExpired((_) {
+      appNavigatorKey.currentState?.popUntil((route) => route.isFirst);
+    });
+    _unsubAccessDenied = apiClient.onAccessDenied((reason) {
+      appScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+      appScaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: Row(
+            children: [
+              const Icon(Icons.gpp_bad_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  reason?.toString() ??
+                      'Access denied (403): You do not have sufficient permission to access this resource.',
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _unsubAuthExpired?.call();
+    _unsubAccessDenied?.call();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +94,7 @@ class IlmiyaApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Ilmiya - School Information System',
         debugShowCheckedModeBanner: false,
+        scaffoldMessengerKey: appScaffoldMessengerKey,
         navigatorKey: appNavigatorKey,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
