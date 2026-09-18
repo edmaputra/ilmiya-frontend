@@ -89,6 +89,10 @@ class IamService {
       );
     }
 
+    if (req.tenantId != null && req.tenantId!.trim().isNotEmpty) {
+      _apiClient.tenantId = req.tenantId!.trim();
+    }
+
     final json = await _apiClient.request(
       endpoint: '/api/v1/auth/login',
       method: 'POST',
@@ -101,6 +105,9 @@ class IamService {
     }
     if (resp.tenantId.isNotEmpty) {
       _apiClient.tenantId = resp.tenantId;
+    }
+    if (resp.user != null) {
+      _cachedProfile = resp.user;
     }
     try {
       await getMe();
@@ -128,11 +135,15 @@ class IamService {
       throw ApiException(401, 'No active authentication session in Live mode.');
     }
 
-    final json = await _apiClient.request(
-      endpoint: '/api/v1/auth/me',
-      method: 'GET',
-    );
-    _cachedProfile = UserProfileResponse.fromJson(json as Map<String, dynamic>);
+    try {
+      final json = await _apiClient.request(
+        endpoint: '/api/v1/auth/me',
+        method: 'GET',
+      );
+      _cachedProfile = UserProfileResponse.fromJson(json as Map<String, dynamic>);
+    } catch (_) {
+      if (_cachedProfile == null) rethrow;
+    }
     return _cachedProfile!;
   }
 

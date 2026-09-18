@@ -45,12 +45,12 @@ class AuthNotifier extends ChangeNotifier {
     _tenantId = _apiClient.tenantId;
     _token = _apiClient.token;
     _lastMockMode = _apiClient.isMockMode;
-    _unsubscribeAuthExpired = _apiClient.onAuthExpired(() {
+    _unsubscribeAuthExpired = _apiClient.onAuthExpired(([reason]) {
       _user = null;
       _token = null;
       _roles = [];
       _permissions = [];
-      _error = 'Your session has expired. Please sign in again.';
+      _error = reason ?? 'Your session has expired. Please sign in again.';
       notifyListeners();
     });
     _apiClient.addListener(_onApiClientChanged);
@@ -135,6 +135,9 @@ class AuthNotifier extends ChangeNotifier {
       _tenantId = resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
       _roles = resp.roles;
       _permissions = resp.permissions;
+      if (resp.user != null) {
+        _user = resp.user;
+      }
       await refreshProfile();
     } catch (e) {
       _error = e.toString();

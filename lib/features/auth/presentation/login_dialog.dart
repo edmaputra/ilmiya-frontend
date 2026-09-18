@@ -41,11 +41,37 @@ class _LoginDialogState extends State<LoginDialog> {
   String? _localError;
 
   @override
+  void initState() {
+    super.initState();
+    apiClient.addListener(_onApiClientChanged);
+    _syncTenantController();
+  }
+
+  @override
   void dispose() {
+    apiClient.removeListener(_onApiClientChanged);
     _emailController.dispose();
     _passwordController.dispose();
     _tenantController.dispose();
     super.dispose();
+  }
+
+  void _onApiClientChanged() {
+    if (mounted) {
+      setState(() {
+        _syncTenantController();
+      });
+    }
+  }
+
+  void _syncTenantController() {
+    if (apiClient.isMockMode &&
+        (_tenantController.text.isEmpty || _tenantController.text == '01940000-0000-7000-8000-000000000001')) {
+      _tenantController.text = apiClient.tenantId;
+    } else if (!apiClient.isMockMode &&
+        (_tenantController.text.isEmpty || _tenantController.text == 'tenant-lincoln-high-001')) {
+      _tenantController.text = apiClient.tenantId;
+    }
   }
 
   IconData _getPersonaIcon(DemoPersonaKey key) {
@@ -69,12 +95,20 @@ class _LoginDialogState extends State<LoginDialog> {
       _localError = null;
     });
 
+    final tenantTrimmed = _tenantController.text.trim();
+    final emailTrimmed = _emailController.text.trim();
+    if (apiClient.isMockMode &&
+        (emailTrimmed.contains('@springfield.local') ||
+         RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}').hasMatch(tenantTrimmed))) {
+      apiClient.isMockMode = false;
+    }
+
     final auth = context.read<AuthNotifier>();
     try {
       await auth.login(LoginRequest(
-        email: _emailController.text.trim(),
+        email: emailTrimmed,
         password: _passwordController.text,
-        tenantId: _tenantController.text.trim(),
+        tenantId: tenantTrimmed,
       ));
       if (mounted) {
         widget.onSuccess?.call();
@@ -321,12 +355,15 @@ class _LoginDialogState extends State<LoginDialog> {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                persona.name,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                              Flexible(
+                                child: Text(
+                                  persona.name,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -465,9 +502,49 @@ class _LoginDialogState extends State<LoginDialog> {
 
           const SizedBox(height: 12),
           Center(
-            child: Text(
-              apiClient.isMockMode ? 'Mode: Mock Simulation Engine' : 'Mode: Live Spring Boot REST API',
-              style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                apiClient.toggleMockMode();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: apiClient.isMockMode ? const Color(0xFFF3E8FF) : const Color(0xFFE6F4EA),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: apiClient.isMockMode ? const Color(0xFFD8B4FE) : const Color(0xFFA8DAB5),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: apiClient.isMockMode ? const Color(0xFF9333EA) : const Color(0xFF137333),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      apiClient.isMockMode ? 'Mode: Mock Simulation' : 'Mode: Live REST API',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: apiClient.isMockMode ? const Color(0xFF7E22CE) : const Color(0xFF137333),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.sync_rounded,
+                      size: 12,
+                      color: apiClient.isMockMode ? const Color(0xFF7E22CE) : const Color(0xFF137333),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],

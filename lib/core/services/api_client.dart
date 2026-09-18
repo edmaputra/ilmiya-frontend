@@ -31,12 +31,17 @@ class ApiClient extends ChangeNotifier {
   bool _isMockMode = true;
   bool _isRefreshing = false;
 
-  final List<void Function()> _onAuthExpiredListeners = [];
+  final List<Function> _onAuthExpiredListeners = [];
 
   bool get isMockMode => _isMockMode;
   set isMockMode(bool value) {
     if (_isMockMode != value) {
       _isMockMode = value;
+      if (!_isMockMode && _tenantId == 'tenant-lincoln-high-001') {
+        _tenantId = '01940000-0000-7000-8000-000000000001';
+      } else if (_isMockMode && _tenantId == '01940000-0000-7000-8000-000000000001') {
+        _tenantId = 'tenant-lincoln-high-001';
+      }
       notifyListeners();
     }
   }
@@ -62,17 +67,22 @@ class ApiClient extends ChangeNotifier {
     }
   }
 
-  void Function() onAuthExpired(void Function() listener) {
+  void Function() onAuthExpired(Function listener) {
     _onAuthExpiredListeners.add(listener);
     return () => _onAuthExpiredListeners.remove(listener);
   }
 
-  void triggerAuthExpired() {
+  void triggerAuthExpired([String? reason]) {
     token = null;
     refreshToken = null;
     for (final listener in List.of(_onAuthExpiredListeners)) {
-      listener();
+      try {
+        (listener as dynamic)(reason);
+      } catch (_) {
+        (listener as dynamic)();
+      }
     }
+    notifyListeners();
   }
 
   Future<dynamic> request({
@@ -84,10 +94,13 @@ class ApiClient extends ChangeNotifier {
     final cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/$endpoint';
     final url = Uri.parse('$_baseUrl$cleanEndpoint');
 
+    final isUuid = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(tenantId);
+    final shouldSendTenantHeader = tenantId.isNotEmpty && (_isMockMode || isUuid);
+
     final requestHeaders = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      if (tenantId.isNotEmpty) 'X-Tenant-ID': tenantId,
+      if (shouldSendTenantHeader) 'X-Tenant-ID': tenantId,
       if (token != null) 'Authorization': 'Bearer $token',
       ...?headers,
     };
@@ -144,10 +157,10 @@ class ApiClient extends ChangeNotifier {
               body: body,
             );
           } else {
-            triggerAuthExpired();
+            triggerAuthExpired('Session refresh token expired (401). Please sign in again.');
           }
         } catch (_) {
-          triggerAuthExpired();
+          triggerAuthExpired('Session refresh failed. Please sign in again.');
         } finally {
           _isRefreshing = false;
         }
@@ -173,6 +186,15 @@ class ApiClient extends ChangeNotifier {
               message;
         }
       } catch (_) {}
+
+      // Security guard: 401 Unauthorized (session expired/invalid) or 403 Forbidden on auth checks
+      if (!endpoint.contains('/api/v1/auth/login')) {
+        if (response.statusCode == 401) {
+          triggerAuthExpired('Session expired (401): $message');
+        } else if (response.statusCode == 403 && endpoint.startsWith('/api/v1/auth/')) {
+          triggerAuthExpired('Access forbidden (403): $message');
+        }
+      }
 
       throw ApiException(response.statusCode, message, errorData);
     } catch (e) {
