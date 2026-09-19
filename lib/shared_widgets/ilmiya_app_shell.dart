@@ -352,70 +352,74 @@ class _SidebarContent extends StatelessWidget {
       child: Column(
         children: [
           // Backend Mode Pill
-          InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: () {
-              final newMode = !apiClient.isMockMode;
-              apiClient.isMockMode = newMode;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    newMode
-                        ? 'Switched to Mock In-Memory Simulation'
-                        : 'Switched to Live REST Backend Mode (${apiClient.baseUrl})',
-                  ),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: apiClient.isMockMode
-                    ? const Color(0xFFFAF5FF)
-                    : const Color(0xFFF0FDF4),
+          ListenableBuilder(
+            listenable: apiClient,
+            builder: (context, _) {
+              return InkWell(
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: apiClient.isMockMode
-                      ? const Color(0xFFE9D5FF)
-                      : const Color(0xFFBBF7D0),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                onTap: () {
+                  apiClient.toggleMockMode();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        apiClient.isMockMode
+                            ? 'Switched to Mock In-Memory Simulation'
+                            : 'Switched to Live REST Backend Mode (${apiClient.baseUrl})',
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: apiClient.isMockMode
+                        ? const Color(0xFFFAF5FF)
+                        : const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
                       color: apiClient.isMockMode
-                          ? const Color(0xFF9333EA)
-                          : const Color(0xFF16A34A),
+                          ? const Color(0xFFE9D5FF)
+                          : const Color(0xFFBBF7D0),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      apiClient.isMockMode ? 'Mock Simulation' : 'Live REST API',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: apiClient.isMockMode
+                              ? const Color(0xFF9333EA)
+                              : const Color(0xFF16A34A),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          apiClient.isMockMode ? 'Mock Simulation' : 'Live REST API',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: apiClient.isMockMode
+                                ? const Color(0xFF7E22CE)
+                                : const Color(0xFF15803D),
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        LucideIcons.refreshCw,
+                        size: 11,
                         color: apiClient.isMockMode
                             ? const Color(0xFF7E22CE)
                             : const Color(0xFF15803D),
                       ),
-                    ),
+                    ],
                   ),
-                  Icon(
-                    LucideIcons.refreshCw,
-                    size: 11,
-                    color: apiClient.isMockMode
-                        ? const Color(0xFF7E22CE)
-                        : const Color(0xFF15803D),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 10),
 

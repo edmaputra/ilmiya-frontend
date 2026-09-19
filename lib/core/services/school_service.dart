@@ -15,15 +15,11 @@ class SchoolService {
       return _mockStorage.getSchoolProfile(_apiClient.tenantId);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/schools/profile',
-        method: 'GET',
-      );
-      return SchoolResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.getSchoolProfile(_apiClient.tenantId);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/schools/profile',
+      method: 'GET',
+    );
+    return SchoolResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<SchoolResponse> updateProfile(UpdateSchoolRequest req) async {
@@ -31,16 +27,12 @@ class SchoolService {
       return _mockStorage.updateSchoolProfile(req);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/schools/profile',
-        method: 'PUT',
-        body: req.toJson(),
-      );
-      return SchoolResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.updateSchoolProfile(req);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/schools/profile',
+      method: 'PUT',
+      body: req.toJson(),
+    );
+    return SchoolResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<SchoolResponse> configureSettings(ConfigureSchoolSettingsRequest req) async {
@@ -48,16 +40,12 @@ class SchoolService {
       return _mockStorage.configureSchoolSettings(req);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/schools/settings',
-        method: 'PUT',
-        body: req.toJson(),
-      );
-      return SchoolResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.configureSchoolSettings(req);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/schools/settings',
+      method: 'PUT',
+      body: req.toJson(),
+    );
+    return SchoolResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<SchoolResponse> registerSchool(RegisterSchoolRequest req) async {
@@ -65,16 +53,12 @@ class SchoolService {
       return _mockStorage.registerSchool(req);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/schools/register',
-        method: 'POST',
-        body: req.toJson(),
-      );
-      return SchoolResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.registerSchool(req);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/schools/register',
+      method: 'POST',
+      body: req.toJson(),
+    );
+    return SchoolResponse.fromJson(json as Map<String, dynamic>);
   }
 }
 
