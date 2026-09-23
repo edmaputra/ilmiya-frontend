@@ -15,7 +15,8 @@ class IamManagementScreen extends StatefulWidget {
   State<IamManagementScreen> createState() => _IamManagementScreenState();
 }
 
-class _IamManagementScreenState extends State<IamManagementScreen> with SingleTickerProviderStateMixin {
+class _IamManagementScreenState extends State<IamManagementScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   List<UserResponse> _users = [];
@@ -40,7 +41,9 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
 
   Future<void> _loadAllIamData() async {
     final auth = context.read<AuthNotifier>();
-    if (!apiClient.isMockMode && !auth.hasRole('SUPERADMIN') && !auth.hasPermission('iam:user:read')) {
+    if (!apiClient.isMockMode &&
+        !auth.hasRole('SUPERADMIN') &&
+        !auth.hasPermission('iam:user:read')) {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -82,23 +85,31 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Row(
             children: [
               Icon(Icons.person_add_rounded, color: AppColors.forestSage),
               SizedBox(width: 8),
-              Text('Create New User', style: TextStyle(fontFamily: 'serif', fontSize: 18)),
+              Text('Create New User',
+                  style: TextStyle(fontFamily: 'serif', fontSize: 18)),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email Address')),
+              TextField(
+                  controller: emailCtrl,
+                  decoration:
+                      const InputDecoration(labelText: 'Email Address')),
               const SizedBox(height: 10),
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Full Name')),
+              TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Full Name')),
               const SizedBox(height: 10),
               CheckboxListTile(
-                title: const Text('Platform SuperAdmin', style: TextStyle(fontSize: 13)),
+                title: const Text('Platform SuperAdmin',
+                    style: TextStyle(fontSize: 13)),
                 value: isSuperAdmin,
                 onChanged: (v) => setDlgState(() => isSuperAdmin = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
@@ -107,9 +118,13 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel')),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.forestSage,
+                  foregroundColor: Colors.white),
               onPressed: () async {
                 await iamService.createUser(CreateUserRequest(
                   email: emailCtrl.text.trim(),
@@ -135,7 +150,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
               const Icon(Icons.shield_outlined, color: AppColors.forestSage),
@@ -153,19 +169,28 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Select Role to assign to user in this tenant:', style: TextStyle(fontSize: 12)),
+              const Text('Select Role to assign to user in this tenant:',
+                  style: TextStyle(fontSize: 12)),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: selectedRoleId,
-                items: _roles.map((r) => DropdownMenuItem(value: r.id, child: Text('${r.name} (${r.code})'))).toList(),
-                onChanged: (v) => setDlgState(() => selectedRoleId = v ?? selectedRoleId),
+                items: _roles
+                    .map((r) => DropdownMenuItem(
+                        value: r.id, child: Text('${r.name} (${r.code})')))
+                    .toList(),
+                onChanged: (v) =>
+                    setDlgState(() => selectedRoleId = v ?? selectedRoleId),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel')),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.forestSage,
+                  foregroundColor: Colors.white),
               onPressed: () async {
                 await iamService.assignRole(
                   userId: user.id,
@@ -217,12 +242,14 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Row(
             children: [
               Icon(Icons.add_moderator_rounded, color: AppColors.forestSage),
               SizedBox(width: 8),
-              Text('Create Custom Role', style: TextStyle(fontFamily: 'serif', fontSize: 18)),
+              Text('Create Custom Role',
+                  style: TextStyle(fontFamily: 'serif', fontSize: 18)),
             ],
           ),
           content: SingleChildScrollView(
@@ -230,13 +257,23 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Role Code (e.g. LAB_TECH)')),
+                TextField(
+                    controller: codeCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Role Code (e.g. LAB_TECH)')),
                 const SizedBox(height: 10),
-                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Role Name')),
+                TextField(
+                    controller: nameCtrl,
+                    decoration: const InputDecoration(labelText: 'Role Name')),
                 const SizedBox(height: 10),
-                TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description')),
+                TextField(
+                    controller: descCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Description')),
                 const SizedBox(height: 14),
-                const Text('Permissions Matrix:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                const Text('Permissions Matrix:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
@@ -244,7 +281,9 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                   children: allPermissions.map((perm) {
                     final isSel = selectedPerms.contains(perm);
                     return FilterChip(
-                      label: Text(perm, style: const TextStyle(fontSize: 10, fontFamily: 'monospace')),
+                      label: Text(perm,
+                          style: const TextStyle(
+                              fontSize: 10, fontFamily: 'monospace')),
                       selected: isSel,
                       selectedColor: AppColors.warmSand,
                       checkmarkColor: AppColors.forestSage,
@@ -264,9 +303,13 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel')),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.forestSage,
+                  foregroundColor: Colors.white),
               onPressed: () async {
                 await iamService.createRole(CreateRoleRequest(
                   code: codeCtrl.text.trim().toUpperCase(),
@@ -299,31 +342,46 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
           children: [
             Icon(Icons.group_add_rounded, color: AppColors.forestSage),
             SizedBox(width: 8),
-            Text('Create User Group', style: TextStyle(fontFamily: 'serif', fontSize: 18)),
+            Text('Create User Group',
+                style: TextStyle(fontFamily: 'serif', fontSize: 18)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Group Code')),
+            TextField(
+                controller: codeCtrl,
+                decoration: const InputDecoration(labelText: 'Group Code')),
             const SizedBox(height: 10),
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Group Name')),
+            TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Group Name')),
             const SizedBox(height: 10),
-            TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description')),
+            TextField(
+                controller: descCtrl,
+                decoration: const InputDecoration(labelText: 'Description')),
             const SizedBox(height: 10),
-            TextField(controller: idpCtrl, decoration: const InputDecoration(labelText: 'External IdP Mapping (Optional)')),
+            TextField(
+                controller: idpCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'External IdP Mapping (Optional)')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.forestSage,
+                foregroundColor: Colors.white),
             onPressed: () async {
               await iamService.createGroup(CreateGroupRequest(
                 code: codeCtrl.text.trim().toUpperCase(),
                 name: nameCtrl.text.trim(),
                 description: descCtrl.text.trim(),
-                externalIdpGroupName: idpCtrl.text.trim().isNotEmpty ? idpCtrl.text.trim() : null,
+                externalIdpGroupName:
+                    idpCtrl.text.trim().isNotEmpty ? idpCtrl.text.trim() : null,
               ));
               if (ctx.mounted) Navigator.of(ctx).pop();
               if (mounted) await _loadAllIamData();
@@ -345,23 +403,34 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            const Icon(Icons.account_tree_outlined, color: AppColors.forestSage),
+            const Icon(Icons.account_tree_outlined,
+                color: AppColors.forestSage),
             const SizedBox(width: 8),
-            Text(parentId == null ? 'Create Root Scope' : 'Add Child Scope', style: const TextStyle(fontFamily: 'serif', fontSize: 18)),
+            Text(parentId == null ? 'Create Root Scope' : 'Add Child Scope',
+                style: const TextStyle(fontFamily: 'serif', fontSize: 18)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Scope Code (e.g. DEPT_SCIENCE)')),
+            TextField(
+                controller: codeCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'Scope Code (e.g. DEPT_SCIENCE)')),
             const SizedBox(height: 10),
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Scope Name')),
+            TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Scope Name')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.forestSage,
+                foregroundColor: Colors.white),
             onPressed: () async {
               await iamService.createScope(CreateScopeRequest(
                 code: codeCtrl.text.trim().toUpperCase(),
@@ -391,7 +460,9 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
     final canCreateGroup = auth.hasPermission('iam:group:create');
     final canCreateScope = auth.hasPermission('iam:scope:create');
 
-    if (!apiClient.isMockMode && !auth.hasRole('SUPERADMIN') && !auth.hasPermission('iam:user:read')) {
+    if (!apiClient.isMockMode &&
+        !auth.hasRole('SUPERADMIN') &&
+        !auth.hasPermission('iam:user:read')) {
       return Center(
         child: Container(
           padding: const EdgeInsets.all(32),
@@ -404,17 +475,22 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(LucideIcons.shieldAlert, size: 48, color: Color(0xFFD97706)),
+              const Icon(LucideIcons.shieldAlert,
+                  size: 48, color: Color(0xFFD97706)),
               const SizedBox(height: 16),
               const Text(
                 'IAM Console Restricted',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'serif'),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'serif'),
               ),
               const SizedBox(height: 8),
               Text(
                 'Identity & Access Management console requires platform administrator privileges (SUPERADMIN or iam:user:read).\n\nYour active role is ${auth.roles.isNotEmpty ? auth.roles.first : "School Administrator"} for tenant ${auth.tenantId}.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -459,7 +535,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               );
 
               final tabBar = ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: isNarrow ? double.infinity : 480),
+                constraints:
+                    BoxConstraints(maxWidth: isNarrow ? double.infinity : 480),
                 child: TabBar(
                   controller: _tabController,
                   isScrollable: true,
@@ -468,9 +545,15 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                   unselectedLabelColor: c.mutedForeground,
                   tabs: const [
                     Tab(icon: Icon(LucideIcons.users, size: 16), text: 'Users'),
-                    Tab(icon: Icon(LucideIcons.shieldCheck, size: 16), text: 'Roles & RBAC'),
-                    Tab(icon: Icon(LucideIcons.layers, size: 16), text: 'Groups'),
-                    Tab(icon: Icon(LucideIcons.gitBranch, size: 16), text: 'Scope Tree'),
+                    Tab(
+                        icon: Icon(LucideIcons.shieldCheck, size: 16),
+                        text: 'Roles & RBAC'),
+                    Tab(
+                        icon: Icon(LucideIcons.layers, size: 16),
+                        text: 'Groups'),
+                    Tab(
+                        icon: Icon(LucideIcons.gitBranch, size: 16),
+                        text: 'Scope Tree'),
                   ],
                 ),
               );
@@ -505,7 +588,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               controller: _tabController,
               children: [
                 // Tab 1: Users
-                _buildUsersTab(context, filteredUsers, canCreateUser, canUpdateUserStatus, canAssignRole, canDeleteUser),
+                _buildUsersTab(context, filteredUsers, canCreateUser,
+                    canUpdateUserStatus, canAssignRole, canDeleteUser),
 
                 // Tab 2: Roles
                 _buildRolesTab(context, canCreateRole),
@@ -523,7 +607,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
     );
   }
 
-  Widget _buildUsersTab(BuildContext context, List<UserResponse> users, bool canCreate, bool canUpdateStatus, bool canAssign, bool canDelete) {
+  Widget _buildUsersTab(BuildContext context, List<UserResponse> users,
+      bool canCreate, bool canUpdateStatus, bool canAssign, bool canDelete) {
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
 
@@ -536,12 +621,14 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               Expanded(
                 child: TextField(
                   decoration: InputDecoration(
-                    prefixIcon: Icon(LucideIcons.search, size: 18, color: c.mutedForeground),
+                    prefixIcon: Icon(LucideIcons.search,
+                        size: 18, color: c.mutedForeground),
                     hintText: 'Search user by name or email...',
                     hintStyle: t.small.copyWith(color: c.mutedForeground),
                     isDense: true,
                     fillColor: c.card,
-                    border: const OutlineInputBorder(borderRadius: KiteRadius.allMd),
+                    border: const OutlineInputBorder(
+                        borderRadius: KiteRadius.allMd),
                   ),
                   onChanged: (v) => setState(() => _searchQuery = v),
                 ),
@@ -549,12 +636,14 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: canCreate ? _showCreateUserDialog : null,
-                icon: Icon(canCreate ? LucideIcons.plus : LucideIcons.lock, size: 16),
+                icon: Icon(canCreate ? LucideIcons.plus : LucideIcons.lock,
+                    size: 16),
                 label: const Text('Create User'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: c.primary,
                   foregroundColor: c.primaryForeground,
-                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
@@ -571,7 +660,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                     final isNarrow = constraints.maxWidth < 640;
                     if (isNarrow) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 4),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -582,28 +672,38 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                                   backgroundColor: c.accent,
                                   child: Text(
                                     u.fullName.isNotEmpty ? u.fullName[0] : '?',
-                                    style: TextStyle(color: c.foreground, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                        color: c.foreground,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Wrap(
                                         spacing: 6,
                                         runSpacing: 2,
-                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
                                         children: [
                                           Text(
                                             u.fullName,
-                                            style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
+                                            style: t.small.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color: c.foreground),
                                           ),
                                           if (u.isPlatformSuperAdmin)
-                                            const KiteBadge('SUPERADMIN', tone: KiteTone.warning),
+                                            const KiteBadge('SUPERADMIN',
+                                                tone: KiteTone.warning),
                                         ],
                                       ),
-                                      Text(u.email, style: t.small.copyWith(fontSize: 11, color: c.mutedForeground)),
+                                      Text(u.email,
+                                          style: t.small.copyWith(
+                                              fontSize: 11,
+                                              color: c.mutedForeground)),
                                     ],
                                   ),
                                 ),
@@ -619,31 +719,48 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                                   value: u.status,
                                   underline: const SizedBox(),
                                   dropdownColor: c.card,
-                                  style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
-                                  items: ['ACTIVE', 'SUSPENDED', 'PENDING_ACTIVATION', 'DEACTIVATED']
-                                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                                  style: t.small.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: c.foreground),
+                                  items: [
+                                    'ACTIVE',
+                                    'SUSPENDED',
+                                    'PENDING_ACTIVATION',
+                                    'DEACTIVATED'
+                                  ]
+                                      .map((s) => DropdownMenuItem(
+                                          value: s, child: Text(s)))
                                       .toList(),
                                   onChanged: canUpdateStatus
                                       ? (val) async {
                                           if (val != null) {
-                                            await iamService.changeUserStatus(u.id, val);
-                                            if (mounted) await _loadAllIamData();
+                                            await iamService.changeUserStatus(
+                                                u.id, val);
+                                            if (mounted) {
+                                              await _loadAllIamData();
+                                            }
                                           }
                                         }
                                       : null,
                                 ),
                                 OutlinedButton(
-                                  onPressed: canAssign ? () => _showAssignRoleDialog(u) : null,
+                                  onPressed: canAssign
+                                      ? () => _showAssignRoleDialog(u)
+                                      : null,
                                   style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
                                     foregroundColor: c.primary,
                                     side: BorderSide(color: c.border),
-                                    shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: KiteRadius.allSm),
                                   ),
-                                  child: const Text('Assign Role', style: TextStyle(fontSize: 11)),
+                                  child: const Text('Assign Role',
+                                      style: TextStyle(fontSize: 11)),
                                 ),
                                 IconButton(
-                                  icon: Icon(LucideIcons.trash2, size: 16, color: c.destructive),
+                                  icon: Icon(LucideIcons.trash2,
+                                      size: 16, color: c.destructive),
                                   onPressed: canDelete
                                       ? () async {
                                           await iamService.deleteUser(u.id);
@@ -658,24 +775,32 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                       );
                     }
                     return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 8),
                       leading: CircleAvatar(
                         backgroundColor: c.accent,
                         child: Text(
                           u.fullName.isNotEmpty ? u.fullName[0] : '?',
-                          style: TextStyle(color: c.foreground, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: c.foreground, fontWeight: FontWeight.bold),
                         ),
                       ),
                       title: Wrap(
                         spacing: 8,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text(u.fullName, style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
+                          Text(u.fullName,
+                              style: t.small.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: c.foreground)),
                           if (u.isPlatformSuperAdmin)
-                            const KiteBadge('SUPERADMIN', tone: KiteTone.warning),
+                            const KiteBadge('SUPERADMIN',
+                                tone: KiteTone.warning),
                         ],
                       ),
-                      subtitle: Text(u.email, style: t.small.copyWith(fontSize: 11, color: c.mutedForeground)),
+                      subtitle: Text(u.email,
+                          style: t.small.copyWith(
+                              fontSize: 11, color: c.mutedForeground)),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -683,14 +808,23 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                             value: u.status,
                             underline: const SizedBox(),
                             dropdownColor: c.card,
-                            style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
-                            items: ['ACTIVE', 'SUSPENDED', 'PENDING_ACTIVATION', 'DEACTIVATED']
-                                .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                            style: t.small.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: c.foreground),
+                            items: [
+                              'ACTIVE',
+                              'SUSPENDED',
+                              'PENDING_ACTIVATION',
+                              'DEACTIVATED'
+                            ]
+                                .map((s) =>
+                                    DropdownMenuItem(value: s, child: Text(s)))
                                 .toList(),
                             onChanged: canUpdateStatus
                                 ? (val) async {
                                     if (val != null) {
-                                      await iamService.changeUserStatus(u.id, val);
+                                      await iamService.changeUserStatus(
+                                          u.id, val);
                                       if (mounted) await _loadAllIamData();
                                     }
                                   }
@@ -698,18 +832,24 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                           ),
                           const SizedBox(width: 8),
                           OutlinedButton(
-                            onPressed: canAssign ? () => _showAssignRoleDialog(u) : null,
+                            onPressed: canAssign
+                                ? () => _showAssignRoleDialog(u)
+                                : null,
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               foregroundColor: c.primary,
                               side: BorderSide(color: c.border),
-                              shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
+                              shape: const RoundedRectangleBorder(
+                                  borderRadius: KiteRadius.allSm),
                             ),
-                            child: const Text('Assign Role', style: TextStyle(fontSize: 11)),
+                            child: const Text('Assign Role',
+                                style: TextStyle(fontSize: 11)),
                           ),
                           const SizedBox(width: 4),
                           IconButton(
-                            icon: Icon(LucideIcons.trash2, size: 16, color: c.destructive),
+                            icon: Icon(LucideIcons.trash2,
+                                size: 16, color: c.destructive),
                             onPressed: canDelete
                                 ? () async {
                                     await iamService.deleteUser(u.id);
@@ -750,12 +890,14 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               ),
               ElevatedButton.icon(
                 onPressed: canCreateRole ? _showCreateRoleDialog : null,
-                icon: Icon(canCreateRole ? LucideIcons.plus : LucideIcons.lock, size: 16),
+                icon: Icon(canCreateRole ? LucideIcons.plus : LucideIcons.lock,
+                    size: 16),
                 label: const Text('Create Custom Role'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: c.primary,
                   foregroundColor: c.primaryForeground,
-                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
@@ -789,33 +931,53 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                             child: Text(
                               r.name,
                               overflow: TextOverflow.ellipsis,
-                              style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
+                              style: t.small.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: c.foreground),
                             ),
                           ),
                           if (r.isSystemRole)
                             const KiteBadge('SYSTEM', tone: KiteTone.info),
                         ],
                       ),
-                      Text(r.code, style: t.small.copyWith(fontSize: 10, fontFamily: 'monospace', color: c.mutedForeground)),
+                      Text(r.code,
+                          style: t.small.copyWith(
+                              fontSize: 10,
+                              fontFamily: 'monospace',
+                              color: c.mutedForeground)),
                       const SizedBox(height: 6),
-                      Text(r.description ?? '', style: t.small.copyWith(fontSize: 11, color: c.mutedForeground), maxLines: 2),
+                      Text(r.description ?? '',
+                          style: t.small
+                              .copyWith(fontSize: 11, color: c.mutedForeground),
+                          maxLines: 2),
                       const Spacer(),
-                      Text('Permissions (${r.permissions.length}):', style: t.small.copyWith(fontSize: 10, fontWeight: FontWeight.bold, color: c.foreground)),
+                      Text('Permissions (${r.permissions.length}):',
+                          style: t.small.copyWith(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: c.foreground)),
                       const SizedBox(height: 4),
                       Expanded(
                         child: SingleChildScrollView(
                           child: Wrap(
                             spacing: 4,
                             runSpacing: 4,
-                            children: r.permissions.map((p) => Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: c.accent,
-                                borderRadius: KiteRadius.allSm,
-                                border: Border.all(color: c.border),
-                              ),
-                              child: Text(p, style: t.small.copyWith(fontSize: 8, fontFamily: 'monospace', color: c.foreground)),
-                            )).toList(),
+                            children: r.permissions
+                                .map((p) => Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 5, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: c.accent,
+                                        borderRadius: KiteRadius.allSm,
+                                        border: Border.all(color: c.border),
+                                      ),
+                                      child: Text(p,
+                                          style: t.small.copyWith(
+                                              fontSize: 8,
+                                              fontFamily: 'monospace',
+                                              color: c.foreground)),
+                                    ))
+                                .toList(),
                           ),
                         ),
                       ),
@@ -850,12 +1012,14 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
               ),
               ElevatedButton.icon(
                 onPressed: canCreateGroup ? _showCreateGroupDialog : null,
-                icon: Icon(canCreateGroup ? LucideIcons.plus : LucideIcons.lock, size: 16),
+                icon: Icon(canCreateGroup ? LucideIcons.plus : LucideIcons.lock,
+                    size: 16),
                 label: const Text('Create Group'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: c.primary,
                   foregroundColor: c.primaryForeground,
-                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
@@ -882,10 +1046,19 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(g.name, style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
-                            Text('Code: ${g.code} • ${g.description ?? ''}', style: t.small.copyWith(fontSize: 11, color: c.mutedForeground)),
+                            Text(g.name,
+                                style: t.small.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: c.foreground)),
+                            Text('Code: ${g.code} • ${g.description ?? ''}',
+                                style: t.small.copyWith(
+                                    fontSize: 11, color: c.mutedForeground)),
                             if (g.externalIdpGroupName != null)
-                              Text('IdP Mapping: ${g.externalIdpGroupName}', style: t.small.copyWith(fontSize: 10, color: c.primary, fontFamily: 'monospace')),
+                              Text('IdP Mapping: ${g.externalIdpGroupName}',
+                                  style: t.small.copyWith(
+                                      fontSize: 10,
+                                      color: c.primary,
+                                      fontFamily: 'monospace')),
                           ],
                         ),
                       ),
@@ -920,13 +1093,17 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
                 style: t.large.copyWith(fontWeight: FontWeight.bold),
               ),
               ElevatedButton.icon(
-                onPressed: canCreateScope ? () => _showCreateScopeDialog(parentId: null) : null,
-                icon: Icon(canCreateScope ? LucideIcons.plus : LucideIcons.lock, size: 16),
+                onPressed: canCreateScope
+                    ? () => _showCreateScopeDialog(parentId: null)
+                    : null,
+                icon: Icon(canCreateScope ? LucideIcons.plus : LucideIcons.lock,
+                    size: 16),
                 label: const Text('Create Root Scope'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: c.primary,
                   foregroundColor: c.primaryForeground,
-                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
@@ -934,7 +1111,9 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
           const SizedBox(height: 14),
           Expanded(
             child: ListView(
-              children: _scopes.map((s) => _buildScopeNodeWidget(context, s, canCreateScope)).toList(),
+              children: _scopes
+                  .map((s) => _buildScopeNodeWidget(context, s, canCreateScope))
+                  .toList(),
             ),
           ),
         ],
@@ -942,7 +1121,8 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
     );
   }
 
-  Widget _buildScopeNodeWidget(BuildContext context, ScopeTreeNode node, bool canCreateScope) {
+  Widget _buildScopeNodeWidget(
+      BuildContext context, ScopeTreeNode node, bool canCreateScope) {
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
 
@@ -962,26 +1142,43 @@ class _IamManagementScreenState extends State<IamManagementScreen> with SingleTi
             child: Row(
               children: [
                 Icon(
-                  node.depth == 0 ? LucideIcons.landmark : LucideIcons.folderTree,
+                  node.depth == 0
+                      ? LucideIcons.landmark
+                      : LucideIcons.folderTree,
                   size: 16,
                   color: c.foreground,
                 ),
                 const SizedBox(width: 8),
-                Text(node.name, style: t.small.copyWith(fontSize: 12, fontWeight: FontWeight.bold, color: c.foreground)),
+                Text(node.name,
+                    style: t.small.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: c.foreground)),
                 const SizedBox(width: 8),
-                Text(node.code, style: t.small.copyWith(fontSize: 10, fontFamily: 'monospace', color: c.mutedForeground)),
+                Text(node.code,
+                    style: t.small.copyWith(
+                        fontSize: 10,
+                        fontFamily: 'monospace',
+                        color: c.mutedForeground)),
                 const Spacer(),
                 TextButton.icon(
-                  onPressed: canCreateScope ? () => _showCreateScopeDialog(parentId: node.id) : null,
-                  icon: Icon(canCreateScope ? LucideIcons.plus : LucideIcons.lock, size: 12),
-                  label: const Text('Add Child', style: TextStyle(fontSize: 10)),
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero, foregroundColor: c.primary),
+                  onPressed: canCreateScope
+                      ? () => _showCreateScopeDialog(parentId: node.id)
+                      : null,
+                  icon: Icon(
+                      canCreateScope ? LucideIcons.plus : LucideIcons.lock,
+                      size: 12),
+                  label:
+                      const Text('Add Child', style: TextStyle(fontSize: 10)),
+                  style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero, foregroundColor: c.primary),
                 ),
               ],
             ),
           ),
           if (node.children.isNotEmpty)
-            ...node.children.map((child) => _buildScopeNodeWidget(context, child, canCreateScope)),
+            ...node.children.map((child) =>
+                _buildScopeNodeWidget(context, child, canCreateScope)),
         ],
       ),
     );

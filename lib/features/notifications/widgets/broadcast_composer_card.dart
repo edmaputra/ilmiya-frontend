@@ -83,26 +83,43 @@ class _BroadcastComposerCardState extends State<BroadcastComposerCard> {
           const SizedBox(height: 4),
           const Text(
             'Send instant high-priority push notifications to selected classes, grade levels, or the entire school body.',
-            style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
+            style: TextStyle(
+                fontSize: 11, color: AppColors.textSecondary, height: 1.3),
           ),
 
           const SizedBox(height: 14),
 
           // Target Audience
-          const Text('Target Audience', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+          const Text('Target Audience',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             value: _target,
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               fillColor: AppColors.naturalParchment,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
             items: const [
-              DropdownMenuItem(value: 'All School (Students & Parents)', child: Text('All School (Students & Parents)', style: TextStyle(fontSize: 11))),
-              DropdownMenuItem(value: 'Grade 11 (Juniors)', child: Text('Grade 11 (Juniors)', style: TextStyle(fontSize: 11))),
-              DropdownMenuItem(value: 'AP Computer Science A - Period 1', child: Text('AP Computer Science A - Period 1', style: TextStyle(fontSize: 11))),
-              DropdownMenuItem(value: 'AP Physics C - Period 3', child: Text('AP Physics C - Period 3', style: TextStyle(fontSize: 11))),
+              DropdownMenuItem(
+                  value: 'All School (Students & Parents)',
+                  child: Text('All School (Students & Parents)',
+                      style: TextStyle(fontSize: 11))),
+              DropdownMenuItem(
+                  value: 'Grade 11 (Juniors)',
+                  child: Text('Grade 11 (Juniors)',
+                      style: TextStyle(fontSize: 11))),
+              DropdownMenuItem(
+                  value: 'AP Computer Science A - Period 1',
+                  child: Text('AP Computer Science A - Period 1',
+                      style: TextStyle(fontSize: 11))),
+              DropdownMenuItem(
+                  value: 'AP Physics C - Period 3',
+                  child: Text('AP Physics C - Period 3',
+                      style: TextStyle(fontSize: 11))),
             ],
             onChanged: (val) => setState(() => _target = val!),
           ),
@@ -110,19 +127,31 @@ class _BroadcastComposerCardState extends State<BroadcastComposerCard> {
           const SizedBox(height: 10),
 
           // Priority
-          const Text('Priority Level', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+          const Text('Priority Level',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           DropdownButtonFormField<NotificationPriority>(
             value: _priority,
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               fillColor: AppColors.naturalParchment,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
             items: const [
-              DropdownMenuItem(value: NotificationPriority.medium, child: Text('Standard Notice', style: TextStyle(fontSize: 11))),
-              DropdownMenuItem(value: NotificationPriority.high, child: Text('High Academic Priority', style: TextStyle(fontSize: 11))),
-              DropdownMenuItem(value: NotificationPriority.urgent, child: Text('Urgent / Emergency Alert', style: TextStyle(fontSize: 11))),
+              DropdownMenuItem(
+                  value: NotificationPriority.medium,
+                  child:
+                      Text('Standard Notice', style: TextStyle(fontSize: 11))),
+              DropdownMenuItem(
+                  value: NotificationPriority.high,
+                  child: Text('High Academic Priority',
+                      style: TextStyle(fontSize: 11))),
+              DropdownMenuItem(
+                  value: NotificationPriority.urgent,
+                  child: Text('Urgent / Emergency Alert',
+                      style: TextStyle(fontSize: 11))),
             ],
             onChanged: (val) => setState(() => _priority = val!),
           ),
@@ -130,7 +159,8 @@ class _BroadcastComposerCardState extends State<BroadcastComposerCard> {
           const SizedBox(height: 10),
 
           // Title
-          const Text('Broadcast Headline', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+          const Text('Broadcast Headline',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           TextField(
             controller: _titleController,
@@ -138,15 +168,18 @@ class _BroadcastComposerCardState extends State<BroadcastComposerCard> {
             decoration: InputDecoration(
               hintText: 'e.g. Schedule Change for Period 4',
               fillColor: AppColors.naturalParchment,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
 
           const SizedBox(height: 10),
 
           // Message
-          const Text('Message Content', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+          const Text('Message Content',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           TextField(
             controller: _messageController,
@@ -155,8 +188,10 @@ class _BroadcastComposerCardState extends State<BroadcastComposerCard> {
             decoration: InputDecoration(
               hintText: 'Type broadcast description...',
               fillColor: AppColors.naturalParchment,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
 
@@ -169,10 +204,12 @@ class _BroadcastComposerCardState extends State<BroadcastComposerCard> {
                 backgroundColor: AppColors.forestSage,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
               icon: const Icon(Icons.send, size: 14),
-              label: const Text('Dispatch Instant Push Broadcast', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+              label: const Text('Dispatch Instant Push Broadcast',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
               onPressed: () => _handleDispatch(state),
             ),
           ),

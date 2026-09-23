@@ -10,7 +10,8 @@ final Map<UserRole, UserProfile> mockProfiles = {
     id: 'user_student_1',
     name: 'Alex Rivera',
     role: UserRole.student,
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    avatar:
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     email: 'alex.rivera@lincolnhigh.edu',
     schoolId: 'STU-2026-8941',
     gradeLevel: 'Grade 11 (Junior)',
@@ -27,7 +28,8 @@ final Map<UserRole, UserProfile> mockProfiles = {
     id: 'user_teacher_1',
     name: 'Dr. Eleanor Vance',
     role: UserRole.teacher,
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    avatar:
+        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     email: 'e.vance@lincolnhigh.edu',
     schoolId: 'FAC-2018-0412',
     department: 'STEM / Computer Science & Mathematics',
@@ -38,7 +40,8 @@ final Map<UserRole, UserProfile> mockProfiles = {
     id: 'user_parent_1',
     name: 'Marco Rivera',
     role: UserRole.parent,
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    avatar:
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     email: 'marco.rivera@rivera-tech.io',
     schoolId: 'PAR-8941-A',
     unreadNotifications: 2,
@@ -48,7 +51,8 @@ final Map<UserRole, UserProfile> mockProfiles = {
     id: 'user_admin_1',
     name: 'Principal Elena Martinez',
     role: UserRole.admin,
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    avatar:
+        'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
     email: 'e.martinez@lincolnhigh.edu',
     schoolId: 'ADM-2012-0001',
     department: 'School Administration & District Liaison',
@@ -64,7 +68,8 @@ final List<Course> initialCourses = [
     name: 'AP Computer Science A',
     teacherId: 'user_teacher_1',
     teacherName: 'Dr. Eleanor Vance',
-    teacherAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    teacherAvatar:
+        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     period: 'Period 1 (08:00 - 08:50 AM)',
     room: 'Lab Tech-402',
     credits: 4.0,
@@ -77,8 +82,10 @@ final List<Course> initialCourses = [
     categoryWeights: [
       CategoryWeight(category: 'Projects & Labs', weight: 40, currentAvg: 98.0),
       CategoryWeight(category: 'Unit Exams', weight: 35, currentAvg: 94.5),
-      CategoryWeight(category: 'Quizzes & Coding Drills', weight: 15, currentAvg: 96.0),
-      CategoryWeight(category: 'Homework & Practice', weight: 10, currentAvg: 100.0),
+      CategoryWeight(
+          category: 'Quizzes & Coding Drills', weight: 15, currentAvg: 96.0),
+      CategoryWeight(
+          category: 'Homework & Practice', weight: 10, currentAvg: 100.0),
     ],
     assignments: [
       Assignment(
@@ -91,7 +98,8 @@ final List<Course> initialCourses = [
         dueDate: '2026-03-24',
         submittedDate: '2026-03-23',
         status: 'graded',
-        feedback: 'Exemplary implementation of balancing logic. Well-commented edge cases.',
+        feedback:
+            'Exemplary implementation of balancing logic. Well-commented edge cases.',
         rubricScores: [
           RubricScore(criterion: 'Algorithm Correctness', score: 40, max: 40),
           RubricScore(criterion: 'Time/Space Complexity', score: 30, max: 30),
@@ -108,7 +116,8 @@ final List<Course> initialCourses = [
         dueDate: '2026-03-15',
         submittedDate: '2026-03-15',
         status: 'graded',
-        feedback: 'Strong grasp of polymorphic method overriding. Minor syntax typo on Question 8.',
+        feedback:
+            'Strong grasp of polymorphic method overriding. Minor syntax typo on Question 8.',
         rubricScores: [
           RubricScore(criterion: 'Multiple Choice Concept', score: 48, max: 50),
           RubricScore(criterion: 'Free Response Problem', score: 46, max: 50),
@@ -145,7 +154,8 @@ final List<Course> initialCourses = [
     name: 'AP Calculus BC',
     teacherId: 'user_teacher_2',
     teacherName: 'Prof. Marcus Chen',
-    teacherAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    teacherAvatar:
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     period: 'Period 2 (09:00 - 09:50 AM)',
     room: 'Hall B-210',
     credits: 4.0,
@@ -156,8 +166,10 @@ final List<Course> initialCourses = [
     attendanceRate: 96.0,
     officeHours: 'Tue/Thu 3:30 - 4:30 PM (Room 210)',
     categoryWeights: [
-      CategoryWeight(category: 'Exams & Midterms', weight: 50, currentAvg: 91.5),
-      CategoryWeight(category: 'Weekly Problem Sets', weight: 30, currentAvg: 95.0),
+      CategoryWeight(
+          category: 'Exams & Midterms', weight: 50, currentAvg: 91.5),
+      CategoryWeight(
+          category: 'Weekly Problem Sets', weight: 30, currentAvg: 95.0),
       CategoryWeight(category: 'Quizzes', weight: 20, currentAvg: 92.0),
     ],
     assignments: [
@@ -171,7 +183,8 @@ final List<Course> initialCourses = [
         dueDate: '2026-03-22',
         submittedDate: '2026-03-22',
         status: 'graded',
-        feedback: 'Great work computing the radius of convergence. Review error bound bounds.',
+        feedback:
+            'Great work computing the radius of convergence. Review error bound bounds.',
       ),
       Assignment(
         id: 'asg_calc_2',
@@ -193,7 +206,8 @@ final List<Course> initialCourses = [
     name: 'AP Physics C: Mechanics',
     teacherId: 'user_teacher_3',
     teacherName: 'Dr. Sarah Jenkins',
-    teacherAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    teacherAvatar:
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
     period: 'Period 3 (10:05 - 10:55 AM)',
     room: 'Sci Wing-108',
     credits: 4.0,
@@ -204,9 +218,11 @@ final List<Course> initialCourses = [
     attendanceRate: 100.0,
     officeHours: 'Wednesday 3:00 - 4:30 PM (Lab 108)',
     categoryWeights: [
-      CategoryWeight(category: 'Laboratory Experiments', weight: 35, currentAvg: 92.0),
+      CategoryWeight(
+          category: 'Laboratory Experiments', weight: 35, currentAvg: 92.0),
       CategoryWeight(category: 'Unit Tests', weight: 45, currentAvg: 85.5),
-      CategoryWeight(category: 'Homework & Conceptual', weight: 20, currentAvg: 90.0),
+      CategoryWeight(
+          category: 'Homework & Conceptual', weight: 20, currentAvg: 90.0),
     ],
     assignments: [
       Assignment(
@@ -219,7 +235,8 @@ final List<Course> initialCourses = [
         dueDate: '2026-03-20',
         submittedDate: '2026-03-19',
         status: 'graded',
-        feedback: 'Excellent error propagation analysis and video tracking telemetry.',
+        feedback:
+            'Excellent error propagation analysis and video tracking telemetry.',
       ),
       Assignment(
         id: 'asg_phys_2',
@@ -231,7 +248,8 @@ final List<Course> initialCourses = [
         dueDate: '2026-03-12',
         submittedDate: '2026-03-12',
         status: 'graded',
-        feedback: 'Review damping oscillations formulas and kinetic/potential exchange graphs.',
+        feedback:
+            'Review damping oscillations formulas and kinetic/potential exchange graphs.',
       ),
     ],
   ),
@@ -241,7 +259,8 @@ final List<Course> initialCourses = [
     name: 'AP English Literature',
     teacherId: 'user_teacher_4',
     teacherName: 'Ms. Clara Oswald',
-    teacherAvatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=150&auto=format&fit=crop&q=80',
+    teacherAvatar:
+        'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=150&auto=format&fit=crop&q=80',
     period: 'Period 4 (11:05 - 11:55 AM)',
     room: 'Hum-304',
     credits: 3.0,
@@ -252,8 +271,10 @@ final List<Course> initialCourses = [
     attendanceRate: 97.0,
     officeHours: 'Friday 2:30 - 3:30 PM (Room 304)',
     categoryWeights: [
-      CategoryWeight(category: 'Essays & Critical Analysis', weight: 50, currentAvg: 95.0),
-      CategoryWeight(category: 'Socratic Seminars', weight: 25, currentAvg: 96.0),
+      CategoryWeight(
+          category: 'Essays & Critical Analysis', weight: 50, currentAvg: 95.0),
+      CategoryWeight(
+          category: 'Socratic Seminars', weight: 25, currentAvg: 96.0),
       CategoryWeight(category: 'Reading Quizzes', weight: 25, currentAvg: 91.0),
     ],
     assignments: [
@@ -277,7 +298,8 @@ final List<Course> initialCourses = [
     name: 'AP United States History',
     teacherId: 'user_teacher_5',
     teacherName: 'Mr. David Miller',
-    teacherAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    teacherAvatar:
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     period: 'Period 5 (12:45 - 01:35 PM)',
     room: 'Soc-112',
     credits: 3.0,
@@ -288,9 +310,11 @@ final List<Course> initialCourses = [
     attendanceRate: 98.0,
     officeHours: 'Mon/Thu 3:15 - 4:00 PM (Room 112)',
     categoryWeights: [
-      CategoryWeight(category: 'DBQ & LEQ Essays', weight: 40, currentAvg: 90.0),
+      CategoryWeight(
+          category: 'DBQ & LEQ Essays', weight: 40, currentAvg: 90.0),
       CategoryWeight(category: 'Period Exams', weight: 40, currentAvg: 91.0),
-      CategoryWeight(category: 'Primary Source Discussions', weight: 20, currentAvg: 93.0),
+      CategoryWeight(
+          category: 'Primary Source Discussions', weight: 20, currentAvg: 93.0),
     ],
     assignments: [
       Assignment(
@@ -303,7 +327,8 @@ final List<Course> initialCourses = [
         dueDate: '2026-03-19',
         submittedDate: '2026-03-19',
         status: 'graded',
-        feedback: 'Strong contextualization and point-of-view sourcing analysis.',
+        feedback:
+            'Strong contextualization and point-of-view sourcing analysis.',
       ),
     ],
   ),
@@ -313,7 +338,8 @@ final List<Course> initialCourses = [
     name: 'Spanish III Honors',
     teacherId: 'user_teacher_6',
     teacherName: 'Sra. Sofia Alvarez',
-    teacherAvatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150&auto=format&fit=crop&q=80',
+    teacherAvatar:
+        'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150&auto=format&fit=crop&q=80',
     period: 'Period 6 (01:45 - 02:35 PM)',
     room: 'Lang-208',
     credits: 3.0,
@@ -324,9 +350,14 @@ final List<Course> initialCourses = [
     attendanceRate: 100.0,
     officeHours: 'Tuesday 3:15 - 4:15 PM (Room 208)',
     categoryWeights: [
-      CategoryWeight(category: 'Oral Proficiency & Dialogue', weight: 35, currentAvg: 98.0),
-      CategoryWeight(category: 'Grammar & Writing', weight: 35, currentAvg: 97.0),
-      CategoryWeight(category: 'Cultural Projects', weight: 30, currentAvg: 97.5),
+      CategoryWeight(
+          category: 'Oral Proficiency & Dialogue',
+          weight: 35,
+          currentAvg: 98.0),
+      CategoryWeight(
+          category: 'Grammar & Writing', weight: 35, currentAvg: 97.0),
+      CategoryWeight(
+          category: 'Cultural Projects', weight: 30, currentAvg: 97.5),
     ],
     assignments: [
       Assignment(
@@ -339,7 +370,8 @@ final List<Course> initialCourses = [
         dueDate: '2026-03-16',
         submittedDate: '2026-03-16',
         status: 'graded',
-        feedback: 'Fluidez y vocabulario avanzado impresionante. ¡Excelente trabajo!',
+        feedback:
+            'Fluidez y vocabulario avanzado impresionante. ¡Excelente trabajo!',
       ),
     ],
   ),
@@ -349,43 +381,50 @@ final List<NotificationItem> initialNotifications = [
   const NotificationItem(
     id: 'notif_1',
     title: 'New Grade Posted: AP CS Project 4',
-    message: 'Dr. Eleanor Vance graded "Recursive Binary Tree Search" with 98/100 (A+). Rubric feedback available.',
+    message:
+        'Dr. Eleanor Vance graded "Recursive Binary Tree Search" with 98/100 (A+). Rubric feedback available.',
     timestamp: '12 mins ago',
     category: NotificationCategory.grade,
     priority: NotificationPriority.high,
     read: false,
     courseCode: 'CS-301',
     senderName: 'Dr. Eleanor Vance',
-    senderAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    senderAvatar:
+        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
   ),
   const NotificationItem(
     id: 'notif_2',
     title: 'Secure Message from Dr. Vance',
-    message: 'Regarding your inquiry on Binary Tree complexity: "Feel free to stop by office hours at 3:15 PM."',
+    message:
+        'Regarding your inquiry on Binary Tree complexity: "Feel free to stop by office hours at 3:15 PM."',
     timestamp: '45 mins ago',
     category: NotificationCategory.message,
     priority: NotificationPriority.medium,
     read: false,
     courseCode: 'CS-301',
     senderName: 'Dr. Eleanor Vance',
-    senderAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    senderAvatar:
+        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
   ),
   const NotificationItem(
     id: 'notif_3',
     title: 'AP Physics C Midterm Review Session',
-    message: 'Dr. Sarah Jenkins scheduled a live review session for Wednesday 3:00 PM in Room 108.',
+    message:
+        'Dr. Sarah Jenkins scheduled a live review session for Wednesday 3:00 PM in Room 108.',
     timestamp: '2 hours ago',
     category: NotificationCategory.announcement,
     priority: NotificationPriority.medium,
     read: false,
     courseCode: 'PHYS-302',
     senderName: 'Dr. Sarah Jenkins',
-    senderAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    senderAvatar:
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
   ),
   const NotificationItem(
     id: 'notif_4',
     title: 'District Notice: Q3 Progress Reports Published',
-    message: 'Official Q3 report cards and GPA transcripts are now accessible in your SIS portal.',
+    message:
+        'Official Q3 report cards and GPA transcripts are now accessible in your SIS portal.',
     timestamp: '1 day ago',
     category: NotificationCategory.announcement,
     priority: NotificationPriority.high,
@@ -395,7 +434,8 @@ final List<NotificationItem> initialNotifications = [
   const NotificationItem(
     id: 'notif_5',
     title: 'Attendance Verified: 100% On-Time This Week',
-    message: 'Great job maintaining perfect attendance for all 6 scheduled periods.',
+    message:
+        'Great job maintaining perfect attendance for all 6 scheduled periods.',
     timestamp: '2 days ago',
     category: NotificationCategory.attendance,
     priority: NotificationPriority.low,
@@ -416,19 +456,22 @@ final List<ChatChannel> initialChannels = [
         id: 'user_student_1',
         name: 'Alex Rivera',
         role: UserRole.student,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        avatar:
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         online: true,
       ),
       ChatParticipant(
         id: 'user_teacher_1',
         name: 'Dr. Eleanor Vance',
         role: UserRole.teacher,
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+        avatar:
+            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
         online: true,
       ),
     ],
     lastMessage: ChatLastMessage(
-      text: 'Yes, stop by during Period 7 office hours and we can review the balance factor.',
+      text:
+          'Yes, stop by during Period 7 office hours and we can review the balance factor.',
       timestamp: '10:42 AM',
       senderId: 'user_teacher_1',
     ),
@@ -445,19 +488,22 @@ final List<ChatChannel> initialChannels = [
         id: 'user_student_1',
         name: 'Alex Rivera',
         role: UserRole.student,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        avatar:
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         online: true,
       ),
       ChatParticipant(
         id: 'user_teacher_3',
         name: 'Dr. Sarah Jenkins',
         role: UserRole.teacher,
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+        avatar:
+            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
         online: false,
       ),
     ],
     lastMessage: ChatLastMessage(
-      text: 'Lab 5 corrections have been received and updated in your grade sheet.',
+      text:
+          'Lab 5 corrections have been received and updated in your grade sheet.',
       timestamp: 'Yesterday',
       senderId: 'user_teacher_3',
     ),
@@ -474,19 +520,22 @@ final List<ChatChannel> initialChannels = [
         id: 'user_teacher_1',
         name: 'Dr. Eleanor Vance',
         role: UserRole.teacher,
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+        avatar:
+            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
         online: true,
       ),
       ChatParticipant(
         id: 'user_student_1',
         name: 'Alex Rivera',
         role: UserRole.student,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        avatar:
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         online: true,
       ),
     ],
     lastMessage: ChatLastMessage(
-      text: 'Don’t forget the unit test harness requires Java 17 compatibility!',
+      text:
+          'Don’t forget the unit test harness requires Java 17 compatibility!',
       timestamp: 'Mar 24',
       senderId: 'user_teacher_1',
     ),
@@ -500,7 +549,8 @@ final Map<String, List<ChatMessage>> initialMessages = {
       senderId: 'user_student_1',
       senderName: 'Alex Rivera',
       senderRole: UserRole.student,
-      senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      senderAvatar:
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
       content: 'Hello Dr. Vance! Thank you for the quick grading on Project 4.',
       timestamp: '10:30 AM',
       isEncrypted: true,
@@ -511,8 +561,10 @@ final Map<String, List<ChatMessage>> initialMessages = {
       senderId: 'user_student_1',
       senderName: 'Alex Rivera',
       senderRole: UserRole.student,
-      senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      content: 'I had a quick question regarding the balance factor calculation in AVLTree.java on line 142. Should we handle the double rotation in the same recursive pass?',
+      senderAvatar:
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      content:
+          'I had a quick question regarding the balance factor calculation in AVLTree.java on line 142. Should we handle the double rotation in the same recursive pass?',
       timestamp: '10:32 AM',
       isEncrypted: true,
       status: 'read',
@@ -527,8 +579,10 @@ final Map<String, List<ChatMessage>> initialMessages = {
       senderId: 'user_teacher_1',
       senderName: 'Dr. Eleanor Vance',
       senderRole: UserRole.teacher,
-      senderAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-      content: 'Great inquiry, Alex! You can either rotate right-then-left or perform the single helper. Your approach in the submission was mathematically sound.',
+      senderAvatar:
+          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      content:
+          'Great inquiry, Alex! You can either rotate right-then-left or perform the single helper. Your approach in the submission was mathematically sound.',
       timestamp: '10:38 AM',
       isEncrypted: true,
       status: 'read',
@@ -538,8 +592,10 @@ final Map<String, List<ChatMessage>> initialMessages = {
       senderId: 'user_teacher_1',
       senderName: 'Dr. Eleanor Vance',
       senderRole: UserRole.teacher,
-      senderAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-      content: 'Yes, stop by during Period 7 office hours and we can review the balance factor visualization together on the lab screen.',
+      senderAvatar:
+          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      content:
+          'Yes, stop by during Period 7 office hours and we can review the balance factor visualization together on the lab screen.',
       timestamp: '10:42 AM',
       isEncrypted: true,
       status: 'delivered',
@@ -551,8 +607,10 @@ final Map<String, List<ChatMessage>> initialMessages = {
       senderId: 'user_student_1',
       senderName: 'Alex Rivera',
       senderRole: UserRole.student,
-      senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      content: 'Dr. Jenkins, I have submitted the revised rotational inertia lab data with the photogate sensor timestamps.',
+      senderAvatar:
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      content:
+          'Dr. Jenkins, I have submitted the revised rotational inertia lab data with the photogate sensor timestamps.',
       timestamp: 'Yesterday',
       isEncrypted: true,
       status: 'read',
@@ -567,8 +625,10 @@ final Map<String, List<ChatMessage>> initialMessages = {
       senderId: 'user_teacher_3',
       senderName: 'Dr. Sarah Jenkins',
       senderRole: UserRole.teacher,
-      senderAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-      content: 'Lab 5 corrections have been received and updated in your grade sheet. Keep up the thorough experimental work!',
+      senderAvatar:
+          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      content:
+          'Lab 5 corrections have been received and updated in your grade sheet. Keep up the thorough experimental work!',
       timestamp: 'Yesterday',
       isEncrypted: true,
       status: 'read',
@@ -580,8 +640,10 @@ final Map<String, List<ChatMessage>> initialMessages = {
       senderId: 'user_teacher_1',
       senderName: 'Dr. Eleanor Vance',
       senderRole: UserRole.teacher,
-      senderAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-      content: 'Welcome everyone! Use this encrypted channel for homework hints and algorithm questions.',
+      senderAvatar:
+          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      content:
+          'Welcome everyone! Use this encrypted channel for homework hints and algorithm questions.',
       timestamp: 'Mar 20',
       isEncrypted: true,
       status: 'read',
@@ -591,8 +653,10 @@ final Map<String, List<ChatMessage>> initialMessages = {
       senderId: 'user_teacher_1',
       senderName: 'Dr. Eleanor Vance',
       senderRole: UserRole.teacher,
-      senderAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-      content: 'Don’t forget the unit test harness requires Java 17 compatibility for the tree traversal benchmarks!',
+      senderAvatar:
+          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      content:
+          'Don’t forget the unit test harness requires Java 17 compatibility for the tree traversal benchmarks!',
       timestamp: 'Mar 24',
       isEncrypted: true,
       status: 'read',
@@ -601,10 +665,64 @@ final Map<String, List<ChatMessage>> initialMessages = {
 };
 
 final List<SchedulePeriod> weeklySchedule = [
-  const SchedulePeriod(id: 's1', period: 'Period 1', time: '08:00 - 08:50', courseCode: 'CS-301', courseName: 'AP Computer Science A', room: 'Lab Tech-402', teacher: 'Dr. Vance', color: Color(0xFF5F6F52), day: 'Mon'),
-  const SchedulePeriod(id: 's2', period: 'Period 2', time: '09:00 - 09:50', courseCode: 'MATH-401', courseName: 'AP Calculus BC', room: 'Hall B-210', teacher: 'Prof. Chen', color: Color(0xFFA9B388), day: 'Mon'),
-  const SchedulePeriod(id: 's3', period: 'Period 3', time: '10:05 - 10:55', courseCode: 'PHYS-302', courseName: 'AP Physics C', room: 'Sci Wing-108', teacher: 'Dr. Jenkins', color: Color(0xFF43423E), day: 'Mon'),
-  const SchedulePeriod(id: 's4', period: 'Period 4', time: '11:05 - 11:55', courseCode: 'ENG-305', courseName: 'AP English Lit', room: 'Hum-304', teacher: 'Ms. Oswald', color: Color(0xFFD67D5B), day: 'Mon'),
-  const SchedulePeriod(id: 's5', period: 'Period 5', time: '12:45 - 01:35', courseCode: 'HIST-204', courseName: 'AP US History', room: 'Soc-112', teacher: 'Mr. Miller', color: Color(0xFFC28E58), day: 'Mon'),
-  const SchedulePeriod(id: 's6', period: 'Period 6', time: '01:45 - 02:35', courseCode: 'LANG-301', courseName: 'Spanish III Honors', room: 'Lang-208', teacher: 'Sra. Alvarez', color: Color(0xFF8C887D), day: 'Mon'),
+  const SchedulePeriod(
+      id: 's1',
+      period: 'Period 1',
+      time: '08:00 - 08:50',
+      courseCode: 'CS-301',
+      courseName: 'AP Computer Science A',
+      room: 'Lab Tech-402',
+      teacher: 'Dr. Vance',
+      color: Color(0xFF5F6F52),
+      day: 'Mon'),
+  const SchedulePeriod(
+      id: 's2',
+      period: 'Period 2',
+      time: '09:00 - 09:50',
+      courseCode: 'MATH-401',
+      courseName: 'AP Calculus BC',
+      room: 'Hall B-210',
+      teacher: 'Prof. Chen',
+      color: Color(0xFFA9B388),
+      day: 'Mon'),
+  const SchedulePeriod(
+      id: 's3',
+      period: 'Period 3',
+      time: '10:05 - 10:55',
+      courseCode: 'PHYS-302',
+      courseName: 'AP Physics C',
+      room: 'Sci Wing-108',
+      teacher: 'Dr. Jenkins',
+      color: Color(0xFF43423E),
+      day: 'Mon'),
+  const SchedulePeriod(
+      id: 's4',
+      period: 'Period 4',
+      time: '11:05 - 11:55',
+      courseCode: 'ENG-305',
+      courseName: 'AP English Lit',
+      room: 'Hum-304',
+      teacher: 'Ms. Oswald',
+      color: Color(0xFFD67D5B),
+      day: 'Mon'),
+  const SchedulePeriod(
+      id: 's5',
+      period: 'Period 5',
+      time: '12:45 - 01:35',
+      courseCode: 'HIST-204',
+      courseName: 'AP US History',
+      room: 'Soc-112',
+      teacher: 'Mr. Miller',
+      color: Color(0xFFC28E58),
+      day: 'Mon'),
+  const SchedulePeriod(
+      id: 's6',
+      period: 'Period 6',
+      time: '01:45 - 02:35',
+      courseCode: 'LANG-301',
+      courseName: 'Spanish III Honors',
+      room: 'Lang-208',
+      teacher: 'Sra. Alvarez',
+      color: Color(0xFF8C887D),
+      day: 'Mon'),
 ];

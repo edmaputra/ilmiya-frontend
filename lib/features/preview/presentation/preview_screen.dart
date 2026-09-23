@@ -220,7 +220,8 @@ class _PreviewScreenState extends State<PreviewScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
-                color: isActive ? AppColors.forestSage : AppColors.textSecondary,
+                color:
+                    isActive ? AppColors.forestSage : AppColors.textSecondary,
               ),
             ),
             if (badgeCount != null && badgeCount > 0) ...[

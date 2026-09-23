@@ -50,7 +50,8 @@ class ContextualInquiryTagView extends StatelessWidget {
             const SizedBox(width: 6),
             InkWell(
               onTap: onRemove,
-              child: const Icon(Icons.close, size: 13, color: AppColors.textMuted),
+              child:
+                  const Icon(Icons.close, size: 13, color: AppColors.textMuted),
             ),
           ],
         ],

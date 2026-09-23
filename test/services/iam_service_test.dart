@@ -42,7 +42,9 @@ void main() {
       expect(tree.any((node) => node.code.contains('CAMPUS_MAIN')), isTrue);
     });
 
-    test('TokenResponse correctly parses live backend response with nested user', () {
+    test(
+        'TokenResponse correctly parses live backend response with nested user',
+        () {
       final liveJson = {
         'accessToken': 'jwt.mock.access',
         'refreshToken': 'jwt.mock.refresh',
@@ -62,7 +64,8 @@ void main() {
       final tokenResponse = TokenResponse.fromJson(liveJson);
       expect(tokenResponse.accessToken, equals('jwt.mock.access'));
       expect(tokenResponse.refreshToken, equals('jwt.mock.refresh'));
-      expect(tokenResponse.tenantId, equals('01940000-0000-7000-8000-000000000001'));
+      expect(tokenResponse.tenantId,
+          equals('01940000-0000-7000-8000-000000000001'));
       expect(tokenResponse.roles, contains('SCHOOL_ADMIN'));
       expect(tokenResponse.permissions, contains('school:*'));
       expect(tokenResponse.user, isNotNull);

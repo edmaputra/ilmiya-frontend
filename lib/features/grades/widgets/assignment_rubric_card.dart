@@ -39,7 +39,8 @@ class AssignmentRubricCard extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
                             color: AppColors.borderLight,
                             borderRadius: BorderRadius.circular(8),
@@ -91,7 +92,6 @@ class AssignmentRubricCard extends StatelessWidget {
                   ],
                 ),
               ),
-
               if (isGraded)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -121,7 +121,8 @@ class AssignmentRubricCard extends StatelessWidget {
                 )
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.warmSand,
                     borderRadius: BorderRadius.circular(10),
@@ -155,11 +156,16 @@ class AssignmentRubricCard extends StatelessWidget {
                 children: [
                   RichText(
                     text: TextSpan(
-                      style: const TextStyle(fontSize: 11, color: AppColors.textPrimary, height: 1.4),
+                      style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textPrimary,
+                          height: 1.4),
                       children: [
                         const TextSpan(
                           text: 'Instructor Feedback: ',
-                          style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.forestSage),
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.forestSage),
                         ),
                         TextSpan(text: '"${assignment.feedback}"'),
                       ],
@@ -167,7 +173,8 @@ class AssignmentRubricCard extends StatelessWidget {
                   ),
 
                   // Rubric Scores Breakdown
-                  if (assignment.rubricScores != null && assignment.rubricScores!.isNotEmpty) ...[
+                  if (assignment.rubricScores != null &&
+                      assignment.rubricScores!.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Divider(color: AppColors.borderLight),
                     const SizedBox(height: 6),
@@ -186,7 +193,8 @@ class AssignmentRubricCard extends StatelessWidget {
                       runSpacing: 8,
                       children: assignment.rubricScores!.map((rubric) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(10),
@@ -198,7 +206,8 @@ class AssignmentRubricCard extends StatelessWidget {
                             children: [
                               Text(
                                 rubric.criterion,
-                                style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                                style: const TextStyle(
+                                    fontSize: 10, color: AppColors.textMuted),
                               ),
                               Text(
                                 '${rubric.score.toStringAsFixed(0)} / ${rubric.max.toStringAsFixed(0)} pts',
@@ -227,12 +236,14 @@ class AssignmentRubricCard extends StatelessWidget {
             child: TextButton.icon(
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.forestSage,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               ),
               icon: const Icon(Icons.chat_bubble_outline, size: 14),
               label: Text(
                 'Inquire with ${course.teacherName.split(' ')[0]}',
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                style:
+                    const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
               ),
               onPressed: () {
                 context.read<AppState>().inquireAssignment(course, assignment);

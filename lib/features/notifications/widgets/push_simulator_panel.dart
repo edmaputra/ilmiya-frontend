@@ -25,7 +25,8 @@ class PushSimulatorPanel extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.auto_awesome, size: 14, color: AppColors.forestSage),
+                  Icon(Icons.auto_awesome,
+                      size: 14, color: AppColors.forestSage),
                   SizedBox(width: 6),
                   Text(
                     'INTERACTIVE PUSH DISPATCH SIMULATOR',
@@ -44,9 +45,7 @@ class PushSimulatorPanel extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 12),
-
           LayoutBuilder(
             builder: (context, constraints) {
               final count = constraints.maxWidth > 700 ? 4 : 2;
@@ -123,7 +122,10 @@ class PushSimulatorPanel extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary),
                 ),
               ],
             ),

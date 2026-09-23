@@ -90,11 +90,13 @@ class CourseCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 9, vertical: 3),
                       decoration: BoxDecoration(
                         color: course.color.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: course.color.withOpacity(0.3)),
+                        border:
+                            Border.all(color: course.color.withOpacity(0.3)),
                       ),
                       child: Text(
                         course.letterGrade,

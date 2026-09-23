@@ -33,8 +33,10 @@ class AcademicTermResponse {
       startDate: json['startDate'] as String? ?? '',
       endDate: json['endDate'] as String? ?? '',
       status: json['status'] as String? ?? 'PLANNED',
-      createdAt: json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
-      updatedAt: json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
+      createdAt:
+          json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
+      updatedAt:
+          json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
     );
   }
 
@@ -110,11 +112,14 @@ class AcademicYearResponse {
       endDate: json['endDate'] as String? ?? '',
       status: json['status'] as String? ?? 'PLANNED',
       terms: (json['terms'] as List<dynamic>?)
-              ?.map((t) => AcademicTermResponse.fromJson(t as Map<String, dynamic>))
+              ?.map((t) =>
+                  AcademicTermResponse.fromJson(t as Map<String, dynamic>))
               .toList() ??
           [],
-      createdAt: json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
-      updatedAt: json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
+      createdAt:
+          json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
+      updatedAt:
+          json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
     );
   }
 

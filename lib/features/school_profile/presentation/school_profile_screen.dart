@@ -65,19 +65,22 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
     final addrCtrl = TextEditingController(text: _profile!.address);
     final emailCtrl = TextEditingController(text: _profile!.contactEmail);
     final phoneCtrl = TextEditingController(text: _profile!.contactPhone);
-    final npsnCtrl = TextEditingController(text: _profile!.governmentRegistrationNumber ?? '');
+    final npsnCtrl = TextEditingController(
+        text: _profile!.governmentRegistrationNumber ?? '');
     String accredStatus = _profile!.accreditationStatus ?? 'ACCREDITED_A';
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Row(
             children: [
               Icon(Icons.edit_note_rounded, color: AppColors.forestSage),
               SizedBox(width: 8),
-              Text('Edit Institutional Profile', style: TextStyle(fontFamily: 'serif', fontSize: 18)),
+              Text('Edit Institutional Profile',
+                  style: TextStyle(fontFamily: 'serif', fontSize: 18)),
             ],
           ),
           content: SingleChildScrollView(
@@ -106,19 +109,29 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                 const SizedBox(height: 10),
                 TextField(
                   controller: npsnCtrl,
-                  decoration: const InputDecoration(labelText: 'Govt Reg Number (NPSN)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Govt Reg Number (NPSN)'),
                 ),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
                   value: accredStatus,
-                  decoration: const InputDecoration(labelText: 'Accreditation Status'),
+                  decoration:
+                      const InputDecoration(labelText: 'Accreditation Status'),
                   items: const [
-                    DropdownMenuItem(value: 'ACCREDITED_A', child: Text('Accredited A (Unggul)')),
-                    DropdownMenuItem(value: 'ACCREDITED_B', child: Text('Accredited B (Baik Sekali)')),
-                    DropdownMenuItem(value: 'ACCREDITED_C', child: Text('Accredited C (Baik)')),
-                    DropdownMenuItem(value: 'UNACCREDITED', child: Text('Unaccredited')),
+                    DropdownMenuItem(
+                        value: 'ACCREDITED_A',
+                        child: Text('Accredited A (Unggul)')),
+                    DropdownMenuItem(
+                        value: 'ACCREDITED_B',
+                        child: Text('Accredited B (Baik Sekali)')),
+                    DropdownMenuItem(
+                        value: 'ACCREDITED_C',
+                        child: Text('Accredited C (Baik)')),
+                    DropdownMenuItem(
+                        value: 'UNACCREDITED', child: Text('Unaccredited')),
                   ],
-                  onChanged: (v) => setDlgState(() => accredStatus = v ?? accredStatus),
+                  onChanged: (v) =>
+                      setDlgState(() => accredStatus = v ?? accredStatus),
                 ),
               ],
             ),
@@ -134,12 +147,15 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
-                final updated = await schoolService.updateProfile(UpdateSchoolRequest(
+                final updated =
+                    await schoolService.updateProfile(UpdateSchoolRequest(
                   name: nameCtrl.text.trim(),
                   address: addrCtrl.text.trim(),
                   contactEmail: emailCtrl.text.trim(),
                   contactPhone: phoneCtrl.text.trim(),
-                  governmentRegistrationNumber: npsnCtrl.text.trim().isNotEmpty ? npsnCtrl.text.trim() : null,
+                  governmentRegistrationNumber: npsnCtrl.text.trim().isNotEmpty
+                      ? npsnCtrl.text.trim()
+                      : null,
                   accreditationStatus: accredStatus,
                 ));
                 if (mounted) setState(() => _profile = updated);
@@ -163,12 +179,14 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Row(
             children: [
               Icon(Icons.tune_rounded, color: AppColors.forestSage),
               SizedBox(width: 8),
-              Text('Operational Settings', style: TextStyle(fontFamily: 'serif', fontSize: 18)),
+              Text('Operational Settings',
+                  style: TextStyle(fontFamily: 'serif', fontSize: 18)),
             ],
           ),
           content: SingleChildScrollView(
@@ -176,7 +194,9 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('School Working Days:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                const Text('School Working Days:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
@@ -193,7 +213,9 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                           if (val) {
                             selectedDays.add(day);
                           } else {
-                            if (selectedDays.length > 1) selectedDays.remove(day);
+                            if (selectedDays.length > 1) {
+                              selectedDays.remove(day);
+                            }
                           }
                         });
                       },
@@ -203,7 +225,8 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: grading,
-                  decoration: const InputDecoration(labelText: 'Grading Framework'),
+                  decoration:
+                      const InputDecoration(labelText: 'Grading Framework'),
                   items: const [
                     DropdownMenuItem(
                       value: 'DESCRIPTIVE_KURIKULUM_MERDEKA',
@@ -223,13 +246,21 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: termLayout,
-                  decoration: const InputDecoration(labelText: 'Academic Term Layout'),
+                  decoration:
+                      const InputDecoration(labelText: 'Academic Term Layout'),
                   items: const [
-                    DropdownMenuItem(value: 'SEMESTER', child: Text('Semester (2 Terms / Year)')),
-                    DropdownMenuItem(value: 'TRIMESTER', child: Text('Trimester (3 Terms / Year)')),
-                    DropdownMenuItem(value: 'QUARTER', child: Text('Quarter (4 Terms / Year)')),
+                    DropdownMenuItem(
+                        value: 'SEMESTER',
+                        child: Text('Semester (2 Terms / Year)')),
+                    DropdownMenuItem(
+                        value: 'TRIMESTER',
+                        child: Text('Trimester (3 Terms / Year)')),
+                    DropdownMenuItem(
+                        value: 'QUARTER',
+                        child: Text('Quarter (4 Terms / Year)')),
                   ],
-                  onChanged: (v) => setDlgState(() => termLayout = v ?? termLayout),
+                  onChanged: (v) =>
+                      setDlgState(() => termLayout = v ?? termLayout),
                 ),
               ],
             ),
@@ -245,7 +276,8 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
-                final updated = await schoolService.configureSettings(ConfigureSchoolSettingsRequest(
+                final updated = await schoolService
+                    .configureSettings(ConfigureSchoolSettingsRequest(
                   workingDays: selectedDays,
                   gradingPreference: grading,
                   termLayout: termLayout,
@@ -278,7 +310,8 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(LucideIcons.circleAlert, size: 48, color: AppColors.earthyTerra),
+            const Icon(LucideIcons.circleAlert,
+                size: 48, color: AppColors.earthyTerra),
             const SizedBox(height: 12),
             Text(_error!, style: t.p),
             const SizedBox(height: 12),
@@ -366,12 +399,15 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
               ),
               OutlinedButton.icon(
                 onPressed: canEditProfile ? _showEditProfileDialog : null,
-                icon: Icon(canEditProfile ? LucideIcons.pencil : LucideIcons.lock, size: 16),
+                icon: Icon(
+                    canEditProfile ? LucideIcons.pencil : LucideIcons.lock,
+                    size: 16),
                 label: const Text('Edit Profile'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: c.foreground,
                   side: BorderSide(color: c.border),
-                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
@@ -396,33 +432,46 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(LucideIcons.landmark, color: c.foreground, size: 18),
+                              Icon(LucideIcons.landmark,
+                                  color: c.foreground, size: 18),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'Institutional Details',
                                   overflow: TextOverflow.ellipsis,
-                                  style: t.large.copyWith(fontWeight: FontWeight.bold),
+                                  style: t.large
+                                      .copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ],
                           ),
                           Divider(height: 24, color: c.border),
-                          _infoRow(context, LucideIcons.mapPin, 'Address', p.address),
+                          _infoRow(context, LucideIcons.mapPin, 'Address',
+                              p.address),
                           const SizedBox(height: 12),
-                          _infoRow(context, LucideIcons.mail, 'Contact Email', p.contactEmail),
+                          _infoRow(context, LucideIcons.mail, 'Contact Email',
+                              p.contactEmail),
                           const SizedBox(height: 12),
-                          _infoRow(context, LucideIcons.phone, 'Contact Phone', p.contactPhone),
+                          _infoRow(context, LucideIcons.phone, 'Contact Phone',
+                              p.contactPhone),
                           const SizedBox(height: 12),
-                          _infoRow(context, LucideIcons.badgeCheck, 'Govt Registration (NPSN)', p.governmentRegistrationNumber ?? '-'),
+                          _infoRow(
+                              context,
+                              LucideIcons.badgeCheck,
+                              'Govt Registration (NPSN)',
+                              p.governmentRegistrationNumber ?? '-'),
                           const SizedBox(height: 12),
-                          _infoRow(context, LucideIcons.award, 'Accreditation', '${p.accreditationStatus ?? '-'} (${p.accreditationBody ?? ''})'),
+                          _infoRow(context, LucideIcons.award, 'Accreditation',
+                              '${p.accreditationStatus ?? '-'} (${p.accreditationBody ?? ''})'),
                         ],
                       ),
                     ),
                   ),
 
-                  if (isWide) const SizedBox(width: 20) else const SizedBox(height: 20),
+                  if (isWide)
+                    const SizedBox(width: 20)
+                  else
+                    const SizedBox(height: 20),
 
                   // Operational Settings Card
                   Expanded(
@@ -437,28 +486,41 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                               Expanded(
                                 child: Row(
                                   children: [
-                                    Icon(LucideIcons.sliders, color: c.foreground, size: 18),
+                                    Icon(LucideIcons.sliders,
+                                        color: c.foreground, size: 18),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         'Operational Rules',
                                         overflow: TextOverflow.ellipsis,
-                                        style: t.large.copyWith(fontWeight: FontWeight.bold),
+                                        style: t.large.copyWith(
+                                            fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                               TextButton.icon(
-                                onPressed: canManageSettings ? _showSettingsDialog : null,
-                                icon: Icon(canManageSettings ? LucideIcons.settings : LucideIcons.lock, size: 14),
-                                label: const Text('Configure', style: TextStyle(fontSize: 12)),
-                                style: TextButton.styleFrom(foregroundColor: c.primary),
+                                onPressed: canManageSettings
+                                    ? _showSettingsDialog
+                                    : null,
+                                icon: Icon(
+                                    canManageSettings
+                                        ? LucideIcons.settings
+                                        : LucideIcons.lock,
+                                    size: 14),
+                                label: const Text('Configure',
+                                    style: TextStyle(fontSize: 12)),
+                                style: TextButton.styleFrom(
+                                    foregroundColor: c.primary),
                               ),
                             ],
                           ),
                           Divider(height: 24, color: c.border),
-                          Text('Active Working Days', style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
+                          Text('Active Working Days',
+                              style: t.small.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: c.foreground)),
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 6,
@@ -466,25 +528,36 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                             children: _allDays.map((d) {
                               final active = p.workingDays.contains(d);
                               return Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: active ? c.accent : c.muted.withOpacity(0.5),
+                                  color: active
+                                      ? c.accent
+                                      : c.muted.withOpacity(0.5),
                                   borderRadius: KiteRadius.allMd,
-                                  border: Border.all(color: active ? c.primary : c.border),
+                                  border: Border.all(
+                                      color: active ? c.primary : c.border),
                                 ),
                                 child: Text(
                                   d.substring(0, 3),
                                   style: t.small.copyWith(
                                     fontSize: 11,
-                                    fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                                    color: active ? c.foreground : c.mutedForeground,
+                                    fontWeight: active
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: active
+                                        ? c.foreground
+                                        : c.mutedForeground,
                                   ),
                                 ),
                               );
                             }).toList(),
                           ),
                           const SizedBox(height: 16),
-                          Text('Curriculum & Grading', style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
+                          Text('Curriculum & Grading',
+                              style: t.small.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: c.foreground)),
                           const SizedBox(height: 4),
                           Text(
                             p.gradingPreference.replaceAll('_', ' '),
@@ -494,7 +567,10 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Text('Academic Term Layout', style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground)),
+                          Text('Academic Term Layout',
+                              style: t.small.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: c.foreground)),
                           const SizedBox(height: 4),
                           Text(
                             p.termLayout,
@@ -516,7 +592,8 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
     );
   }
 
-  Widget _infoRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _infoRow(
+      BuildContext context, IconData icon, String label, String value) {
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
     return Row(
@@ -531,7 +608,8 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
         Expanded(
           child: Text(
             value,
-            style: t.small.copyWith(fontWeight: FontWeight.w600, color: c.foreground),
+            style: t.small
+                .copyWith(fontWeight: FontWeight.w600, color: c.foreground),
           ),
         ),
       ],

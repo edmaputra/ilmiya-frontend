@@ -47,9 +47,7 @@ class ScheduleWidget extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),

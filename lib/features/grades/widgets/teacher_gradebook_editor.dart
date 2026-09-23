@@ -69,7 +69,8 @@ class _TeacherGradebookEditorState extends State<TeacherGradebookEditor> {
                   SizedBox(height: 2),
                   Text(
                     'Class: AP Computer Science A • Period 1 • 28 Enrolled Students',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    style:
+                        TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -77,18 +78,24 @@ class _TeacherGradebookEditorState extends State<TeacherGradebookEditor> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.forestSage,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
-                icon: const Icon(Icons.save_outlined, size: 14, color: AppColors.warmSand),
-                label: const Text('Publish Grades & Notify', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                icon: const Icon(Icons.save_outlined,
+                    size: 14, color: AppColors.warmSand),
+                label: const Text('Publish Grades & Notify',
+                    style:
+                        TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
                 onPressed: () {
                   state.simulateNotification('grade');
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       backgroundColor: AppColors.forestSage,
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                       content: const Text(
                         '📢 Scores published and push notifications dispatched to 28 students!',
                         style: TextStyle(fontWeight: FontWeight.w700),
@@ -113,33 +120,79 @@ class _TeacherGradebookEditorState extends State<TeacherGradebookEditor> {
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     color: AppColors.naturalParchment,
                     child: const Row(
                       children: [
-                        Expanded(flex: 3, child: Text('STUDENT NAME', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                        Expanded(flex: 2, child: Text('STUDENT ID', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                        Expanded(flex: 2, child: Text('PROJECT 4 (100)', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                        Expanded(flex: 2, child: Text('MIDTERM 2 (100)', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                        Expanded(flex: 2, child: Text('OVERALL PCT', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                        Expanded(flex: 1, child: Text('GRADE', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
+                        Expanded(
+                            flex: 3,
+                            child: Text('STUDENT NAME',
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800))),
+                        Expanded(
+                            flex: 2,
+                            child: Text('STUDENT ID',
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800))),
+                        Expanded(
+                            flex: 2,
+                            child: Text('PROJECT 4 (100)',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800))),
+                        Expanded(
+                            flex: 2,
+                            child: Text('MIDTERM 2 (100)',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800))),
+                        Expanded(
+                            flex: 2,
+                            child: Text('OVERALL PCT',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800))),
+                        Expanded(
+                            flex: 1,
+                            child: Text('GRADE',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800))),
                       ],
                     ),
                   ),
-
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _roster.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.borderLight),
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 1, color: AppColors.borderLight),
                     itemBuilder: (context, index) {
                       final item = _roster[index];
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         child: Row(
                           children: [
-                            Expanded(flex: 3, child: Text(item['name'], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
-                            Expanded(flex: 2, child: Text(item['id'], style: const TextStyle(fontSize: 11, color: AppColors.textMuted))),
+                            Expanded(
+                                flex: 3,
+                                child: Text(item['name'],
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700))),
+                            Expanded(
+                                flex: 2,
+                                child: Text(item['id'],
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textMuted))),
                             Expanded(
                               flex: 2,
                               child: Center(
@@ -147,12 +200,19 @@ class _TeacherGradebookEditorState extends State<TeacherGradebookEditor> {
                                   width: 60,
                                   child: TextField(
                                     textAlign: TextAlign.center,
-                                    controller: TextEditingController(text: item['project4']),
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                                    controller: TextEditingController(
+                                        text: item['project4']),
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700),
                                     decoration: InputDecoration(
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 6, horizontal: 8),
                                       fillColor: Colors.white,
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                      border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8)),
                                     ),
                                   ),
                                 ),
@@ -165,19 +225,40 @@ class _TeacherGradebookEditorState extends State<TeacherGradebookEditor> {
                                   width: 60,
                                   child: TextField(
                                     textAlign: TextAlign.center,
-                                    controller: TextEditingController(text: item['midterm2']),
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                                    controller: TextEditingController(
+                                        text: item['midterm2']),
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700),
                                     decoration: InputDecoration(
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 6, horizontal: 8),
                                       fillColor: Colors.white,
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                      border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8)),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                            Expanded(flex: 2, child: Text(item['pct'], textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.forestSage))),
-                            Expanded(flex: 1, child: Text(item['grade'], textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.forestSage))),
+                            Expanded(
+                                flex: 2,
+                                child: Text(item['pct'],
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.forestSage))),
+                            Expanded(
+                                flex: 1,
+                                child: Text(item['grade'],
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.forestSage))),
                           ],
                         ),
                       );

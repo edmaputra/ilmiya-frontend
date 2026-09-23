@@ -41,7 +41,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
             title: '${course.code}: ${asg.title}',
             id: asg.id,
           );
-          _textController.text = 'Hello ${course.teacherName}, I had a quick question regarding my grade on "${asg.title}"...';
+          _textController.text =
+              'Hello ${course.teacherName}, I had a quick question regarding my grade on "${asg.title}"...';
         });
       }
     });
@@ -117,7 +118,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
             ? Row(
                 children: [
                   SizedBox(
-                    width: 300,
+                    width: 320,
                     child: _buildChannelsSidebar(state),
                   ),
                   const VerticalDivider(width: 1, color: AppColors.borderLight),
@@ -144,22 +145,30 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.lock_outline, size: 16, color: AppColors.forestSage),
-                        SizedBox(width: 6),
-                        Text(
-                          'Secure Communications',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
+                    const Expanded(
+                      child: Row(
+                        children: [
+                          Icon(Icons.lock_outline,
+                              size: 16, color: AppColors.forestSage),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Secure Communications',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.warmSand,
                         borderRadius: BorderRadius.circular(10),
@@ -167,7 +176,10 @@ class _MessagingScreenState extends State<MessagingScreen> {
                       ),
                       child: const Text(
                         'AES-256',
-                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.forestSage),
+                        style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.forestSage),
                       ),
                     ),
                   ],
@@ -198,10 +210,13 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.warmSand : Colors.transparent,
+                      color:
+                          isSelected ? AppColors.warmSand : Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected ? AppColors.forestSage.withOpacity(0.3) : Colors.transparent,
+                        color: isSelected
+                            ? AppColors.forestSage.withOpacity(0.3)
+                            : Colors.transparent,
                       ),
                     ),
                     child: Row(
@@ -223,7 +238,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                   decoration: BoxDecoration(
                                     color: AppColors.forestSage,
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 1.5),
+                                    border: Border.all(
+                                        color: Colors.white, width: 1.5),
                                   ),
                                 ),
                               ),
@@ -235,7 +251,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Text(
@@ -243,7 +260,9 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
-                                        color: isSelected ? AppColors.forestSage : AppColors.textPrimary,
+                                        color: isSelected
+                                            ? AppColors.forestSage
+                                            : AppColors.textPrimary,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -252,14 +271,18 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                   if (channel.lastMessage != null)
                                     Text(
                                       channel.lastMessage!.timestamp,
-                                      style: const TextStyle(fontSize: 9, color: AppColors.textMuted),
+                                      style: const TextStyle(
+                                          fontSize: 9,
+                                          color: AppColors.textMuted),
                                     ),
                                 ],
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 channel.lastMessage?.text ?? 'No messages yet',
-                                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                                style: const TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.textSecondary),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -281,13 +304,24 @@ class _MessagingScreenState extends State<MessagingScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.shield_outlined, size: 14, color: AppColors.forestSage),
-                    SizedBox(width: 4),
-                    Text('FERPA Protected', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                  ],
+                const Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.shield_outlined,
+                          size: 14, color: AppColors.forestSage),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'FERPA Protected',
+                          style: TextStyle(
+                              fontSize: 10, color: AppColors.textSecondary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 4),
                 InkWell(
                   onTap: () {
                     showDialog(
@@ -297,7 +331,10 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   },
                   child: const Text(
                     'Audit Keys',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.forestSage),
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.forestSage),
                   ),
                 ),
               ],
@@ -324,42 +361,60 @@ class _MessagingScreenState extends State<MessagingScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        activeChannel.name,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.warmSand,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.borderLight),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            activeChannel.name,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.lock, size: 9, color: AppColors.forestSage),
-                            SizedBox(width: 3),
-                            Text('Encrypted Channel', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.forestSage)),
-                          ],
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.warmSand,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.borderLight),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.lock,
+                                  size: 9, color: AppColors.forestSage),
+                              SizedBox(width: 3),
+                              Text('Encrypted Channel',
+                                  style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.forestSage)),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'Official academic communications • Responses typically within 2 hours',
-                    style: TextStyle(fontSize: 10, color: AppColors.textMuted),
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Official academic communications • Responses typically within 2 hours',
+                      style:
+                          TextStyle(fontSize: 10, color: AppColors.textMuted),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
               IconButton(
-                icon: const Icon(Icons.info_outline, size: 18, color: AppColors.textMuted),
+                icon: const Icon(Icons.info_outline,
+                    size: 18, color: AppColors.textMuted),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -421,7 +476,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   _textController.text = reply;
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
@@ -429,7 +485,10 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   ),
                   child: Text(
                     reply,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary),
                   ),
                 ),
               );
@@ -447,7 +506,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.attach_file, color: AppColors.forestSage),
+                icon:
+                    const Icon(Icons.attach_file, color: AppColors.forestSage),
                 onPressed: () => _handleAttachPDF(state),
               ),
               Expanded(
@@ -458,10 +518,12 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   decoration: InputDecoration(
                     hintText: 'Message ${activeChannel.name}...',
                     fillColor: AppColors.naturalParchment,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
-                      borderSide: const BorderSide(color: AppColors.borderMedium),
+                      borderSide:
+                          const BorderSide(color: AppColors.borderMedium),
                     ),
                   ),
                 ),
@@ -471,11 +533,15 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.forestSage,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                 ),
                 icon: const Icon(Icons.send, size: 14),
-                label: const Text('Send', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                label: const Text('Send',
+                    style:
+                        TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
                 onPressed: () => _handleSendMessage(state),
               ),
             ],

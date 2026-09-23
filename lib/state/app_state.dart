@@ -10,17 +10,20 @@ import '../core/services/notification_service.dart';
 
 class AppState extends ChangeNotifier {
   UserRole _currentRole = UserRole.student;
-  int _currentTab = 0; // 0: Dashboard, 1: Grades, 2: Messaging, 3: Notifications, 4: Flutter Code
+  int _currentTab =
+      0; // 0: Dashboard, 1: Grades, 2: Messaging, 3: Notifications, 4: Flutter Code
 
   List<Course> _courses = List.from(initialCourses);
   List<NotificationItem> _notifications = List.from(initialNotifications);
   List<ChatChannel> _channels = List.from(initialChannels);
   final Map<String, List<ChatMessage>> _messages = {
-    for (var entry in initialMessages.entries) entry.key: List.from(entry.value),
+    for (var entry in initialMessages.entries)
+      entry.key: List.from(entry.value),
   };
 
   String _activeChannelId = 'chan_vance_direct';
-  Map<String, dynamic>? _pendingInquiryContext; // {'course': Course, 'assignment': Assignment}
+  Map<String, dynamic>?
+      _pendingInquiryContext; // {'course': Course, 'assignment': Assignment}
   NotificationItem? _activeToast;
   bool _soundEnabled = true;
   Timer? _toastTimer;
@@ -40,10 +43,12 @@ class AppState extends ChangeNotifier {
   bool get soundEnabled => _soundEnabled;
   List<SchedulePeriod> get schedule => weeklySchedule;
 
-  UserProfile get currentUser => mockProfiles[_currentRole] ?? mockProfiles[UserRole.student]!;
+  UserProfile get currentUser =>
+      mockProfiles[_currentRole] ?? mockProfiles[UserRole.student]!;
 
   int get unreadNotifsCount => _notifications.where((n) => !n.read).length;
-  int get unreadMessagesCount => _channels.fold(0, (sum, c) => sum + c.unreadCount);
+  int get unreadMessagesCount =>
+      _channels.fold(0, (sum, c) => sum + c.unreadCount);
 
   ChatChannel get activeChannel {
     return _channels.firstWhere(
@@ -63,26 +68,31 @@ class AppState extends ChangeNotifier {
 
     final gradePointsMap = {
       'A+': {'unweighted': 4.0, 'weighted': 5.0},
-      'A':  {'unweighted': 4.0, 'weighted': 5.0},
+      'A': {'unweighted': 4.0, 'weighted': 5.0},
       'A-': {'unweighted': 3.7, 'weighted': 4.7},
       'B+': {'unweighted': 3.3, 'weighted': 4.3},
-      'B':  {'unweighted': 3.0, 'weighted': 4.0},
+      'B': {'unweighted': 3.0, 'weighted': 4.0},
       'B-': {'unweighted': 2.7, 'weighted': 3.7},
       'C+': {'unweighted': 2.3, 'weighted': 3.3},
-      'C':  {'unweighted': 2.0, 'weighted': 3.0},
-      'F':  {'unweighted': 0.0, 'weighted': 0.0},
+      'C': {'unweighted': 2.0, 'weighted': 3.0},
+      'F': {'unweighted': 0.0, 'weighted': 0.0},
     };
 
     for (var c in _courses) {
-      final pts = gradePointsMap[c.letterGrade] ?? {'unweighted': 3.0, 'weighted': 4.0};
+      final pts =
+          gradePointsMap[c.letterGrade] ?? {'unweighted': 3.0, 'weighted': 4.0};
       totalUnweighted += (pts['unweighted'] ?? 3.0) * c.credits;
       totalWeighted += (pts['weighted'] ?? 4.0) * c.credits;
       totalCredits += c.credits;
     }
 
     return {
-      'unweighted': totalCredits > 0 ? (totalUnweighted / totalCredits).toStringAsFixed(2) : '3.88',
-      'weighted': totalCredits > 0 ? (totalWeighted / totalCredits).toStringAsFixed(2) : '4.12',
+      'unweighted': totalCredits > 0
+          ? (totalUnweighted / totalCredits).toStringAsFixed(2)
+          : '3.88',
+      'weighted': totalCredits > 0
+          ? (totalWeighted / totalCredits).toStringAsFixed(2)
+          : '4.12',
     };
   }
 
@@ -103,7 +113,8 @@ class AppState extends ChangeNotifier {
   }
 
   void toggleThemeMode() {
-    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    _themeMode =
+        _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
   }
 
@@ -162,7 +173,9 @@ class AppState extends ChangeNotifier {
   }
 
   void markNotificationRead(String id) {
-    _notifications = _notifications.map((n) => n.id == id ? n.copyWith(read: true) : n).toList();
+    _notifications = _notifications
+        .map((n) => n.id == id ? n.copyWith(read: true) : n)
+        .toList();
     notifyListeners();
   }
 
@@ -179,33 +192,38 @@ class AppState extends ChangeNotifier {
       newNotif = NotificationItem(
         id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
         title: 'New Grade Posted: AP Physics Exam',
-        message: 'Dr. Sarah Jenkins graded "Unit 5 Test: Simple Harmonic Motion" with 92/100 (A-). Feedback rubric available.',
+        message:
+            'Dr. Sarah Jenkins graded "Unit 5 Test: Simple Harmonic Motion" with 92/100 (A-). Feedback rubric available.',
         timestamp: timestamp,
         category: NotificationCategory.grade,
         priority: NotificationPriority.high,
         read: false,
         courseCode: 'PHYS-302',
         senderName: 'Dr. Sarah Jenkins',
-        senderAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+        senderAvatar:
+            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
       );
     } else if (preset == 'message') {
       newNotif = NotificationItem(
         id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
         title: 'Secure Message from Dr. Vance',
-        message: '"I reviewed your recursive tree rotation test cases. Looks solid for the capstone proposal!"',
+        message:
+            '"I reviewed your recursive tree rotation test cases. Looks solid for the capstone proposal!"',
         timestamp: timestamp,
         category: NotificationCategory.message,
         priority: NotificationPriority.medium,
         read: false,
         courseCode: 'CS-301',
         senderName: 'Dr. Eleanor Vance',
-        senderAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+        senderAvatar:
+            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
       );
     } else if (preset == 'emergency') {
       newNotif = NotificationItem(
         id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
         title: 'URGENT: Weather Alert & Early Dismissal',
-        message: 'All after-school laboratory sessions and athletics rescheduled due to regional storm advisory.',
+        message:
+            'All after-school laboratory sessions and athletics rescheduled due to regional storm advisory.',
         timestamp: timestamp,
         category: NotificationCategory.emergency,
         priority: NotificationPriority.urgent,
@@ -216,7 +234,8 @@ class AppState extends ChangeNotifier {
       newNotif = NotificationItem(
         id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
         title: 'Class Notice: AP Calculus BC Study Session',
-        message: 'Prof. Marcus Chen announced extra office hours this Thursday at 3:30 PM in Hall B-210.',
+        message:
+            'Prof. Marcus Chen announced extra office hours this Thursday at 3:30 PM in Hall B-210.',
         timestamp: timestamp,
         category: NotificationCategory.announcement,
         priority: NotificationPriority.medium,
@@ -272,7 +291,8 @@ class AppState extends ChangeNotifier {
       attachment: attachment,
     );
 
-    final currentChannelMsgs = List<ChatMessage>.from(_messages[channelId] ?? []);
+    final currentChannelMsgs =
+        List<ChatMessage>.from(_messages[channelId] ?? []);
     currentChannelMsgs.add(newMsg);
     _messages[channelId] = currentChannelMsgs;
 
@@ -300,8 +320,10 @@ class AppState extends ChangeNotifier {
           senderId: 'user_teacher_1',
           senderName: 'Dr. Eleanor Vance',
           senderRole: UserRole.teacher,
-          senderAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-          content: 'Thank you for following up, Alex! I’ve reviewed your note and logged it into the grade tracking portal.',
+          senderAvatar:
+              'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+          content:
+              'Thank you for following up, Alex! I’ve reviewed your note and logged it into the grade tracking portal.',
           timestamp: 'Just now',
           isEncrypted: true,
           status: 'delivered',
@@ -314,14 +336,16 @@ class AppState extends ChangeNotifier {
         final notif = NotificationItem(
           id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
           title: 'Dr. Vance replied to your message',
-          message: 'Thank you for following up, Alex! I’ve reviewed your note and logged it into the portal.',
+          message:
+              'Thank you for following up, Alex! I’ve reviewed your note and logged it into the portal.',
           timestamp: 'Just now',
           category: NotificationCategory.message,
           priority: NotificationPriority.medium,
           read: false,
           courseCode: 'CS-301',
           senderName: 'Dr. Eleanor Vance',
-          senderAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+          senderAvatar:
+              'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
         );
 
         _notifications.insert(0, notif);
@@ -351,7 +375,9 @@ class AppState extends ChangeNotifier {
           earnedPoints += a.score;
           maxPoints += a.maxScore;
         }
-        final newPct = maxPoints > 0 ? (earnedPoints / maxPoints) * 100 : course.currentPercentage;
+        final newPct = maxPoints > 0
+            ? (earnedPoints / maxPoints) * 100
+            : course.currentPercentage;
 
         String letter = 'A';
         if (newPct >= 97) {

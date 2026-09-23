@@ -39,7 +39,8 @@ class TranscriptView extends StatelessWidget {
                   SizedBox(height: 2),
                   Text(
                     'Lincoln High School • Office of the Registrar & Academic Advising',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    style:
+                        TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -47,17 +48,23 @@ class TranscriptView extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.forestSage,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
-                icon: const Icon(Icons.print_outlined, size: 14, color: AppColors.warmSand),
-                label: const Text('Print / Save PDF', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                icon: const Icon(Icons.print_outlined,
+                    size: 14, color: AppColors.warmSand),
+                label: const Text('Print / Save PDF',
+                    style:
+                        TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       backgroundColor: AppColors.forestSage,
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                       content: const Text(
                         '📄 Official Transcript PDF prepared for export.',
                         style: TextStyle(fontWeight: FontWeight.w700),
@@ -109,11 +116,13 @@ class TranscriptView extends StatelessWidget {
                         SizedBox(height: 2),
                         Text(
                           '1200 Innovation Parkway, Silicon Valley, CA 94025',
-                          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
                         ),
                         Text(
                           'Official Student Academic Record • Accredited WASC',
-                          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -121,7 +130,8 @@ class TranscriptView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppColors.warmSand,
                             borderRadius: BorderRadius.circular(20),
@@ -139,7 +149,8 @@ class TranscriptView extends StatelessWidget {
                         const SizedBox(height: 4),
                         const Text(
                           'Date Issued: March 30, 2026',
-                          style: TextStyle(fontSize: 10, color: AppColors.textMuted),
+                          style: TextStyle(
+                              fontSize: 10, color: AppColors.textMuted),
                         ),
                       ],
                     ),
@@ -160,7 +171,8 @@ class TranscriptView extends StatelessWidget {
                     children: [
                       _buildInfoColumn('STUDENT NAME', user.name),
                       _buildInfoColumn('STUDENT ID', user.schoolId),
-                      _buildInfoColumn('GRADE LEVEL', user.gradeLevel ?? 'Grade 11'),
+                      _buildInfoColumn(
+                          'GRADE LEVEL', user.gradeLevel ?? 'Grade 11'),
                       _buildInfoColumn('ACADEMIC TERM', 'Spring 2026 (Q3)'),
                     ],
                   ),
@@ -180,16 +192,50 @@ class TranscriptView extends StatelessWidget {
                       children: [
                         // Table Header
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
                           color: AppColors.borderLight,
                           child: const Row(
                             children: [
-                              Expanded(flex: 2, child: Text('COURSE CODE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                              Expanded(flex: 4, child: Text('COURSE TITLE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                              Expanded(flex: 3, child: Text('INSTRUCTOR', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                              Expanded(flex: 1, child: Text('CREDITS', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                              Expanded(flex: 1, child: Text('PCT', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-                              Expanded(flex: 1, child: Text('GRADE', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
+                              Expanded(
+                                  flex: 2,
+                                  child: Text('COURSE CODE',
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800))),
+                              Expanded(
+                                  flex: 4,
+                                  child: Text('COURSE TITLE',
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800))),
+                              Expanded(
+                                  flex: 3,
+                                  child: Text('INSTRUCTOR',
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800))),
+                              Expanded(
+                                  flex: 1,
+                                  child: Text('CREDITS',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800))),
+                              Expanded(
+                                  flex: 1,
+                                  child: Text('PCT',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800))),
+                              Expanded(
+                                  flex: 1,
+                                  child: Text('GRADE',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800))),
                             ],
                           ),
                         ),
@@ -199,19 +245,56 @@ class TranscriptView extends StatelessWidget {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: state.courses.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.borderLight),
+                          separatorBuilder: (_, __) => const Divider(
+                              height: 1, color: AppColors.borderLight),
                           itemBuilder: (context, index) {
                             final course = state.courses[index];
                             return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
                               child: Row(
                                 children: [
-                                  Expanded(flex: 2, child: Text(course.code, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
-                                  Expanded(flex: 4, child: Text(course.name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
-                                  Expanded(flex: 3, child: Text(course.teacherName, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                                  Expanded(flex: 1, child: Text(course.credits.toStringAsFixed(1), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11))),
-                                  Expanded(flex: 1, child: Text('${course.currentPercentage}%', textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                                  Expanded(flex: 1, child: Text(course.letterGrade, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.forestSage))),
+                                  Expanded(
+                                      flex: 2,
+                                      child: Text(course.code,
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700))),
+                                  Expanded(
+                                      flex: 4,
+                                      child: Text(course.name,
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600))),
+                                  Expanded(
+                                      flex: 3,
+                                      child: Text(course.teacherName,
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary))),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text(
+                                          course.credits.toStringAsFixed(1),
+                                          textAlign: TextAlign.center,
+                                          style:
+                                              const TextStyle(fontSize: 11))),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text(
+                                          '${course.currentPercentage}%',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary))),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text(course.letterGrade,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w800,
+                                              color: AppColors.forestSage))),
                                 ],
                               ),
                             );
@@ -231,15 +314,25 @@ class TranscriptView extends StatelessWidget {
                     const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Cumulative Credits Earned: 48.0', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
-                        Text('Attendance: 98.5% • Conduct: Exemplary', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                        Text('Cumulative Credits Earned: 48.0',
+                            style: TextStyle(
+                                fontSize: 11, fontWeight: FontWeight.w700)),
+                        Text('Attendance: 98.5% • Conduct: Exemplary',
+                            style: TextStyle(
+                                fontSize: 10, color: AppColors.textMuted)),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('Unweighted GPA: ${gpa['unweighted']}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                        Text('Weighted GPA: ${gpa['weighted']}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.forestSage)),
+                        Text('Unweighted GPA: ${gpa['unweighted']}',
+                            style: const TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w700)),
+                        Text('Weighted GPA: ${gpa['weighted']}',
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.forestSage)),
                       ],
                     ),
                   ],
@@ -257,9 +350,17 @@ class TranscriptView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textMuted)),
           const SizedBox(height: 2),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
         ],
       ),
     );

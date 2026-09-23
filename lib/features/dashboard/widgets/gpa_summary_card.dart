@@ -12,9 +12,10 @@ class MetricsRow extends StatelessWidget {
     final user = state.currentUser;
     final gpa = state.cumulativeGpa;
 
-    final avgPercentage = (state.courses.fold<double>(0, (sum, c) => sum + c.currentPercentage) /
-            (state.courses.isNotEmpty ? state.courses.length : 1))
-        .toStringAsFixed(1);
+    final avgPercentage =
+        (state.courses.fold<double>(0, (sum, c) => sum + c.currentPercentage) /
+                (state.courses.isNotEmpty ? state.courses.length : 1))
+            .toStringAsFixed(1);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -208,7 +209,8 @@ class MetricsRow extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (bottomRightIcon != null) ...[
-                      Icon(bottomRightIcon, size: 12, color: AppColors.forestSage),
+                      Icon(bottomRightIcon,
+                          size: 12, color: AppColors.forestSage),
                       const SizedBox(width: 3),
                     ],
                     Text(

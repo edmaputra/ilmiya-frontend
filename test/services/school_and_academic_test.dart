@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ilmiya_app/core/models/academic_year.dart';
 import 'package:ilmiya_app/core/models/school.dart';
 import 'package:ilmiya_app/core/services/academic_year_service.dart';
+import 'package:ilmiya_app/core/services/api_client.dart';
 import 'package:ilmiya_app/core/services/school_service.dart';
 
 void main() {
@@ -10,7 +11,8 @@ void main() {
       final profile = await schoolService.getProfile();
       expect(profile.name, contains('Ilmiya'));
       expect(profile.workingDays.length, equals(5));
-      expect(profile.gradingPreference, equals('DESCRIPTIVE_KURIKULUM_MERDEKA'));
+      expect(
+          profile.gradingPreference, equals('DESCRIPTIVE_KURIKULUM_MERDEKA'));
     });
 
     test('updateProfile modifies school profile details', () async {
@@ -29,8 +31,16 @@ void main() {
     });
 
     test('configureSettings modifies working days and term layout', () async {
-      final configured = await schoolService.configureSettings(ConfigureSchoolSettingsRequest(
-        workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'],
+      final configured =
+          await schoolService.configureSettings(ConfigureSchoolSettingsRequest(
+        workingDays: [
+          'MONDAY',
+          'TUESDAY',
+          'WEDNESDAY',
+          'THURSDAY',
+          'FRIDAY',
+          'SATURDAY'
+        ],
         gradingPreference: 'PERCENTAGE',
         termLayout: 'TRIMESTER',
       ));
@@ -54,7 +64,8 @@ void main() {
     });
 
     test('createAcademicYear creates a new academic year entry', () async {
-      final newAy = await academicYearService.createAcademicYear(CreateAcademicYearRequest(
+      final newAy = await academicYearService
+          .createAcademicYear(CreateAcademicYearRequest(
         name: 'Tahun Ajaran 2028/2029',
         startDate: '2028-07-15',
         endDate: '2029-06-25',
@@ -81,7 +92,79 @@ void main() {
         ),
       );
 
-      expect(updatedYear.terms.any((t) => t.name == 'Summer Intensive Term'), isTrue);
+      expect(updatedYear.terms.any((t) => t.name == 'Summer Intensive Term'),
+          isTrue);
+    });
+
+    test('activateYear and activateTerm function properly', () async {
+      final active = await academicYearService.getActiveAcademicYear();
+      expect(active, isNotNull);
+
+      final activated = await academicYearService.activateYear(active!.id);
+      expect(activated.status, equals('ACTIVE'));
+
+      if (active.terms.isNotEmpty) {
+        final activatedTerm = await academicYearService.activateTerm(
+            active.id, active.terms.first.id);
+        expect(activatedTerm.terms.first.status, equals('ACTIVE'));
+      }
+    });
+  });
+
+  group('Service Error Tests when isMockMode is false and API fails', () {
+    late ApiClient client;
+    late SchoolService schoolSvc;
+    late AcademicYearService academicSvc;
+
+    setUp(() {
+      client = ApiClient();
+      client.isMockMode = false;
+      client.baseUrl = 'http://invalid-endpoint-for-fallback-testing:9999';
+      schoolSvc = SchoolService(apiClient: client);
+      academicSvc = AcademicYearService(apiClient: client);
+    });
+
+    tearDown(() {
+      client.isMockMode = true;
+      client.baseUrl = 'http://localhost:8080';
+    });
+
+    test('SchoolService throws ApiException on API errors', () async {
+      await expectLater(
+        schoolSvc.getProfile(),
+        throwsA(isA<ApiException>()),
+      );
+
+      await expectLater(
+        schoolSvc.updateProfile(UpdateSchoolRequest(
+          name: 'Live School',
+          address: '123 Test St',
+          contactEmail: 'live@ilmiya.edu',
+          contactPhone: '+1-555-0100',
+        )),
+        throwsA(isA<ApiException>()),
+      );
+    });
+
+    test('AcademicYearService throws ApiException on API errors', () async {
+      await expectLater(
+        academicSvc.listAcademicYears(),
+        throwsA(isA<ApiException>()),
+      );
+
+      await expectLater(
+        academicSvc.getActiveAcademicYear(),
+        throwsA(isA<ApiException>()),
+      );
+
+      await expectLater(
+        academicSvc.createAcademicYear(CreateAcademicYearRequest(
+          name: 'TA 2030/2031',
+          startDate: '2030-07-01',
+          endDate: '2031-06-30',
+        )),
+        throwsA(isA<ApiException>()),
+      );
     });
   });
 }

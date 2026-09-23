@@ -66,10 +66,12 @@ class _LoginDialogState extends State<LoginDialog> {
 
   void _syncTenantController() {
     if (apiClient.isMockMode &&
-        (_tenantController.text.isEmpty || _tenantController.text == '01940000-0000-7000-8000-000000000001')) {
+        (_tenantController.text.isEmpty ||
+            _tenantController.text == '01940000-0000-7000-8000-000000000001')) {
       _tenantController.text = apiClient.tenantId;
     } else if (!apiClient.isMockMode &&
-        (_tenantController.text.isEmpty || _tenantController.text == 'tenant-lincoln-high-001')) {
+        (_tenantController.text.isEmpty ||
+            _tenantController.text == 'tenant-lincoln-high-001')) {
       _tenantController.text = apiClient.tenantId;
     }
   }
@@ -99,7 +101,8 @@ class _LoginDialogState extends State<LoginDialog> {
     final emailTrimmed = _emailController.text.trim();
     if (apiClient.isMockMode &&
         (emailTrimmed.contains('@springfield.local') ||
-         RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}').hasMatch(tenantTrimmed))) {
+            RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}')
+                .hasMatch(tenantTrimmed))) {
       apiClient.isMockMode = false;
     }
 
@@ -116,7 +119,10 @@ class _LoginDialogState extends State<LoginDialog> {
       }
     } catch (e) {
       setState(() {
-        _localError = e.toString().replaceFirst('Exception: ', '').replaceFirst('ApiException(0): ', '');
+        _localError = e
+            .toString()
+            .replaceFirst('Exception: ', '')
+            .replaceFirst('ApiException(0): ', '');
       });
     }
   }
@@ -182,7 +188,8 @@ class _LoginDialogState extends State<LoginDialog> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.borderLight),
                 ),
-                child: const Icon(Icons.shield_outlined, color: AppColors.forestSage, size: 24),
+                child: const Icon(Icons.shield_outlined,
+                    color: AppColors.forestSage, size: 24),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -192,7 +199,8 @@ class _LoginDialogState extends State<LoginDialog> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: AppColors.warmSand,
                             borderRadius: BorderRadius.circular(12),
@@ -223,7 +231,8 @@ class _LoginDialogState extends State<LoginDialog> {
                     const SizedBox(height: 2),
                     const Text(
                       'Select a demo persona to test RBAC permissions or sign in with credentials.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -248,12 +257,14 @@ class _LoginDialogState extends State<LoginDialog> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: Color(0xFF9B1C1C), size: 18),
+                  const Icon(Icons.error_outline,
+                      color: Color(0xFF9B1C1C), size: 18),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _localError ?? auth.error ?? '',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF9B1C1C)),
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF9B1C1C)),
                     ),
                   ),
                 ],
@@ -298,7 +309,8 @@ class _LoginDialogState extends State<LoginDialog> {
       children: [
         const Row(
           children: [
-            Icon(Icons.touch_app_outlined, size: 16, color: AppColors.forestSage),
+            Icon(Icons.touch_app_outlined,
+                size: 16, color: AppColors.forestSage),
             SizedBox(width: 6),
             Text(
               '1-Click Demo Personas',
@@ -328,12 +340,16 @@ class _LoginDialogState extends State<LoginDialog> {
               onTap: auth.isLoading ? null : () => _handlePersonaLogin(key),
               borderRadius: BorderRadius.circular(14),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.warmSand : AppColors.surfaceWhite,
+                  color:
+                      isSelected ? AppColors.warmSand : AppColors.surfaceWhite,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isSelected ? AppColors.forestSage : AppColors.borderLight,
+                    color: isSelected
+                        ? AppColors.forestSage
+                        : AppColors.borderLight,
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
@@ -341,11 +357,15 @@ class _LoginDialogState extends State<LoginDialog> {
                   children: [
                     CircleAvatar(
                       radius: 18,
-                      backgroundColor: isSelected ? AppColors.forestSage : AppColors.surfaceMuted,
+                      backgroundColor: isSelected
+                          ? AppColors.forestSage
+                          : AppColors.surfaceMuted,
                       child: Icon(
                         _getPersonaIcon(key),
                         size: 18,
-                        color: isSelected ? AppColors.surfaceWhite : AppColors.forestSage,
+                        color: isSelected
+                            ? AppColors.surfaceWhite
+                            : AppColors.forestSage,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -353,22 +373,23 @@ class _LoginDialogState extends State<LoginDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 6,
+                            runSpacing: 2,
                             children: [
-                              Flexible(
-                                child: Text(
-                                  persona.name,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                              Text(
+                                persona.name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
                                 ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 1),
                                 decoration: BoxDecoration(
                                   color: AppColors.forestSage.withOpacity(0.12),
                                   borderRadius: BorderRadius.circular(6),
@@ -377,7 +398,7 @@ class _LoginDialogState extends State<LoginDialog> {
                                   persona.roleLabel,
                                   style: const TextStyle(
                                     fontSize: 9,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                     color: AppColors.forestSage,
                                   ),
                                 ),
@@ -387,7 +408,8 @@ class _LoginDialogState extends State<LoginDialog> {
                           const SizedBox(height: 2),
                           Text(
                             persona.description,
-                            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                            style: const TextStyle(
+                                fontSize: 10, color: AppColors.textSecondary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -398,10 +420,12 @@ class _LoginDialogState extends State<LoginDialog> {
                       const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.forestSage),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.forestSage),
                       )
                     else
-                      const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textMuted),
+                      const Icon(Icons.arrow_forward_ios,
+                          size: 12, color: AppColors.textMuted),
                   ],
                 ),
               ),
@@ -444,9 +468,11 @@ class _LoginDialogState extends State<LoginDialog> {
               hintText: 'name@ilmiya.edu',
               prefixIcon: const Icon(Icons.email_outlined, size: 18),
               isDense: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Email is required' : null,
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Email is required' : null,
           ),
           const SizedBox(height: 10),
 
@@ -459,13 +485,18 @@ class _LoginDialogState extends State<LoginDialog> {
               labelText: 'Password',
               prefixIcon: const Icon(Icons.key_outlined, size: 18),
               suffixIcon: IconButton(
-                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    size: 18),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
               isDense: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            validator: (v) => (v == null || v.isEmpty) ? 'Password is required' : null,
+            validator: (v) =>
+                (v == null || v.isEmpty) ? 'Password is required' : null,
           ),
           const SizedBox(height: 10),
 
@@ -477,7 +508,8 @@ class _LoginDialogState extends State<LoginDialog> {
               labelText: 'Tenant ID',
               prefixIcon: const Icon(Icons.business_outlined, size: 18),
               isDense: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
           const SizedBox(height: 16),
@@ -488,13 +520,15 @@ class _LoginDialogState extends State<LoginDialog> {
               backgroundColor: AppColors.forestSage,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
             icon: auth.isLoading
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
                   )
                 : const Icon(Icons.login_rounded, size: 18),
             label: Text(auth.isLoading ? 'Signing In...' : 'Sign In to Portal'),
@@ -508,12 +542,17 @@ class _LoginDialogState extends State<LoginDialog> {
                 apiClient.toggleMockMode();
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: apiClient.isMockMode ? const Color(0xFFF3E8FF) : const Color(0xFFE6F4EA),
+                  color: apiClient.isMockMode
+                      ? const Color(0xFFF3E8FF)
+                      : const Color(0xFFE6F4EA),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: apiClient.isMockMode ? const Color(0xFFD8B4FE) : const Color(0xFFA8DAB5),
+                    color: apiClient.isMockMode
+                        ? const Color(0xFFD8B4FE)
+                        : const Color(0xFFA8DAB5),
                   ),
                 ),
                 child: Row(
@@ -524,23 +563,31 @@ class _LoginDialogState extends State<LoginDialog> {
                       height: 6,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: apiClient.isMockMode ? const Color(0xFF9333EA) : const Color(0xFF137333),
+                        color: apiClient.isMockMode
+                            ? const Color(0xFF9333EA)
+                            : const Color(0xFF137333),
                       ),
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      apiClient.isMockMode ? 'Mode: Mock Simulation' : 'Mode: Live REST API',
+                      apiClient.isMockMode
+                          ? 'Mode: Mock Simulation'
+                          : 'Mode: Live REST API',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: apiClient.isMockMode ? const Color(0xFF7E22CE) : const Color(0xFF137333),
+                        color: apiClient.isMockMode
+                            ? const Color(0xFF7E22CE)
+                            : const Color(0xFF137333),
                       ),
                     ),
                     const SizedBox(width: 4),
                     Icon(
                       Icons.sync_rounded,
                       size: 12,
-                      color: apiClient.isMockMode ? const Color(0xFF7E22CE) : const Color(0xFF137333),
+                      color: apiClient.isMockMode
+                          ? const Color(0xFF7E22CE)
+                          : const Color(0xFF137333),
                     ),
                   ],
                 ),

@@ -1,9 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
-import 'package:ilmiya_app/core/models/iam.dart';
 import 'package:ilmiya_app/core/services/api_client.dart';
 import 'package:ilmiya_app/features/auth/presentation/login_screen.dart';
 import 'package:ilmiya_app/main.dart';
@@ -29,7 +25,9 @@ void main() {
       client.refreshToken = null;
     });
 
-    test('401 response without refresh token calls triggerAuthExpired with reason', () async {
+    test(
+        '401 response without refresh token calls triggerAuthExpired with reason',
+        () async {
       String? expiredReason;
       final unsubscribe = client.onAuthExpired(([reason]) {
         expiredReason = reason;
@@ -45,13 +43,16 @@ void main() {
       unsubscribe();
     });
 
-    test('403 response triggers triggerAccessDenied without clearing token or session', () {
+    test(
+        '403 response triggers triggerAccessDenied without clearing token or session',
+        () {
       String? deniedReason;
       final unsubscribe = client.onAccessDenied(([reason]) {
         deniedReason = reason;
       });
 
-      client.triggerAccessDenied('Access denied (403): Insufficient permissions');
+      client
+          .triggerAccessDenied('Access denied (403): Insufficient permissions');
 
       expect(deniedReason, contains('Access denied (403)'));
       expect(client.token, equals('test-token'));
@@ -64,14 +65,16 @@ void main() {
       await auth.refreshProfile();
       expect(auth.isAuthenticated, isTrue);
 
-      client.triggerAccessDenied('Access denied (403): Lacks permission iam:user:read');
+      client.triggerAccessDenied(
+          'Access denied (403): Lacks permission iam:user:read');
 
       expect(auth.isAuthenticated, isTrue);
       expect(auth.user, isNotNull);
       expect(client.token, equals('test-token'));
     });
 
-    testWidgets('App renders LoginScreen when auth is not authenticated', (tester) async {
+    testWidgets('App renders LoginScreen when auth is not authenticated',
+        (tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -99,7 +102,9 @@ void main() {
       expect(find.byType(AdaptiveScaffold), findsNothing);
     });
 
-    testWidgets('App transitions from AdaptiveScaffold to LoginScreen when 401/403 triggers auth expired', (tester) async {
+    testWidgets(
+        'App transitions from AdaptiveScaffold to LoginScreen when 401/403 triggers auth expired',
+        (tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -125,7 +130,8 @@ void main() {
       expect(find.byType(LoginScreen), findsNothing);
 
       // Backend returns 401/403 and triggers auth expired
-      client.triggerAuthExpired('Session expired (401): User session timed out');
+      client
+          .triggerAuthExpired('Session expired (401): User session timed out');
       await tester.pumpAndSettle();
 
       // App should be redirected to LoginScreen with the error message visible
@@ -142,7 +148,9 @@ void main() {
       expect(find.byType(LoginScreen), findsNothing);
     });
 
-    testWidgets('App stays on current screen and shows error message on 403 access denied', (tester) async {
+    testWidgets(
+        'App stays on current screen and shows error message on 403 access denied',
+        (tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -168,7 +176,8 @@ void main() {
       expect(find.byType(LoginScreen), findsNothing);
 
       // Backend returns 403 Access Denied
-      client.triggerAccessDenied('Access denied (403): Actor lacks required permission(s): [iam:user:read]');
+      client.triggerAccessDenied(
+          'Access denied (403): Actor lacks required permission(s): [iam:user:read]');
       await tester.pump(const Duration(milliseconds: 300));
 
       // Verified: User is NOT kicked to LoginScreen

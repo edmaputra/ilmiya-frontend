@@ -24,8 +24,10 @@ class UserResponse {
       fullName: json['fullName'] as String? ?? '',
       status: json['status'] as String? ?? 'ACTIVE',
       isPlatformSuperAdmin: json['isPlatformSuperAdmin'] as bool? ?? false,
-      createdAt: json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
-      updatedAt: json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
+      createdAt:
+          json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
+      updatedAt:
+          json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
     );
   }
 
@@ -106,7 +108,8 @@ class UserRoleAssignmentResponse {
       roleId: json['roleId'] as String? ?? '',
       tenantId: json['tenantId'] as String? ?? '',
       scopeNodeId: json['scopeNodeId'] as String?,
-      assignedAt: json['assignedAt'] as String? ?? DateTime.now().toIso8601String(),
+      assignedAt:
+          json['assignedAt'] as String? ?? DateTime.now().toIso8601String(),
     );
   }
 
@@ -155,8 +158,10 @@ class RoleResponse {
               .toList() ??
           [],
       isSystemRole: json['isSystemRole'] as bool? ?? false,
-      createdAt: json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
-      updatedAt: json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
+      createdAt:
+          json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
+      updatedAt:
+          json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
     );
   }
 
@@ -223,8 +228,10 @@ class GroupResponse {
       name: json['name'] as String? ?? '',
       description: json['description'] as String?,
       externalIdpGroupName: json['externalIdpGroupName'] as String?,
-      createdAt: json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
-      updatedAt: json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
+      createdAt:
+          json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
+      updatedAt:
+          json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
     );
   }
 
@@ -348,15 +355,26 @@ class TokenResponse {
   });
 
   factory TokenResponse.fromJson(Map<String, dynamic> json) {
-    final userJson = json['user'] is Map<String, dynamic> ? json['user'] as Map<String, dynamic> : null;
-    final parsedUser = userJson != null ? UserProfileResponse.fromJson(userJson) : null;
+    final userJson = json['user'] is Map<String, dynamic>
+        ? json['user'] as Map<String, dynamic>
+        : null;
+    final parsedUser =
+        userJson != null ? UserProfileResponse.fromJson(userJson) : null;
 
-    final tenantId = json['tenantId'] as String? ?? userJson?['tenantId'] as String? ?? '';
-    final roles = (json['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
-        (userJson?['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
-        [];
-    final permissions = (json['permissions'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
-        (userJson?['permissions'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+    final tenantId =
+        json['tenantId'] as String? ?? userJson?['tenantId'] as String? ?? '';
+    final roles =
+        (json['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            (userJson?['roles'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [];
+    final permissions = (json['permissions'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        (userJson?['permissions'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
         [];
 
     return TokenResponse(
@@ -403,9 +421,12 @@ class UserProfileResponse {
   });
 
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
-    final scopesList = (json['scopes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
-        (json['accessibleScopePaths'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
-        [];
+    final scopesList =
+        (json['scopes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            (json['accessibleScopePaths'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [];
 
     return UserProfileResponse(
       id: json['id'] as String? ?? '',
@@ -497,34 +518,39 @@ const Map<DemoPersonaKey, DemoPersona> DEMO_PERSONAS = {
     name: 'Dr. Sarah Jenkins',
     roleLabel: 'Platform SuperAdmin',
     email: 'admin.utama@ilmiya.edu',
-    description: 'Unrestricted master access across all bounded contexts, scopes, and tenants.',
+    description:
+        'Unrestricted master access across all bounded contexts, scopes, and tenants.',
   ),
   DemoPersonaKey.principal: DemoPersona(
     key: DemoPersonaKey.principal,
     name: 'Prof. Marcus Chen',
     roleLabel: 'School Principal',
     email: 'principal@ilmiya.edu',
-    description: 'Institutional management, academic year rollovers, settings, and user provisioning.',
+    description:
+        'Institutional management, academic year rollovers, settings, and user provisioning.',
   ),
   DemoPersonaKey.teacher: DemoPersona(
     key: DemoPersonaKey.teacher,
     name: 'Dr. Eleanor Vance',
     roleLabel: 'Senior Faculty',
     email: 'eleanor.vance@ilmiya.edu',
-    description: 'Course management, grading, attendance tracking, and report cards.',
+    description:
+        'Course management, grading, attendance tracking, and report cards.',
   ),
   DemoPersonaKey.student: DemoPersona(
     key: DemoPersonaKey.student,
     name: 'Alex Rivera',
     roleLabel: 'Student (Class 10-A)',
     email: 'alex.rivera@student.ilmiya.edu',
-    description: 'Student portal, schedule review, grade viewing, and attendance logs.',
+    description:
+        'Student portal, schedule review, grade viewing, and attendance logs.',
   ),
   DemoPersonaKey.parent: DemoPersona(
     key: DemoPersonaKey.parent,
     name: 'Elena Rivera',
     roleLabel: 'Parent / Guardian',
     email: 'elena.rivera@parent.ilmiya.edu',
-    description: 'Family portal, student attendance oversight, and term grade cards.',
+    description:
+        'Family portal, student attendance oversight, and term grade cards.',
   ),
 };

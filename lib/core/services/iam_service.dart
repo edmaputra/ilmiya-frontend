@@ -24,7 +24,8 @@ class IamService {
 
     if (_apiClient.isMockMode) {
       final token = 'mock-jwt-token-${DateTime.now().millisecondsSinceEpoch}';
-      final refreshToken = 'mock-refresh-${DateTime.now().millisecondsSinceEpoch}';
+      final refreshToken =
+          'mock-refresh-${DateTime.now().millisecondsSinceEpoch}';
       _apiClient.token = token;
       _apiClient.refreshToken = refreshToken;
 
@@ -32,36 +33,51 @@ class IamService {
       List<String> roles = ['USER'];
       List<String> permissions = [];
       String fullName = mockUser?.fullName ?? 'Academic Staff Member';
-      final userId = mockUser?.id ?? 'u-${DateTime.now().millisecondsSinceEpoch}';
+      final userId =
+          mockUser?.id ?? 'u-${DateTime.now().millisecondsSinceEpoch}';
 
-      if (email.contains('admin.utama') || (mockUser?.isPlatformSuperAdmin ?? false)) {
+      if (email.contains('admin.utama') ||
+          (mockUser?.isPlatformSuperAdmin ?? false)) {
         roles = ['SUPERADMIN'];
         permissions = ['*'];
         fullName = 'Dr. Sarah Jenkins (Head Administrator)';
       } else if (email.contains('principal')) {
         roles = ['SCHOOL_ADMIN'];
-        permissions = _mockStorage.listRoles(_apiClient.tenantId).firstWhere(
-          (r) => r.code == 'SCHOOL_ADMIN',
-          orElse: () => _mockStorage.listRoles(_apiClient.tenantId).first,
-        ).permissions;
+        permissions = _mockStorage
+            .listRoles(_apiClient.tenantId)
+            .firstWhere(
+              (r) => r.code == 'SCHOOL_ADMIN',
+              orElse: () => _mockStorage.listRoles(_apiClient.tenantId).first,
+            )
+            .permissions;
         fullName = 'Prof. Marcus Chen (School Principal)';
       } else if (email.contains('eleanor.vance') || email.contains('teacher')) {
         roles = ['TEACHER'];
-        permissions = _mockStorage.listRoles(_apiClient.tenantId).firstWhere(
-          (r) => r.code == 'TEACHER',
-          orElse: () => _mockStorage.listRoles(_apiClient.tenantId).first,
-        ).permissions;
+        permissions = _mockStorage
+            .listRoles(_apiClient.tenantId)
+            .firstWhere(
+              (r) => r.code == 'TEACHER',
+              orElse: () => _mockStorage.listRoles(_apiClient.tenantId).first,
+            )
+            .permissions;
         fullName = 'Dr. Eleanor Vance (Computer Science Faculty)';
       } else if (email.contains('student') || email.contains('alex.rivera')) {
         roles = ['STUDENT'];
-        permissions = _mockStorage.listRoles(_apiClient.tenantId).firstWhere(
-          (r) => r.code == 'STUDENT',
-          orElse: () => _mockStorage.listRoles(_apiClient.tenantId).first,
-        ).permissions;
+        permissions = _mockStorage
+            .listRoles(_apiClient.tenantId)
+            .firstWhere(
+              (r) => r.code == 'STUDENT',
+              orElse: () => _mockStorage.listRoles(_apiClient.tenantId).first,
+            )
+            .permissions;
         fullName = 'Alex Rivera (Class 10-A)';
       } else if (email.contains('parent') || email.contains('elena.rivera')) {
         roles = ['PARENT'];
-        permissions = ['student:profile:read', 'attendance:record:read', 'exam:grade:read'];
+        permissions = [
+          'student:profile:read',
+          'attendance:record:read',
+          'exam:grade:read'
+        ];
         fullName = 'Elena Rivera (Parent / Guardian)';
       } else {
         roles = ['USER'];
@@ -140,7 +156,8 @@ class IamService {
         endpoint: '/api/v1/auth/me',
         method: 'GET',
       );
-      _cachedProfile = UserProfileResponse.fromJson(json as Map<String, dynamic>);
+      _cachedProfile =
+          UserProfileResponse.fromJson(json as Map<String, dynamic>);
     } catch (_) {
       if (_cachedProfile == null) rethrow;
     }
@@ -160,8 +177,10 @@ class IamService {
     }
 
     if (_apiClient.isMockMode) {
-      final token = 'mock-jwt-switched-${DateTime.now().millisecondsSinceEpoch}';
-      final refreshToken = 'mock-refresh-${DateTime.now().millisecondsSinceEpoch}';
+      final token =
+          'mock-jwt-switched-${DateTime.now().millisecondsSinceEpoch}';
+      final refreshToken =
+          'mock-refresh-${DateTime.now().millisecondsSinceEpoch}';
       _apiClient.token = token;
       _apiClient.refreshToken = refreshToken;
       return TokenResponse(
@@ -195,7 +214,8 @@ class IamService {
     if (_apiClient.isMockMode) {
       return _mockStorage.listUsers();
     }
-    final json = await _apiClient.request(endpoint: '/api/v1/users', method: 'GET');
+    final json =
+        await _apiClient.request(endpoint: '/api/v1/users', method: 'GET');
     return (json as List<dynamic>)
         .map((u) => UserResponse.fromJson(u as Map<String, dynamic>))
         .toList();
@@ -280,7 +300,8 @@ class IamService {
       method: 'GET',
     );
     return (json as List<dynamic>)
-        .map((r) => UserRoleAssignmentResponse.fromJson(r as Map<String, dynamic>))
+        .map((r) =>
+            UserRoleAssignmentResponse.fromJson(r as Map<String, dynamic>))
         .toList();
   }
 
@@ -301,7 +322,8 @@ class IamService {
     if (_apiClient.isMockMode) {
       return _mockStorage.listRoles(_apiClient.tenantId);
     }
-    final json = await _apiClient.request(endpoint: '/api/v1/roles', method: 'GET');
+    final json =
+        await _apiClient.request(endpoint: '/api/v1/roles', method: 'GET');
     return (json as List<dynamic>)
         .map((r) => RoleResponse.fromJson(r as Map<String, dynamic>))
         .toList();
@@ -325,7 +347,8 @@ class IamService {
     if (_apiClient.isMockMode) {
       return _mockStorage.listGroups(_apiClient.tenantId);
     }
-    final json = await _apiClient.request(endpoint: '/api/v1/groups', method: 'GET');
+    final json =
+        await _apiClient.request(endpoint: '/api/v1/groups', method: 'GET');
     return (json as List<dynamic>)
         .map((g) => GroupResponse.fromJson(g as Map<String, dynamic>))
         .toList();
@@ -349,7 +372,8 @@ class IamService {
     if (_apiClient.isMockMode) {
       return _mockStorage.getScopeTree(_apiClient.tenantId);
     }
-    final json = await _apiClient.request(endpoint: '/api/v1/scopes/tree', method: 'GET');
+    final json = await _apiClient.request(
+        endpoint: '/api/v1/scopes/tree', method: 'GET');
     return (json as List<dynamic>)
         .map((s) => ScopeTreeNode.fromJson(s as Map<String, dynamic>))
         .toList();

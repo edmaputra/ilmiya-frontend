@@ -35,7 +35,8 @@ class SchoolService {
     return SchoolResponse.fromJson(json as Map<String, dynamic>);
   }
 
-  Future<SchoolResponse> configureSettings(ConfigureSchoolSettingsRequest req) async {
+  Future<SchoolResponse> configureSettings(
+      ConfigureSchoolSettingsRequest req) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.configureSchoolSettings(req);
     }

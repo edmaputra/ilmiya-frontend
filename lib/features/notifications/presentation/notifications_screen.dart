@@ -60,7 +60,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 ),
                               ),
                               SizedBox(width: 8),
-                              Text('• APNs & FCM Push Bridge', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                              Text('• APNs & FCM Push Bridge',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textMuted)),
                             ],
                           ),
                           SizedBox(height: 4),
@@ -76,24 +79,37 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           SizedBox(height: 2),
                           Text(
                             'Multiplatform event dispatcher for academic grades, emergency notices, and teacher DMs',
-                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            style: TextStyle(
+                                fontSize: 11, color: AppColors.textSecondary),
                           ),
                         ],
                       ),
                     ),
-
                     Row(
                       children: [
                         OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: state.soundEnabled ? AppColors.forestSage : AppColors.textMuted,
-                            side: const BorderSide(color: AppColors.borderLight),
-                            backgroundColor: state.soundEnabled ? AppColors.warmSand : AppColors.naturalParchment,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            foregroundColor: state.soundEnabled
+                                ? AppColors.forestSage
+                                : AppColors.textMuted,
+                            side:
+                                const BorderSide(color: AppColors.borderLight),
+                            backgroundColor: state.soundEnabled
+                                ? AppColors.warmSand
+                                : AppColors.naturalParchment,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
                           ),
-                          icon: Icon(state.soundEnabled ? Icons.volume_up_outlined : Icons.volume_off_outlined, size: 16),
-                          label: Text(state.soundEnabled ? 'Chime ON' : 'Muted', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                          icon: Icon(
+                              state.soundEnabled
+                                  ? Icons.volume_up_outlined
+                                  : Icons.volume_off_outlined,
+                              size: 16),
+                          label: Text(state.soundEnabled ? 'Chime ON' : 'Muted',
+                              style: const TextStyle(
+                                  fontSize: 11, fontWeight: FontWeight.w700)),
                           onPressed: () => state.toggleSound(),
                         ),
                         const SizedBox(width: 8),
@@ -102,12 +118,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             backgroundColor: AppColors.naturalParchment,
                             foregroundColor: AppColors.textPrimary,
                             elevation: 0,
-                            side: const BorderSide(color: AppColors.borderMedium),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            side:
+                                const BorderSide(color: AppColors.borderMedium),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
                           ),
-                          icon: const Icon(Icons.done_all, size: 16, color: AppColors.forestSage),
-                          label: const Text('Mark All Read', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                          icon: const Icon(Icons.done_all,
+                              size: 16, color: AppColors.forestSage),
+                          label: const Text('Mark All Read',
+                              style: TextStyle(
+                                  fontSize: 11, fontWeight: FontWeight.w700)),
                           onPressed: () => state.markAllNotificationsRead(),
                         ),
                       ],
@@ -173,9 +195,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               const SizedBox(width: 6),
               _buildFilterChip('Messages', NotificationCategory.message),
               const SizedBox(width: 6),
-              _buildFilterChip('Announcements', NotificationCategory.announcement),
+              _buildFilterChip(
+                  'Announcements', NotificationCategory.announcement),
               const SizedBox(width: 6),
-              _buildFilterChip('Urgent & Emergency', NotificationCategory.emergency),
+              _buildFilterChip(
+                  'Urgent & Emergency', NotificationCategory.emergency),
             ],
           ),
         ),
@@ -193,9 +217,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
             child: const Column(
               children: [
-                Icon(Icons.check_circle_outline, size: 36, color: AppColors.forestSage),
+                Icon(Icons.check_circle_outline,
+                    size: 36, color: AppColors.forestSage),
                 SizedBox(height: 8),
-                Text('No notifications in this category.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                Text('No notifications in this category.',
+                    style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
               ],
             ),
           )
@@ -221,12 +247,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: isSelected ? AppColors.forestSage : Colors.white,
         foregroundColor: isSelected ? Colors.white : AppColors.textSecondary,
         elevation: 0,
-        side: BorderSide(color: isSelected ? AppColors.forestSage : AppColors.borderLight),
+        side: BorderSide(
+            color: isSelected ? AppColors.forestSage : AppColors.borderLight),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       onPressed: () => setState(() => _selectedCategory = category),
-      child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+      child: Text(label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
     );
   }
 
@@ -276,20 +304,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     Flexible(
                       child: Text(
                         notif.title,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary),
                       ),
                     ),
                     if (notif.courseCode != null) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.borderLight,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           notif.courseCode!,
-                          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
                         ),
                       ),
                     ],
@@ -298,16 +333,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 const SizedBox(height: 3),
                 Text(
                   notif.message,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.35),
+                  style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      height: 1.35),
                 ),
                 const SizedBox(height: 6),
-                Row(
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 4,
                   children: [
-                    Text(notif.timestamp, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
-                    if (notif.senderName != null) ...[
-                      const SizedBox(width: 10),
-                      Text('From: ${notif.senderName}', style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
-                    ],
+                    Text(notif.timestamp,
+                        style: const TextStyle(
+                            fontSize: 10, color: AppColors.textMuted)),
+                    if (notif.senderName != null)
+                      Text('From: ${notif.senderName}',
+                          style: const TextStyle(
+                              fontSize: 10, color: AppColors.textMuted)),
                   ],
                 ),
               ],
@@ -318,12 +360,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               if (!notif.read)
                 IconButton(
-                  icon: const Icon(Icons.check_circle_outline, size: 18, color: AppColors.forestSage),
+                  icon: const Icon(Icons.check_circle_outline,
+                      size: 18, color: AppColors.forestSage),
                   tooltip: 'Mark as read',
                   onPressed: () => state.markNotificationRead(notif.id),
                 ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.earthyTerra),
+                icon: const Icon(Icons.delete_outline,
+                    size: 18, color: AppColors.earthyTerra),
                 tooltip: 'Delete notification',
                 onPressed: () => state.deleteNotification(notif.id),
               ),

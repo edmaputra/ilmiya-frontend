@@ -21,7 +21,8 @@ class LoginScreen extends StatelessWidget {
             color: AppColors.surfaceWhite,
             border: Border(bottom: BorderSide(color: AppColors.borderLight)),
           ),
-          padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 28, vertical: 8),
+          padding:
+              EdgeInsets.symmetric(horizontal: isMobile ? 16 : 28, vertical: 8),
           child: Row(
             children: [
               const IlmiyaLogo(size: 28),
@@ -43,7 +44,8 @@ class LoginScreen extends StatelessWidget {
                   if (!isMobile)
                     const Text(
                       'School Information System & IAM Portal',
-                      style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 10, color: AppColors.textSecondary),
                     ),
                 ],
               ),
@@ -68,7 +70,8 @@ class LoginScreen extends StatelessWidget {
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: apiClient.isMockMode
                             ? const Color(0xFFF3E8FF)
@@ -95,7 +98,9 @@ class LoginScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            apiClient.isMockMode ? 'Mock Simulation' : 'Live REST API',
+                            apiClient.isMockMode
+                                ? 'Mock Simulation'
+                                : 'Live REST API',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,

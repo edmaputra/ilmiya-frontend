@@ -102,48 +102,53 @@ class DashboardScreen extends StatelessWidget {
                 isWide ? CrossAxisAlignment.center : CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const KiteBadge('2025/2026 Term 2 Active', tone: KiteTone.success),
-                      const SizedBox(width: KiteSpace.sm),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: c.muted,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(LucideIcons.shieldCheck, size: 12, color: AppColors.forestSage),
-                            const SizedBox(width: 4),
-                            Text(
-                              'FERPA & RBAC Verified',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: c.mutedForeground,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const KiteBadge('2025/2026 Term 2 Active',
+                            tone: KiteTone.success),
+                        const SizedBox(width: KiteSpace.sm),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: c.muted,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(LucideIcons.shieldCheck,
+                                  size: 12, color: AppColors.forestSage),
+                              const SizedBox(width: 4),
+                              Text(
+                                'FERPA & RBAC Verified',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: c.mutedForeground,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: KiteSpace.sm),
-                  Text(
-                    'Welcome back, ${user.name}',
-                    style: t.h3.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$schoolName • Administrative Portal & Student Information Control',
-                    style: t.muted.copyWith(fontSize: 13),
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: KiteSpace.sm),
+                    Text(
+                      'Welcome back, ${user.name}',
+                      style: t.h3.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$schoolName • Administrative Portal & Student Information Control',
+                      style: t.muted.copyWith(fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
               if (!isWide) const SizedBox(height: KiteSpace.md),
               Wrap(
@@ -152,33 +157,45 @@ class DashboardScreen extends StatelessWidget {
                 children: [
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       side: BorderSide(color: c.border),
                     ),
                     icon: const Icon(LucideIcons.calendar, size: 15),
-                    label: const Text('Academic Terms', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    label: const Text('Academic Terms',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w600)),
                     onPressed: () => state.setTab(1),
                   ),
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       side: BorderSide(color: c.border),
                     ),
                     icon: const Icon(LucideIcons.graduationCap, size: 15),
-                    label: const Text('Gradebook', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    label: const Text('Gradebook',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w600)),
                     onPressed: () => state.setTab(5),
                   ),
                   FilledButton.icon(
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.forestSage,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: const Icon(LucideIcons.userPlus, size: 15),
-                    label: const Text('IAM Console', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    label: const Text('IAM Console',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w700)),
                     onPressed: () => state.setTab(2),
                   ),
                 ],
@@ -194,7 +211,7 @@ class DashboardScreen extends StatelessWidget {
     final gpa = state.cumulativeGpa;
 
     return KiteStatGrid(
-      height: 145,
+      height: 155,
       minTileWidth: 200,
       children: [
         const KiteStat(
@@ -244,7 +261,8 @@ class DashboardScreen extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(LucideIcons.bookOpen, size: 18, color: AppColors.forestSage),
+                const Icon(LucideIcons.bookOpen,
+                    size: 18, color: AppColors.forestSage),
                 const SizedBox(width: KiteSpace.sm),
                 Text('Active Academic Courses', style: t.h4),
               ],
@@ -259,7 +277,8 @@ class DashboardScreen extends StatelessWidget {
                   color: AppColors.forestSage,
                 ),
               ),
-              label: const Icon(LucideIcons.arrowUpRight, size: 14, color: AppColors.forestSage),
+              label: const Icon(LucideIcons.arrowUpRight,
+                  size: 14, color: AppColors.forestSage),
             ),
           ],
         ),
@@ -303,7 +322,8 @@ class DashboardScreen extends StatelessWidget {
                   color: const Color(0xFFFEF08A),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(LucideIcons.clock, color: Color(0xFF854D0E), size: 18),
+                child: const Icon(LucideIcons.clock,
+                    color: Color(0xFF854D0E), size: 18),
               ),
               const SizedBox(width: KiteSpace.md),
               Expanded(
@@ -330,11 +350,15 @@ class DashboardScreen extends StatelessWidget {
               FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.forestSage,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
                 onPressed: () => state.setTab(5),
-                child: const Text('View Rubric', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                child: const Text('View Rubric',
+                    style:
+                        TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -362,7 +386,8 @@ class DashboardScreen extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(LucideIcons.sparkles, size: 12, color: AppColors.earthyTerra),
+                const Icon(LucideIcons.sparkles,
+                    size: 12, color: AppColors.earthyTerra),
                 const SizedBox(width: 4),
                 Text(
                   'Simulate',
@@ -381,7 +406,8 @@ class DashboardScreen extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: state.notifications.take(3).length,
-                separatorBuilder: (_, __) => const SizedBox(height: KiteSpace.sm),
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: KiteSpace.sm),
                 itemBuilder: (context, index) {
                   final notif = state.notifications[index];
                   final isMsg = notif.category == NotificationCategory.message;
@@ -392,7 +418,9 @@ class DashboardScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(KiteSpace.md),
                       decoration: BoxDecoration(
-                        color: notif.read ? c.background : c.muted.withOpacity(0.5),
+                        color: notif.read
+                            ? c.background
+                            : c.muted.withOpacity(0.5),
                         borderRadius: KiteRadius.allMd,
                         border: Border.all(color: c.border),
                       ),
@@ -405,7 +433,8 @@ class DashboardScreen extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   notif.title,
-                                  style: t.small.copyWith(fontWeight: FontWeight.w700),
+                                  style: t.small
+                                      .copyWith(fontWeight: FontWeight.w700),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -433,7 +462,8 @@ class DashboardScreen extends StatelessWidget {
               Center(
                 child: TextButton.icon(
                   onPressed: () => state.setTab(7),
-                  icon: const Text('View All Notifications', style: TextStyle(fontSize: 12)),
+                  icon: const Text('View All Notifications',
+                      style: TextStyle(fontSize: 12)),
                   label: const Icon(LucideIcons.arrowRight, size: 14),
                 ),
               ),

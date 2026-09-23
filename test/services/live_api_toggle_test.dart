@@ -59,7 +59,8 @@ void main() {
       auth.dispose();
     });
 
-    testWidgets('HeaderNavBar mode pill re-renders immediately on tap', (tester) async {
+    testWidgets('HeaderNavBar mode pill re-renders immediately on tap',
+        (tester) async {
       tester.view.physicalSize = const Size(1200, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
