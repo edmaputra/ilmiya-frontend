@@ -446,10 +446,12 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                           Icon(Icons.login,
                               size: 16, color: AppColors.forestSage),
                           SizedBox(width: 8),
-                          Text(
-                            'Sign In with Custom Credentials...',
-                            style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w600),
+                          Expanded(
+                            child: Text(
+                              'Sign In with Custom Credentials...',
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ],
                       ),
@@ -461,12 +463,14 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                           Icon(Icons.logout,
                               size: 16, color: AppColors.earthyTerra),
                           SizedBox(width: 8),
-                          Text(
-                            'Sign Out',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.earthyTerra,
+                          Expanded(
+                            child: Text(
+                              'Sign Out',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.earthyTerra,
+                              ),
                             ),
                           ),
                         ],
