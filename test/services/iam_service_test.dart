@@ -41,5 +41,37 @@ void main() {
       expect(tree, isNotEmpty);
       expect(tree.any((node) => node.code.contains('CAMPUS_MAIN')), isTrue);
     });
+
+    test(
+        'TokenResponse correctly parses live backend response with nested user',
+        () {
+      final liveJson = {
+        'accessToken': 'jwt.mock.access',
+        'refreshToken': 'jwt.mock.refresh',
+        'tokenType': 'Bearer',
+        'expiresIn': 3600,
+        'user': {
+          'id': '01a0b50c-d444-7c66-ad6a-0b7e94ab20ca',
+          'email': 'admin@springfield.local',
+          'fullName': 'Springfield Admin',
+          'tenantId': '01940000-0000-7000-8000-000000000001',
+          'roles': ['SCHOOL_ADMIN'],
+          'permissions': ['school:*', 'attendance:*'],
+          'accessibleScopePaths': ['/SPRINGFIELD'],
+        },
+      };
+
+      final tokenResponse = TokenResponse.fromJson(liveJson);
+      expect(tokenResponse.accessToken, equals('jwt.mock.access'));
+      expect(tokenResponse.refreshToken, equals('jwt.mock.refresh'));
+      expect(tokenResponse.tenantId,
+          equals('01940000-0000-7000-8000-000000000001'));
+      expect(tokenResponse.roles, contains('SCHOOL_ADMIN'));
+      expect(tokenResponse.permissions, contains('school:*'));
+      expect(tokenResponse.user, isNotNull);
+      expect(tokenResponse.user!.fullName, equals('Springfield Admin'));
+      expect(tokenResponse.user!.email, equals('admin@springfield.local'));
+      expect(tokenResponse.user!.scopes, contains('/SPRINGFIELD'));
+    });
   });
 }

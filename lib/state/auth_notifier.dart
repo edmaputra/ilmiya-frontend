@@ -40,26 +40,44 @@ class AuthNotifier extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   void Function()? _unsubscribeAuthExpired;
+  bool _lastMockMode = true;
 
   AuthNotifier({ApiClient? apiClient, IamService? iamService})
       : _apiClient = apiClient ?? ApiClient(),
         _iamService = iamService ?? IamService() {
     _tenantId = _apiClient.tenantId;
     _token = _apiClient.token;
-    _unsubscribeAuthExpired = _apiClient.onAuthExpired(() {
+    _lastMockMode = _apiClient.isMockMode;
+    _unsubscribeAuthExpired = _apiClient.onAuthExpired(([reason]) {
       _user = null;
       _token = null;
       _roles = [];
       _permissions = [];
-      _error = 'Your session has expired. Please sign in again.';
+      _error = reason ?? 'Your session has expired. Please sign in again.';
       notifyListeners();
     });
+    _apiClient.addListener(_onApiClientChanged);
     // Hydrate default profile
     refreshProfile();
   }
 
+  void _onApiClientChanged() {
+    _tenantId = _apiClient.tenantId;
+    if (_lastMockMode != _apiClient.isMockMode) {
+      _lastMockMode = _apiClient.isMockMode;
+      if (!_apiClient.isMockMode && _apiClient.token == null) {
+        _user = null;
+        _token = null;
+        _roles = [];
+        _permissions = [];
+      }
+      refreshProfile();
+    }
+  }
+
   @override
   void dispose() {
+    _apiClient.removeListener(_onApiClientChanged);
     _unsubscribeAuthExpired?.call();
     super.dispose();
   }
@@ -123,6 +141,9 @@ class AuthNotifier extends ChangeNotifier {
           resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
       _roles = resp.roles;
       _permissions = resp.permissions;
+      if (resp.user != null) {
+        _user = resp.user;
+      }
       await refreshProfile();
     } catch (e) {
       _error = e.toString();

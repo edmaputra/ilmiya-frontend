@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ApiException implements Exception {
@@ -12,7 +13,7 @@ class ApiException implements Exception {
   String toString() => 'ApiException($statusCode): $message';
 }
 
-class ApiClient {
+class ApiClient extends ChangeNotifier {
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;
   ApiClient._internal();
@@ -21,32 +22,84 @@ class ApiClient {
     'ILMIYA_API_BASE_URL',
     defaultValue: 'http://localhost:8080',
   );
-  String tenantId = const String.fromEnvironment(
+  String _tenantId = const String.fromEnvironment(
     'ILMIYA_DEFAULT_TENANT_ID',
     defaultValue: 'tenant-lincoln-high-001',
   );
   String? token;
   String? refreshToken;
-  bool isMockMode = true;
+  bool _isMockMode = true;
   bool _isRefreshing = false;
+  final List<Function> _onAuthExpiredListeners = [];
+  final List<Function> _onAccessDeniedListeners = [];
 
-  final List<void Function()> _onAuthExpiredListeners = [];
+  bool get isMockMode => _isMockMode;
+  set isMockMode(bool value) {
+    if (_isMockMode != value) {
+      _isMockMode = value;
+      if (!_isMockMode && _tenantId == 'tenant-lincoln-high-001') {
+        _tenantId = '01940000-0000-7000-8000-000000000001';
+      } else if (_isMockMode &&
+          _tenantId == '01940000-0000-7000-8000-000000000001') {
+        _tenantId = 'tenant-lincoln-high-001';
+      }
+      notifyListeners();
+    }
+  }
+
+  void toggleMockMode() {
+    isMockMode = !_isMockMode;
+  }
+
+  String get tenantId => _tenantId;
+  set tenantId(String value) {
+    if (_tenantId != value) {
+      _tenantId = value;
+      notifyListeners();
+    }
+  }
 
   String get baseUrl => _baseUrl;
   set baseUrl(String url) {
-    _baseUrl = url.replaceAll(RegExp(r'/+$'), '');
+    final cleaned = url.replaceAll(RegExp(r'/+$'), '');
+    if (_baseUrl != cleaned) {
+      _baseUrl = cleaned;
+      notifyListeners();
+    }
   }
 
-  void Function() onAuthExpired(void Function() listener) {
+  void Function() onAuthExpired(Function listener) {
     _onAuthExpiredListeners.add(listener);
     return () => _onAuthExpiredListeners.remove(listener);
   }
 
-  void triggerAuthExpired() {
+  void triggerAuthExpired([String? reason]) {
     token = null;
     refreshToken = null;
     for (final listener in List.of(_onAuthExpiredListeners)) {
-      listener();
+      try {
+        (listener as dynamic)(reason);
+      } catch (_) {
+        (listener as dynamic)();
+      }
+    }
+    notifyListeners();
+  }
+
+  void Function() onAccessDenied(Function listener) {
+    _onAccessDeniedListeners.add(listener);
+    return () => _onAccessDeniedListeners.remove(listener);
+  }
+
+  void triggerAccessDenied([String? reason]) {
+    final msg = reason ??
+        'Access denied (403): You do not have sufficient permission to access this resource.';
+    for (final listener in List.of(_onAccessDeniedListeners)) {
+      try {
+        (listener as dynamic)(msg);
+      } catch (_) {
+        (listener as dynamic)();
+      }
     }
   }
 
@@ -59,10 +112,16 @@ class ApiClient {
     final cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/$endpoint';
     final url = Uri.parse('$_baseUrl$cleanEndpoint');
 
+    final isUuid = RegExp(
+            r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+        .hasMatch(tenantId);
+    final shouldSendTenantHeader =
+        tenantId.isNotEmpty && (_isMockMode || isUuid);
+
     final requestHeaders = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      if (tenantId.isNotEmpty) 'X-Tenant-ID': tenantId,
+      if (shouldSendTenantHeader) 'X-Tenant-ID': tenantId,
       if (token != null) 'Authorization': 'Bearer $token',
       ...?headers,
     };
@@ -123,10 +182,11 @@ class ApiClient {
               body: body,
             );
           } else {
-            triggerAuthExpired();
+            triggerAuthExpired(
+                'Session refresh token expired (401). Please sign in again.');
           }
         } catch (_) {
-          triggerAuthExpired();
+          triggerAuthExpired('Session refresh failed. Please sign in again.');
         } finally {
           _isRefreshing = false;
         }
@@ -152,6 +212,17 @@ class ApiClient {
               message;
         }
       } catch (_) {}
+
+      // Security guard:
+      // 401 Unauthorized -> Session expired, token cleared, redirect to login
+      // 403 Forbidden    -> Access denied, keep session, stay on page, show error message
+      if (!endpoint.contains('/api/v1/auth/login')) {
+        if (response.statusCode == 401) {
+          triggerAuthExpired('Session expired (401): $message');
+        } else if (response.statusCode == 403) {
+          triggerAccessDenied('Access denied (403): $message');
+        }
+      }
 
       throw ApiException(response.statusCode, message, errorData);
     } catch (e) {

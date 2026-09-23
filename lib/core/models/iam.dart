@@ -341,6 +341,7 @@ class TokenResponse {
   final String tenantId;
   final List<String> roles;
   final List<String> permissions;
+  final UserProfileResponse? user;
 
   TokenResponse({
     required this.accessToken,
@@ -350,23 +351,41 @@ class TokenResponse {
     required this.tenantId,
     required this.roles,
     required this.permissions,
+    this.user,
   });
 
   factory TokenResponse.fromJson(Map<String, dynamic> json) {
+    final userJson = json['user'] is Map<String, dynamic>
+        ? json['user'] as Map<String, dynamic>
+        : null;
+    final parsedUser =
+        userJson != null ? UserProfileResponse.fromJson(userJson) : null;
+
+    final tenantId =
+        json['tenantId'] as String? ?? userJson?['tenantId'] as String? ?? '';
+    final roles =
+        (json['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            (userJson?['roles'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [];
+    final permissions = (json['permissions'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        (userJson?['permissions'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+
     return TokenResponse(
       accessToken: json['accessToken'] as String? ?? '',
       refreshToken: json['refreshToken'] as String? ?? '',
       tokenType: json['tokenType'] as String? ?? 'Bearer',
       expiresIn: (json['expiresIn'] as num?)?.toInt() ?? 3600,
-      tenantId: json['tenantId'] as String? ?? '',
-      roles: (json['roles'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-      permissions: (json['permissions'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+      tenantId: tenantId,
+      roles: roles,
+      permissions: permissions,
+      user: parsedUser,
     );
   }
 
@@ -378,6 +397,7 @@ class TokenResponse {
         'tenantId': tenantId,
         'roles': roles,
         'permissions': permissions,
+        if (user != null) 'user': user!.toJson(),
       };
 }
 
@@ -401,6 +421,13 @@ class UserProfileResponse {
   });
 
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
+    final scopesList =
+        (json['scopes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            (json['accessibleScopePaths'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [];
+
     return UserProfileResponse(
       id: json['id'] as String? ?? '',
       email: json['email'] as String? ?? '',
@@ -414,10 +441,7 @@ class UserProfileResponse {
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      scopes: (json['scopes'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+      scopes: scopesList,
     );
   }
 

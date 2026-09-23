@@ -339,17 +339,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       height: 1.35),
                 ),
                 const SizedBox(height: 6),
-                Row(
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 4,
                   children: [
                     Text(notif.timestamp,
                         style: const TextStyle(
                             fontSize: 10, color: AppColors.textMuted)),
-                    if (notif.senderName != null) ...[
-                      const SizedBox(width: 10),
+                    if (notif.senderName != null)
                       Text('From: ${notif.senderName}',
                           style: const TextStyle(
                               fontSize: 10, color: AppColors.textMuted)),
-                    ],
                   ],
                 ),
               ],

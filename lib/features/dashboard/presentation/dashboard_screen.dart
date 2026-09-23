@@ -102,51 +102,53 @@ class DashboardScreen extends StatelessWidget {
                 isWide ? CrossAxisAlignment.center : CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const KiteBadge('2025/2026 Term 2 Active',
-                          tone: KiteTone.success),
-                      const SizedBox(width: KiteSpace.sm),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: c.muted,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(LucideIcons.shieldCheck,
-                                size: 12, color: AppColors.forestSage),
-                            const SizedBox(width: 4),
-                            Text(
-                              'FERPA & RBAC Verified',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: c.mutedForeground,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const KiteBadge('2025/2026 Term 2 Active',
+                            tone: KiteTone.success),
+                        const SizedBox(width: KiteSpace.sm),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: c.muted,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(LucideIcons.shieldCheck,
+                                  size: 12, color: AppColors.forestSage),
+                              const SizedBox(width: 4),
+                              Text(
+                                'FERPA & RBAC Verified',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: c.mutedForeground,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: KiteSpace.sm),
-                  Text(
-                    'Welcome back, ${user.name}',
-                    style: t.h3.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$schoolName • Administrative Portal & Student Information Control',
-                    style: t.muted.copyWith(fontSize: 13),
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: KiteSpace.sm),
+                    Text(
+                      'Welcome back, ${user.name}',
+                      style: t.h3.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$schoolName • Administrative Portal & Student Information Control',
+                      style: t.muted.copyWith(fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
               if (!isWide) const SizedBox(height: KiteSpace.md),
               Wrap(
@@ -209,7 +211,7 @@ class DashboardScreen extends StatelessWidget {
     final gpa = state.cumulativeGpa;
 
     return KiteStatGrid(
-      height: 145,
+      height: 155,
       minTileWidth: 200,
       children: [
         const KiteStat(

@@ -118,7 +118,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
             ? Row(
                 children: [
                   SizedBox(
-                    width: 300,
+                    width: 320,
                     child: _buildChannelsSidebar(state),
                   ),
                   const VerticalDivider(width: 1, color: AppColors.borderLight),
@@ -145,21 +145,27 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.lock_outline,
-                            size: 16, color: AppColors.forestSage),
-                        SizedBox(width: 6),
-                        Text(
-                          'Secure Communications',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
+                    const Expanded(
+                      child: Row(
+                        children: [
+                          Icon(Icons.lock_outline,
+                              size: 16, color: AppColors.forestSage),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Secure Communications',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
@@ -298,16 +304,24 @@ class _MessagingScreenState extends State<MessagingScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.shield_outlined,
-                        size: 14, color: AppColors.forestSage),
-                    SizedBox(width: 4),
-                    Text('FERPA Protected',
-                        style: TextStyle(
-                            fontSize: 10, color: AppColors.textSecondary)),
-                  ],
+                const Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.shield_outlined,
+                          size: 14, color: AppColors.forestSage),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'FERPA Protected',
+                          style: TextStyle(
+                              fontSize: 10, color: AppColors.textSecondary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 4),
                 InkWell(
                   onTap: () {
                     showDialog(

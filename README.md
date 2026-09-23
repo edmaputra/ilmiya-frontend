@@ -97,6 +97,21 @@ lib/
 
 ---
 
+## 📖 Operational Runbooks & How-To Guides
+
+For step-by-step operational runbooks on local development, backend integration, authentication, campus administration, and production deployments, consult the **[How-To Guides Portal](docs/how-to/README.md)**:
+
+| Runbook | Summary |
+|---|---|
+| **[01. Local Dev & Environment Modes](docs/how-to/01-local-dev-and-environment-modes.md)** | Run in Mock vs Live REST mode, configure `--dart-define`, and toggle environments at runtime. |
+| **[02. Backend API & CORS Integration](docs/how-to/02-backend-api-integration-and-cors.md)** | Connect downstream microservices, configure CORS policies, and handle RFC 9457 errors. |
+| **[03. Auth & Dynamic Tenant Switching](docs/how-to/03-auth-tokens-and-tenant-switching.md)** | Sign in, automate 401 token refresh loops, and switch tenant partitions with clean state isolation. |
+| **[04. IAM & RBAC Administration](docs/how-to/04-iam-and-rbac-administration.md)** | Provision users, manage custom roles, configure scope permission trees, and test multi-role perspectives. |
+| **[05. School Profile & Academic Calendar](docs/how-to/05-school-profile-and-academic-calendar-setup.md)** | Configure institutional branding, operational hours, grading scales, academic years, and terms. |
+| **[06. Production Build & Deployment](docs/how-to/06-production-build-and-deployment.md)** | Compile optimized Web CanvasKit releases, deploy with Docker/Nginx SPA routing, and package native binaries. |
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites

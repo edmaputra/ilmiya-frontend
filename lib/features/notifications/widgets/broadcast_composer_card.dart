@@ -94,6 +94,7 @@ class _BroadcastComposerCardState extends State<BroadcastComposerCard> {
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             value: _target,
             decoration: InputDecoration(
               contentPadding:

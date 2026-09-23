@@ -15,17 +15,13 @@ class AcademicYearService {
       return _mockStorage.listAcademicYears(_apiClient.tenantId);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/academic-years',
-        method: 'GET',
-      );
-      return (json as List<dynamic>)
-          .map((e) => AcademicYearResponse.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return _mockStorage.listAcademicYears(_apiClient.tenantId);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/academic-years',
+      method: 'GET',
+    );
+    return (json as List<dynamic>)
+        .map((e) => AcademicYearResponse.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<AcademicYearResponse?> getActiveAcademicYear() async {
@@ -33,16 +29,12 @@ class AcademicYearService {
       return _mockStorage.getActiveAcademicYear(_apiClient.tenantId);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/academic-years/active',
-        method: 'GET',
-      );
-      if (json == null) return null;
-      return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.getActiveAcademicYear(_apiClient.tenantId);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/academic-years/active',
+      method: 'GET',
+    );
+    if (json == null) return null;
+    return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<AcademicYearResponse> createAcademicYear(
@@ -51,16 +43,12 @@ class AcademicYearService {
       return _mockStorage.createAcademicYear(_apiClient.tenantId, req);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/academic-years',
-        method: 'POST',
-        body: req.toJson(),
-      );
-      return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.createAcademicYear(_apiClient.tenantId, req);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/academic-years',
+      method: 'POST',
+      body: req.toJson(),
+    );
+    return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<AcademicYearResponse> activateYear(String yearId) async {
@@ -68,15 +56,11 @@ class AcademicYearService {
       return _mockStorage.activateAcademicYear(_apiClient.tenantId, yearId);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/academic-years/$yearId/activate',
-        method: 'POST',
-      );
-      return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.activateAcademicYear(_apiClient.tenantId, yearId);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/academic-years/$yearId/activate',
+      method: 'POST',
+    );
+    return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<AcademicYearResponse> addTerm(
@@ -85,16 +69,12 @@ class AcademicYearService {
       return _mockStorage.addAcademicTerm(yearId, req);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/academic-years/$yearId/terms',
-        method: 'POST',
-        body: req.toJson(),
-      );
-      return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.addAcademicTerm(yearId, req);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/academic-years/$yearId/terms',
+      method: 'POST',
+      body: req.toJson(),
+    );
+    return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<AcademicYearResponse> activateTerm(
@@ -103,15 +83,11 @@ class AcademicYearService {
       return _mockStorage.activateAcademicTerm(yearId, termId);
     }
 
-    try {
-      final json = await _apiClient.request(
-        endpoint: '/api/v1/academic-years/$yearId/terms/$termId/activate',
-        method: 'POST',
-      );
-      return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return _mockStorage.activateAcademicTerm(yearId, termId);
-    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/academic-years/$yearId/terms/$termId/activate',
+      method: 'POST',
+    );
+    return AcademicYearResponse.fromJson(json as Map<String, dynamic>);
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
+import '../../../core/services/api_client.dart';
 import '../../../core/services/iam_service.dart';
 import '../../../state/auth_notifier.dart';
 
@@ -39,6 +40,22 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   }
 
   Future<void> _loadAllIamData() async {
+    final auth = context.read<AuthNotifier>();
+    if (!apiClient.isMockMode &&
+        !auth.hasRole('SUPERADMIN') &&
+        !auth.hasPermission('iam:user:read')) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _users = [];
+          _roles = [];
+          _groups = [];
+          _scopes = [];
+        });
+      }
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final u = await iamService.listUsers();
@@ -442,6 +459,44 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     final canCreateRole = auth.hasPermission('iam:role:create');
     final canCreateGroup = auth.hasPermission('iam:group:create');
     final canCreateScope = auth.hasPermission('iam:scope:create');
+
+    if (!apiClient.isMockMode &&
+        !auth.hasRole('SUPERADMIN') &&
+        !auth.hasPermission('iam:user:read')) {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          constraints: const BoxConstraints(maxWidth: 520),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(LucideIcons.shieldAlert,
+                  size: 48, color: Color(0xFFD97706)),
+              const SizedBox(height: 16),
+              const Text(
+                'IAM Console Restricted',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'serif'),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Identity & Access Management console requires platform administrator privileges (SUPERADMIN or iam:user:read).\n\nYour active role is ${auth.roles.isNotEmpty ? auth.roles.first : "School Administrator"} for tenant ${auth.tenantId}.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));

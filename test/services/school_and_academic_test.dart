@@ -111,7 +111,7 @@ void main() {
     });
   });
 
-  group('Service Fallback Tests when isMockMode is false and API fails', () {
+  group('Service Error Tests when isMockMode is false and API fails', () {
     late ApiClient client;
     late SchoolService schoolSvc;
     late AcademicYearService academicSvc;
@@ -129,64 +129,42 @@ void main() {
       client.baseUrl = 'http://localhost:8080';
     });
 
-    test('SchoolService falls back to mock storage on API errors', () async {
-      final profile = await schoolSvc.getProfile();
-      expect(profile.name, isNotEmpty);
-
-      final updated = await schoolSvc.updateProfile(UpdateSchoolRequest(
-        name: 'Fallback School',
-        address: '123 Test St',
-        contactEmail: 'fallback@ilmiya.edu',
-        contactPhone: '+1-555-0100',
-      ));
-      expect(updated.name, equals('Fallback School'));
-
-      final configured = await schoolSvc.configureSettings(
-        ConfigureSchoolSettingsRequest(
-          workingDays: ['MONDAY', 'TUESDAY'],
-          gradingPreference: 'PERCENTAGE',
-          termLayout: 'SEMESTER',
-        ),
+    test('SchoolService throws ApiException on API errors', () async {
+      await expectLater(
+        schoolSvc.getProfile(),
+        throwsA(isA<ApiException>()),
       );
-      expect(configured.workingDays.length, equals(2));
+
+      await expectLater(
+        schoolSvc.updateProfile(UpdateSchoolRequest(
+          name: 'Live School',
+          address: '123 Test St',
+          contactEmail: 'live@ilmiya.edu',
+          contactPhone: '+1-555-0100',
+        )),
+        throwsA(isA<ApiException>()),
+      );
     });
 
-    test('AcademicYearService falls back to mock storage on API errors',
-        () async {
-      final list = await academicSvc.listAcademicYears();
-      expect(list, isNotEmpty);
+    test('AcademicYearService throws ApiException on API errors', () async {
+      await expectLater(
+        academicSvc.listAcademicYears(),
+        throwsA(isA<ApiException>()),
+      );
 
-      final active = await academicSvc.getActiveAcademicYear();
-      expect(active, isNotNull);
+      await expectLater(
+        academicSvc.getActiveAcademicYear(),
+        throwsA(isA<ApiException>()),
+      );
 
-      final created =
-          await academicSvc.createAcademicYear(CreateAcademicYearRequest(
-        name: 'TA 2030/2031',
-        startDate: '2030-07-01',
-        endDate: '2031-06-30',
-      ));
-      expect(created.name, equals('TA 2030/2031'));
-
-      final activated = await academicSvc.activateYear(created.id);
-      expect(activated.status, equals('ACTIVE'));
-
-      final withTerm = await academicSvc.addTerm(
-        created.id,
-        AddAcademicTermRequest(
-          name: 'Term 1',
-          displayName: 'Semester 1',
-          type: 'SEMESTER',
+      await expectLater(
+        academicSvc.createAcademicYear(CreateAcademicYearRequest(
+          name: 'TA 2030/2031',
           startDate: '2030-07-01',
-          endDate: '2030-12-31',
-        ),
+          endDate: '2031-06-30',
+        )),
+        throwsA(isA<ApiException>()),
       );
-      expect(withTerm.terms, isNotEmpty);
-
-      final termActivated = await academicSvc.activateTerm(
-        created.id,
-        withTerm.terms.first.id,
-      );
-      expect(termActivated.terms.first.status, equals('ACTIVE'));
     });
   });
 }

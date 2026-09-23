@@ -151,6 +151,7 @@ void main() {
   Widget createTestWidget() {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: apiClient),
         ChangeNotifierProvider(create: (_) => AppState()),
         ChangeNotifierProvider(create: (_) => AuthNotifier()),
       ],
