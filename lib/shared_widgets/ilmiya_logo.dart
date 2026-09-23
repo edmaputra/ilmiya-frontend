@@ -163,5 +163,6 @@ class _IlmiyaSymbolPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _IlmiyaSymbolPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _IlmiyaSymbolPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

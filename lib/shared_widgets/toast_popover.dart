@@ -9,7 +9,8 @@ class ToastPopover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeToast = context.select<AppState, NotificationItem?>((s) => s.activeToast);
+    final activeToast =
+        context.select<AppState, NotificationItem?>((s) => s.activeToast);
 
     if (activeToast == null) {
       return const SizedBox.shrink();
@@ -107,7 +108,8 @@ class ToastPopover extends StatelessWidget {
               IconButton(
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
-                icon: const Icon(Icons.close, size: 16, color: AppColors.textMuted),
+                icon: const Icon(Icons.close,
+                    size: 16, color: AppColors.textMuted),
                 onPressed: () => context.read<AppState>().dismissToast(),
               ),
             ],

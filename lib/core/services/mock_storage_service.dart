@@ -29,7 +29,8 @@ class MockStorageService {
       address: 'Jl. Pendidikan No. 42, Kebayoran Baru, Jakarta Selatan',
       contactEmail: 'admin@ilmiya-school.edu',
       contactPhone: '+62 21 7890 1234',
-      logoUrl: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=300&auto=format&fit=crop&q=80',
+      logoUrl:
+          'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=300&auto=format&fit=crop&q=80',
       status: 'ACTIVE',
       governmentRegistrationNumber: 'NPSN-20109988',
       registrationType: 'PUBLIC_PROVINCIAL',
@@ -160,7 +161,8 @@ class MockStorageService {
         tenantId: DEFAULT_TENANT_ID,
         code: 'SUPERADMIN',
         name: 'Platform Super Administrator',
-        description: 'Full institutional and multi-tenant rights across all bounded contexts.',
+        description:
+            'Full institutional and multi-tenant rights across all bounded contexts.',
         permissions: ['*'],
         isSystemRole: true,
         createdAt: '2026-01-01T00:00:00Z',
@@ -171,7 +173,8 @@ class MockStorageService {
         tenantId: DEFAULT_TENANT_ID,
         code: 'SCHOOL_ADMIN',
         name: 'School Administrator',
-        description: 'Institutional settings, user onboarding, and academic year rollover.',
+        description:
+            'Institutional settings, user onboarding, and academic year rollover.',
         permissions: [
           'school:profile:read',
           'school:profile:write',
@@ -195,7 +198,8 @@ class MockStorageService {
         tenantId: DEFAULT_TENANT_ID,
         code: 'TEACHER',
         name: 'Educator & Subject Instructor',
-        description: 'Attendance entry, continuous grading, curriculum delivery, and report cards.',
+        description:
+            'Attendance entry, continuous grading, curriculum delivery, and report cards.',
         permissions: [
           'school:profile:read',
           'academic:year:read',
@@ -218,7 +222,8 @@ class MockStorageService {
         tenantId: DEFAULT_TENANT_ID,
         code: 'STUDENT',
         name: 'Student Learner',
-        description: 'Course schedules, grade reviews, assignment submissions, and attendance logs.',
+        description:
+            'Course schedules, grade reviews, assignment submissions, and attendance logs.',
         permissions: [
           'school:profile:read',
           'academic:year:read',
@@ -239,7 +244,8 @@ class MockStorageService {
         tenantId: DEFAULT_TENANT_ID,
         code: 'GRP_STEM_FACULTY',
         name: 'STEM Faculty Department',
-        description: 'Science, Technology, Engineering and Mathematics Instructors',
+        description:
+            'Science, Technology, Engineering and Mathematics Instructors',
         externalIdpGroupName: 'azure-ad-group-stem-teachers',
         createdAt: '2026-01-01T00:00:00Z',
         updatedAt: '2026-01-01T00:00:00Z',
@@ -423,7 +429,8 @@ class MockStorageService {
     }
   }
 
-  AcademicYearResponse createAcademicYear(String tenantId, CreateAcademicYearRequest req) {
+  AcademicYearResponse createAcademicYear(
+      String tenantId, CreateAcademicYearRequest req) {
     final newAy = AcademicYearResponse(
       id: 'ay-${DateTime.now().millisecondsSinceEpoch}',
       tenantId: tenantId,
@@ -458,7 +465,8 @@ class MockStorageService {
     return _academicYears.firstWhere((ay) => ay.id == yearId);
   }
 
-  AcademicYearResponse addAcademicTerm(String yearId, AddAcademicTermRequest req) {
+  AcademicYearResponse addAcademicTerm(
+      String yearId, AddAcademicTermRequest req) {
     final idx = _academicYears.indexWhere((ay) => ay.id == yearId);
     if (idx == -1) throw Exception('Academic year $yearId not found');
 
@@ -475,7 +483,9 @@ class MockStorageService {
       updatedAt: DateTime.now().toIso8601String(),
     );
 
-    final updatedTerms = List<AcademicTermResponse>.from(_academicYears[idx].terms)..add(newTerm);
+    final updatedTerms =
+        List<AcademicTermResponse>.from(_academicYears[idx].terms)
+          ..add(newTerm);
     _academicYears[idx] = _academicYears[idx].copyWith(terms: updatedTerms);
     return _academicYears[idx];
   }
@@ -502,7 +512,8 @@ class MockStorageService {
 
   UserResponse? getUserByEmail(String email) {
     try {
-      return _users.firstWhere((u) => u.email.toLowerCase() == email.toLowerCase());
+      return _users
+          .firstWhere((u) => u.email.toLowerCase() == email.toLowerCase());
     } catch (_) {
       return null;
     }
@@ -633,7 +644,8 @@ class MockStorageService {
     return newNode;
   }
 
-  bool _addChildToScopeNode(List<ScopeTreeNode> nodes, String parentId, ScopeTreeNode child) {
+  bool _addChildToScopeNode(
+      List<ScopeTreeNode> nodes, String parentId, ScopeTreeNode child) {
     for (int i = 0; i < nodes.length; i++) {
       if (nodes[i].id == parentId) {
         final updated = List<ScopeTreeNode>.from(nodes[i].children)..add(child);

@@ -125,7 +125,10 @@ class _SidebarContent extends StatelessWidget {
         ? 'Lincoln High School'
         : auth.tenantId == 'tenant-sma1-ilmiya-002'
             ? 'SMA Negeri 1 Ilmiya'
-            : auth.tenantId.replaceAll('tenant-', '').replaceAll('-', ' ').toUpperCase();
+            : auth.tenantId
+                .replaceAll('tenant-', '')
+                .replaceAll('-', ' ')
+                .toUpperCase();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -155,7 +158,8 @@ class _SidebarContent extends StatelessWidget {
                             ),
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: AppColors.forestSage.withOpacity(0.12),
                                 borderRadius: BorderRadius.circular(6),
@@ -190,7 +194,8 @@ class _SidebarContent extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 onTap: () => _showTenantDialog(context, auth),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: c.background,
                     borderRadius: BorderRadius.circular(10),
@@ -262,7 +267,6 @@ class _SidebarContent extends StatelessWidget {
                 tabIndex: 4,
                 isActive: state.currentTab == 4,
               ),
-
               const SizedBox(height: 12),
               _buildSectionHeader('Academics'),
               _NavTile(
@@ -277,7 +281,6 @@ class _SidebarContent extends StatelessWidget {
                 tabIndex: 5,
                 isActive: state.currentTab == 5,
               ),
-
               const SizedBox(height: 12),
               _buildSectionHeader('Administration'),
               _NavTile(
@@ -286,7 +289,6 @@ class _SidebarContent extends StatelessWidget {
                 tabIndex: 2,
                 isActive: state.currentTab == 2,
               ),
-
               const SizedBox(height: 12),
               _buildSectionHeader('Communications & Labs'),
               _NavTile(
@@ -396,7 +398,9 @@ class _SidebarContent extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      apiClient.isMockMode ? 'Mock Simulation' : 'Live REST API',
+                      apiClient.isMockMode
+                          ? 'Mock Simulation'
+                          : 'Live REST API',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -529,7 +533,8 @@ class _SidebarContent extends StatelessWidget {
                 Icon(
                   isActive ? LucideIcons.checkCircle2 : LucideIcons.circle,
                   size: 14,
-                  color: isActive ? AppColors.forestSage : const Color(0xFF94A3B8),
+                  color:
+                      isActive ? AppColors.forestSage : const Color(0xFF94A3B8),
                 ),
                 const SizedBox(width: 8),
                 Column(
@@ -539,12 +544,14 @@ class _SidebarContent extends StatelessWidget {
                       persona.name,
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight:
+                            isActive ? FontWeight.w700 : FontWeight.w500,
                       ),
                     ),
                     Text(
                       persona.roleLabel,
-                      style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                      style: const TextStyle(
+                          fontSize: 10, color: Color(0xFF94A3B8)),
                     ),
                   ],
                 ),
@@ -559,7 +566,8 @@ class _SidebarContent extends StatelessWidget {
             children: [
               Icon(LucideIcons.logIn, size: 15, color: AppColors.forestSage),
               SizedBox(width: 8),
-              Text('Sign In with Credentials...', style: TextStyle(fontSize: 12)),
+              Text('Sign In with Credentials...',
+                  style: TextStyle(fontSize: 12)),
             ],
           ),
         ),
@@ -569,7 +577,8 @@ class _SidebarContent extends StatelessWidget {
             children: [
               Icon(LucideIcons.logOut, size: 15, color: AppColors.earthyTerra),
               SizedBox(width: 8),
-              Text('Sign Out', style: TextStyle(fontSize: 12, color: AppColors.earthyTerra)),
+              Text('Sign Out',
+                  style: TextStyle(fontSize: 12, color: AppColors.earthyTerra)),
             ],
           ),
         ),
@@ -603,7 +612,8 @@ class _SidebarContent extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'Tenant ID',
                 prefixIcon: const Icon(LucideIcons.school, size: 16),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
             const SizedBox(height: 12),
@@ -613,12 +623,14 @@ class _SidebarContent extends StatelessWidget {
               children: [
                 ActionChip(
                   avatar: const Icon(LucideIcons.school, size: 14),
-                  label: const Text('Lincoln High', style: TextStyle(fontSize: 11)),
+                  label: const Text('Lincoln High',
+                      style: TextStyle(fontSize: 11)),
                   onPressed: () => tenantCtrl.text = 'tenant-lincoln-high-001',
                 ),
                 ActionChip(
                   avatar: const Icon(LucideIcons.graduationCap, size: 14),
-                  label: const Text('SMAN 1 Ilmiya', style: TextStyle(fontSize: 11)),
+                  label: const Text('SMAN 1 Ilmiya',
+                      style: TextStyle(fontSize: 11)),
                   onPressed: () => tenantCtrl.text = 'tenant-sma1-ilmiya-002',
                 ),
               ],
@@ -719,7 +731,8 @@ class _NavTile extends StatelessWidget {
                 ),
                 if (unreadCount != null && unreadCount! > 0)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
                       color: AppColors.forestSage,
                       borderRadius: BorderRadius.circular(10),
@@ -735,7 +748,8 @@ class _NavTile extends StatelessWidget {
                   )
                 else if (badgeText != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                     decoration: BoxDecoration(
                       color: c.muted,
                       borderRadius: BorderRadius.circular(4),
@@ -774,7 +788,10 @@ class _TopBar extends StatelessWidget {
         ? 'Lincoln High School'
         : auth.tenantId == 'tenant-sma1-ilmiya-002'
             ? 'SMA Negeri 1 Ilmiya'
-            : auth.tenantId.replaceAll('tenant-', '').replaceAll('-', ' ').toUpperCase();
+            : auth.tenantId
+                .replaceAll('tenant-', '')
+                .replaceAll('-', ' ')
+                .toUpperCase();
 
     final pageTitles = [
       'School Profile',
@@ -815,7 +832,8 @@ class _TopBar extends StatelessWidget {
                   currentTitle,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
-                  style: t.large.copyWith(fontWeight: FontWeight.w700, height: 1.1),
+                  style: t.large
+                      .copyWith(fontWeight: FontWeight.w700, height: 1.1),
                 ),
                 Text(
                   schoolDisplayName,
@@ -839,7 +857,8 @@ class _TopBar extends StatelessWidget {
               onTap: () => showIlmiyaCommandPalette(context),
               child: Container(
                 width: 200,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: c.background,
                   borderRadius: BorderRadius.circular(8),
@@ -847,7 +866,8 @@ class _TopBar extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(LucideIcons.search, size: 14, color: c.mutedForeground),
+                    Icon(LucideIcons.search,
+                        size: 14, color: c.mutedForeground),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -884,7 +904,8 @@ class _TopBar extends StatelessWidget {
           // Dark/Light Theme toggle
           IconButton(
             iconSize: 18,
-            tooltip: state.themeMode == ThemeMode.dark ? 'Light Mode' : 'Dark Mode',
+            tooltip:
+                state.themeMode == ThemeMode.dark ? 'Light Mode' : 'Dark Mode',
             icon: Icon(
               state.themeMode == ThemeMode.dark
                   ? LucideIcons.sun

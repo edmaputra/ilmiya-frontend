@@ -3,15 +3,18 @@ import '../core/models/iam.dart';
 import '../core/services/api_client.dart';
 import '../core/services/iam_service.dart';
 
-bool checkPermission(List<String> userPermissions, List<String> userRoles, String targetPermission) {
-  if (userRoles.any((r) => r.toUpperCase() == 'SUPERADMIN') || userPermissions.contains('*')) {
+bool checkPermission(List<String> userPermissions, List<String> userRoles,
+    String targetPermission) {
+  if (userRoles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
+      userPermissions.contains('*')) {
     return true;
   }
   for (final perm in userPermissions) {
     if (perm == targetPermission) return true;
     if (perm.endsWith(':*')) {
       final prefix = perm.substring(0, perm.length - 2);
-      if (targetPermission == prefix || targetPermission.startsWith('$prefix:')) {
+      if (targetPermission == prefix ||
+          targetPermission.startsWith('$prefix:')) {
         return true;
       }
     }
@@ -61,7 +64,8 @@ class AuthNotifier extends ChangeNotifier {
     super.dispose();
   }
 
-  bool get isAuthenticated => _user != null && (_token != null || _apiClient.isMockMode);
+  bool get isAuthenticated =>
+      _user != null && (_token != null || _apiClient.isMockMode);
   UserProfileResponse? get user => _user;
   String get tenantId => _tenantId;
   String? get token => _token;
@@ -90,7 +94,8 @@ class AuthNotifier extends ChangeNotifier {
       notifyListeners();
       final profile = await _iamService.getMe();
       _user = profile;
-      _tenantId = profile.tenantId.isNotEmpty ? profile.tenantId : _apiClient.tenantId;
+      _tenantId =
+          profile.tenantId.isNotEmpty ? profile.tenantId : _apiClient.tenantId;
       _roles = profile.roles;
       _permissions = profile.permissions;
       _token = _apiClient.token;
@@ -114,7 +119,8 @@ class AuthNotifier extends ChangeNotifier {
     try {
       final resp = await _iamService.login(req);
       _token = resp.accessToken;
-      _tenantId = resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
+      _tenantId =
+          resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
       _roles = resp.roles;
       _permissions = resp.permissions;
       await refreshProfile();
@@ -133,7 +139,8 @@ class AuthNotifier extends ChangeNotifier {
     if (persona == null) return;
     await login(LoginRequest(
       email: persona.email,
-      password: '${persona.key.name[0].toUpperCase()}${persona.key.name.substring(1)}@123',
+      password:
+          '${persona.key.name[0].toUpperCase()}${persona.key.name.substring(1)}@123',
       tenantId: _apiClient.tenantId,
     ));
   }

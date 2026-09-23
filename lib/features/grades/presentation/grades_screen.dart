@@ -18,7 +18,8 @@ class GradesScreen extends StatefulWidget {
 }
 
 class _GradesScreenState extends State<GradesScreen> {
-  int _subTabIndex = 0; // 0: Roster, 1: Calculator, 2: Transcript, 3: Teacher Gradebook
+  int _subTabIndex =
+      0; // 0: Roster, 1: Calculator, 2: Transcript, 3: Teacher Gradebook
   late Course _selectedCourse;
 
   @override
@@ -69,7 +70,10 @@ class _GradesScreenState extends State<GradesScreen> {
                                 ),
                               ),
                               SizedBox(width: 8),
-                              Text('• Spring 2026 Academic Term', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                              Text('• Spring 2026 Academic Term',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textMuted)),
                             ],
                           ),
                           SizedBox(height: 4),
@@ -85,13 +89,15 @@ class _GradesScreenState extends State<GradesScreen> {
                           SizedBox(height: 2),
                           Text(
                             'Real-time GPA computation, weighted category breakdowns, and feedback rubrics',
-                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            style: TextStyle(
+                                fontSize: 11, color: AppColors.textSecondary),
                           ),
                         ],
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
                         color: AppColors.naturalParchment,
                         borderRadius: BorderRadius.circular(20),
@@ -101,17 +107,36 @@ class _GradesScreenState extends State<GradesScreen> {
                         children: [
                           Column(
                             children: [
-                              const Text('UNWEIGHTED GPA', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
-                              Text(gpa['unweighted'] ?? '3.88', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                              const Text('UNWEIGHTED GPA',
+                                  style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textMuted)),
+                              Text(gpa['unweighted'] ?? '3.88',
+                                  style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.textPrimary)),
                             ],
                           ),
                           const SizedBox(width: 16),
-                          Container(width: 1, height: 32, color: AppColors.borderLight),
+                          Container(
+                              width: 1,
+                              height: 32,
+                              color: AppColors.borderLight),
                           const SizedBox(width: 16),
                           Column(
                             children: [
-                              const Text('WEIGHTED GPA', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
-                              Text(gpa['weighted'] ?? '4.12', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.forestSage)),
+                              const Text('WEIGHTED GPA',
+                                  style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textMuted)),
+                              Text(gpa['weighted'] ?? '4.12',
+                                  style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.forestSage)),
                             ],
                           ),
                         ],
@@ -131,12 +156,15 @@ class _GradesScreenState extends State<GradesScreen> {
                     children: [
                       _buildSubTabButton(0, 'Course Grades & Rubrics', null),
                       const SizedBox(width: 8),
-                      _buildSubTabButton(1, 'GPA What-If Simulator', Icons.calculate_outlined),
+                      _buildSubTabButton(
+                          1, 'GPA What-If Simulator', Icons.calculate_outlined),
                       const SizedBox(width: 8),
-                      _buildSubTabButton(2, 'Report Card & Transcript', Icons.picture_as_pdf_outlined),
+                      _buildSubTabButton(2, 'Report Card & Transcript',
+                          Icons.picture_as_pdf_outlined),
                       if (state.currentRole == UserRole.teacher) ...[
                         const SizedBox(width: 8),
-                        _buildSubTabButton(3, 'Teacher Gradebook Editor', Icons.edit_note_outlined),
+                        _buildSubTabButton(3, 'Teacher Gradebook Editor',
+                            Icons.edit_note_outlined),
                       ],
                     ],
                   ),
@@ -189,14 +217,16 @@ class _GradesScreenState extends State<GradesScreen> {
     final isActive = _subTabIndex == index;
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
-        backgroundColor: isActive ? AppColors.forestSage : AppColors.borderLight,
+        backgroundColor:
+            isActive ? AppColors.forestSage : AppColors.borderLight,
         foregroundColor: isActive ? Colors.white : AppColors.textSecondary,
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       icon: icon != null ? Icon(icon, size: 14) : const SizedBox.shrink(),
-      label: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+      label: Text(label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
       onPressed: () => setState(() => _subTabIndex = index),
     );
   }
@@ -207,7 +237,11 @@ class _GradesScreenState extends State<GradesScreen> {
       children: [
         Text(
           'ENROLLED COURSES (${state.courses.length})',
-          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.1, color: AppColors.textMuted),
+          style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.1,
+              color: AppColors.textMuted),
         ),
         const SizedBox(height: 10),
         ListView.separated(
@@ -228,7 +262,9 @@ class _GradesScreenState extends State<GradesScreen> {
                   color: isSelected ? AppColors.warmSand : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? AppColors.forestSage.withOpacity(0.5) : AppColors.borderLight,
+                    color: isSelected
+                        ? AppColors.forestSage.withOpacity(0.5)
+                        : AppColors.borderLight,
                     width: isSelected ? 1.5 : 1,
                   ),
                 ),
@@ -248,7 +284,10 @@ class _GradesScreenState extends State<GradesScreen> {
                             child: Center(
                               child: Text(
                                 course.code.split('-')[0],
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white),
                               ),
                             ),
                           ),
@@ -260,12 +299,16 @@ class _GradesScreenState extends State<GradesScreen> {
                                 Text(
                                   course.name,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary),
                                 ),
                                 Text(
                                   course.teacherName,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                                  style: const TextStyle(
+                                      fontSize: 10, color: AppColors.textMuted),
                                 ),
                               ],
                             ),
@@ -279,11 +322,17 @@ class _GradesScreenState extends State<GradesScreen> {
                       children: [
                         Text(
                           course.letterGrade,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textPrimary),
                         ),
                         Text(
                           '${course.currentPercentage}%',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.forestSage),
+                          style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.forestSage),
                         ),
                       ],
                     ),
@@ -321,67 +370,84 @@ class _GradesScreenState extends State<GradesScreen> {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
                                 color: _selectedCourse.color,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 _selectedCourse.code,
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white),
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text(_selectedCourse.period, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                            Text(_selectedCourse.period,
+                                style: const TextStyle(
+                                    fontSize: 11, color: AppColors.textMuted)),
                           ],
                         ),
                         const SizedBox(height: 6),
                         Text(
                           _selectedCourse.name,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           'Instructor: ${_selectedCourse.teacherName} • Room: ${_selectedCourse.room} • Office Hours: ${_selectedCourse.officeHours}',
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: _selectedCourse.color.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: _selectedCourse.color.withOpacity(0.3)),
+                      border: Border.all(
+                          color: _selectedCourse.color.withOpacity(0.3)),
                     ),
                     child: Text(
                       _selectedCourse.letterGrade,
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: _selectedCourse.color),
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          color: _selectedCourse.color),
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 18),
               const Divider(color: AppColors.borderLight),
               const SizedBox(height: 12),
-
               const Text(
                 'WEIGHTED CATEGORY BREAKDOWN',
-                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.1, color: AppColors.textMuted),
+                style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.1,
+                    color: AppColors.textMuted),
               ),
               const SizedBox(height: 8),
-
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: _selectedCourse.categoryWeights.map((cat) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: AppColors.naturalParchment,
                       borderRadius: BorderRadius.circular(14),
@@ -389,9 +455,19 @@ class _GradesScreenState extends State<GradesScreen> {
                     ),
                     child: Column(
                       children: [
-                        Text(cat.category, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
-                        Text('${cat.currentAvg}%', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                        Text('Weight: ${cat.weight.toStringAsFixed(0)}%', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.forestSage)),
+                        Text(cat.category,
+                            style: const TextStyle(
+                                fontSize: 10, color: AppColors.textMuted)),
+                        Text('${cat.currentAvg}%',
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary)),
+                        Text('Weight: ${cat.weight.toStringAsFixed(0)}%',
+                            style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.forestSage)),
                       ],
                     ),
                   );
@@ -419,11 +495,15 @@ class _GradesScreenState extends State<GradesScreen> {
                 children: [
                   const Text(
                     'Graded Assignments & Tasks',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary),
                   ),
                   Text(
                     '${_selectedCourse.assignments.length} total entries',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.textMuted),
                   ),
                 ],
               ),

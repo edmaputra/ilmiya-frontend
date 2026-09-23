@@ -12,7 +12,8 @@ void main() {
       expect(state.currentRole, equals(UserRole.student));
       expect(state.currentUser.name, equals('Alex Rivera'));
       expect(state.courses.length, equals(6));
-      expect(double.parse(state.cumulativeGpa['unweighted']!), greaterThan(3.5));
+      expect(
+          double.parse(state.cumulativeGpa['unweighted']!), greaterThan(3.5));
       expect(double.parse(state.cumulativeGpa['weighted']!), greaterThan(4.0));
     });
 
@@ -37,7 +38,8 @@ void main() {
       );
 
       expect(state.activeChannelMessages.length, equals(initialCount + 1));
-      expect(state.activeChannelMessages.last.content, equals('Test message for instructor'));
+      expect(state.activeChannelMessages.last.content,
+          equals('Test message for instructor'));
     });
 
     test('Broadcast announcement adds new high priority notification', () {
@@ -52,8 +54,10 @@ void main() {
       );
 
       expect(state.notifications.length, equals(initialCount + 1));
-      expect(state.notifications.first.title, contains('Midterm Schedule Updated'));
-      expect(state.notifications.first.priority, equals(NotificationPriority.high));
+      expect(state.notifications.first.title,
+          contains('Midterm Schedule Updated'));
+      expect(state.notifications.first.priority,
+          equals(NotificationPriority.high));
     });
   });
 }

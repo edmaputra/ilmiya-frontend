@@ -158,18 +158,25 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
       CommandActionItem(
         title: 'Toggle Theme (Light / Dark)',
         group: 'Actions',
-        icon: appState.themeMode == ThemeMode.dark ? LucideIcons.sun : LucideIcons.moon,
-        subtitle: 'Currently: ${appState.themeMode == ThemeMode.dark ? "Dark" : "Light"}',
+        icon: appState.themeMode == ThemeMode.dark
+            ? LucideIcons.sun
+            : LucideIcons.moon,
+        subtitle:
+            'Currently: ${appState.themeMode == ThemeMode.dark ? "Dark" : "Light"}',
         onSelect: () {
           appState.toggleThemeMode();
           Navigator.of(context).pop();
         },
       ),
       CommandActionItem(
-        title: apiClient.isMockMode ? 'Switch to Live REST Backend' : 'Switch to Mock Simulation',
+        title: apiClient.isMockMode
+            ? 'Switch to Live REST Backend'
+            : 'Switch to Mock Simulation',
         group: 'Actions',
         icon: LucideIcons.server,
-        subtitle: apiClient.isMockMode ? 'Connect to backend at ${apiClient.baseUrl}' : 'Use fast in-memory simulation',
+        subtitle: apiClient.isMockMode
+            ? 'Connect to backend at ${apiClient.baseUrl}'
+            : 'Use fast in-memory simulation',
         onSelect: () {
           apiClient.isMockMode = !apiClient.isMockMode;
           Navigator.of(context).pop();
@@ -287,7 +294,8 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
             children: [
               // Search input
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Focus(
                   focusNode: _focusNode,
                   onKeyEvent: _handleKey,
@@ -305,13 +313,16 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
                           autofocus: true,
                           style: TextStyle(
                             fontSize: 15,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color:
+                                isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                           decoration: InputDecoration(
                             hintText: 'Type a command, page, or search...',
                             hintStyle: TextStyle(
                               fontSize: 14,
-                              color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                              color: isDark
+                                  ? Colors.white38
+                                  : const Color(0xFF94A3B8),
                             ),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
@@ -323,12 +334,16 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white12 : const Color(0xFFF1F5F9),
+                          color:
+                              isDark ? Colors.white12 : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
+                            color: isDark
+                                ? Colors.white24
+                                : const Color(0xFFE2E8F0),
                           ),
                         ),
                         child: Text(
@@ -336,7 +351,9 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                            color: isDark
+                                ? Colors.white60
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ),
@@ -346,7 +363,8 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
               ),
               Divider(
                 height: 1,
-                color: isDark ? const Color(0xFF3E423E) : const Color(0xFFE2E8F0),
+                color:
+                    isDark ? const Color(0xFF3E423E) : const Color(0xFFE2E8F0),
               ),
 
               // Action List
@@ -358,7 +376,9 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
                           child: Text(
                             'No matching commands found',
                             style: TextStyle(
-                              color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                              color: isDark
+                                  ? Colors.white38
+                                  : const Color(0xFF94A3B8),
                             ),
                           ),
                         ),
@@ -374,8 +394,10 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
                           return InkWell(
                             onTap: item.onSelect,
                             child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? (isDark
@@ -390,8 +412,11 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? AppColors.forestSage.withOpacity(0.15)
-                                          : (isDark ? Colors.white10 : const Color(0xFFF8FAFC)),
+                                          ? AppColors.forestSage
+                                              .withOpacity(0.15)
+                                          : (isDark
+                                              ? Colors.white10
+                                              : const Color(0xFFF8FAFC)),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Icon(
@@ -399,20 +424,27 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
                                       size: 16,
                                       color: isSelected
                                           ? AppColors.forestSage
-                                          : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                                          : (isDark
+                                              ? Colors.white70
+                                              : const Color(0xFF475569)),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           item.title,
                                           style: TextStyle(
                                             fontSize: 13,
-                                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.w500,
+                                            color: isDark
+                                                ? Colors.white
+                                                : const Color(0xFF0F172A),
                                           ),
                                         ),
                                         if (item.subtitle != null) ...[
@@ -421,7 +453,9 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
                                             item.subtitle!,
                                             style: TextStyle(
                                               fontSize: 11,
-                                              color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                                              color: isDark
+                                                  ? Colors.white38
+                                                  : const Color(0xFF64748B),
                                             ),
                                           ),
                                         ],
@@ -432,7 +466,9 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
                                     item.group,
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: isDark ? Colors.white24 : const Color(0xFF94A3B8),
+                                      color: isDark
+                                          ? Colors.white24
+                                          : const Color(0xFF94A3B8),
                                     ),
                                   ),
                                 ],
@@ -445,32 +481,43 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
 
               // Footer helper
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF191B19) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF191B19)
+                      : const Color(0xFFF8FAFC),
                   border: Border(
                     top: BorderSide(
-                      color: isDark ? const Color(0xFF3E423E) : const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? const Color(0xFF3E423E)
+                          : const Color(0xFFE2E8F0),
                     ),
                   ),
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                  borderRadius:
+                      const BorderRadius.vertical(bottom: Radius.circular(16)),
                 ),
                 child: Row(
                   children: [
-                    Text(
-                      'Navigate with ↑ ↓ and ↵ to select',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    Flexible(
+                      child: Text(
+                        'Navigate with ↑ ↓ and ↵ to select',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color:
+                              isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     Text(
                       'Ilmiya SIS Quick Search',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                        color:
+                            isDark ? Colors.white54 : const Color(0xFF64748B),
                       ),
                     ),
                   ],

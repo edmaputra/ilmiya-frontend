@@ -58,9 +58,12 @@ class IlmiyaApp extends StatelessWidget {
               body: IndexedStack(
                 index: state.currentTab.clamp(0, 7),
                 children: [
-                  SchoolProfileScreen(key: ValueKey('school_profile_${auth.tenantId}')),
-                  AcademicYearsScreen(key: ValueKey('academic_years_${auth.tenantId}')),
-                  IamManagementScreen(key: ValueKey('iam_management_${auth.tenantId}')),
+                  SchoolProfileScreen(
+                      key: ValueKey('school_profile_${auth.tenantId}')),
+                  AcademicYearsScreen(
+                      key: ValueKey('academic_years_${auth.tenantId}')),
+                  IamManagementScreen(
+                      key: ValueKey('iam_management_${auth.tenantId}')),
                   const PreviewScreen(),
                   DashboardScreen(key: ValueKey('dashboard_${auth.tenantId}')),
                   const GradesScreen(),

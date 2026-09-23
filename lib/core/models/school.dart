@@ -52,7 +52,8 @@ class SchoolResponse {
       contactPhone: json['contactPhone'] as String? ?? '',
       logoUrl: json['logoUrl'] as String?,
       status: json['status'] as String? ?? 'ACTIVE',
-      governmentRegistrationNumber: json['governmentRegistrationNumber'] as String?,
+      governmentRegistrationNumber:
+          json['governmentRegistrationNumber'] as String?,
       registrationType: json['registrationType'] as String?,
       accreditationStatus: json['accreditationStatus'] as String?,
       accreditationBody: json['accreditationBody'] as String?,
@@ -61,10 +62,13 @@ class SchoolResponse {
               ?.map((e) => e.toString())
               .toList() ??
           ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
-      gradingPreference: json['gradingPreference'] as String? ?? 'DESCRIPTIVE_KURIKULUM_MERDEKA',
+      gradingPreference: json['gradingPreference'] as String? ??
+          'DESCRIPTIVE_KURIKULUM_MERDEKA',
       termLayout: json['termLayout'] as String? ?? 'SEMESTER',
-      createdAt: json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
-      updatedAt: json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
+      createdAt:
+          json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
+      updatedAt:
+          json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
     );
   }
 
@@ -82,7 +86,8 @@ class SchoolResponse {
       if (governmentRegistrationNumber != null)
         'governmentRegistrationNumber': governmentRegistrationNumber,
       if (registrationType != null) 'registrationType': registrationType,
-      if (accreditationStatus != null) 'accreditationStatus': accreditationStatus,
+      if (accreditationStatus != null)
+        'accreditationStatus': accreditationStatus,
       if (accreditationBody != null) 'accreditationBody': accreditationBody,
       if (accreditationValidUntil != null)
         'accreditationValidUntil': accreditationValidUntil,
@@ -130,7 +135,8 @@ class SchoolResponse {
       registrationType: registrationType ?? this.registrationType,
       accreditationStatus: accreditationStatus ?? this.accreditationStatus,
       accreditationBody: accreditationBody ?? this.accreditationBody,
-      accreditationValidUntil: accreditationValidUntil ?? this.accreditationValidUntil,
+      accreditationValidUntil:
+          accreditationValidUntil ?? this.accreditationValidUntil,
       workingDays: workingDays ?? this.workingDays,
       gradingPreference: gradingPreference ?? this.gradingPreference,
       termLayout: termLayout ?? this.termLayout,

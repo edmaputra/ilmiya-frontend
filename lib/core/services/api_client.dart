@@ -69,17 +69,21 @@ class ApiClient {
 
     try {
       http.Response response;
-      final encodedBody = body is String ? body : (body != null ? jsonEncode(body) : null);
+      final encodedBody =
+          body is String ? body : (body != null ? jsonEncode(body) : null);
 
       switch (method.toUpperCase()) {
         case 'POST':
-          response = await http.post(url, headers: requestHeaders, body: encodedBody);
+          response =
+              await http.post(url, headers: requestHeaders, body: encodedBody);
           break;
         case 'PUT':
-          response = await http.put(url, headers: requestHeaders, body: encodedBody);
+          response =
+              await http.put(url, headers: requestHeaders, body: encodedBody);
           break;
         case 'PATCH':
-          response = await http.patch(url, headers: requestHeaders, body: encodedBody);
+          response =
+              await http.patch(url, headers: requestHeaders, body: encodedBody);
           break;
         case 'DELETE':
           response = await http.delete(url, headers: requestHeaders);

@@ -43,7 +43,8 @@ class SchoolService {
     }
   }
 
-  Future<SchoolResponse> configureSettings(ConfigureSchoolSettingsRequest req) async {
+  Future<SchoolResponse> configureSettings(
+      ConfigureSchoolSettingsRequest req) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.configureSchoolSettings(req);
     }

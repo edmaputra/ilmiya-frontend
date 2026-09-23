@@ -18,7 +18,8 @@ class ChatBubbleView extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -29,7 +30,6 @@ class ChatBubbleView extends StatelessWidget {
             ),
             const SizedBox(width: 8),
           ],
-
           ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.65,
@@ -79,7 +79,9 @@ class ChatBubbleView extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: isMe ? Colors.black.withOpacity(0.15) : AppColors.naturalParchment,
+                        color: isMe
+                            ? Colors.black.withOpacity(0.15)
+                            : AppColors.naturalParchment,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isMe ? Colors.white12 : AppColors.borderLight,
@@ -91,7 +93,9 @@ class ChatBubbleView extends StatelessWidget {
                           Icon(
                             Icons.picture_as_pdf_outlined,
                             size: 18,
-                            color: isMe ? AppColors.warmSand : AppColors.forestSage,
+                            color: isMe
+                                ? AppColors.warmSand
+                                : AppColors.forestSage,
                           ),
                           const SizedBox(width: 8),
                           Flexible(
@@ -103,7 +107,9 @@ class ChatBubbleView extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: isMe ? Colors.white : AppColors.textPrimary,
+                                    color: isMe
+                                        ? Colors.white
+                                        : AppColors.textPrimary,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -111,7 +117,9 @@ class ChatBubbleView extends StatelessWidget {
                                   '${message.attachment!.size} • Verified PDF',
                                   style: TextStyle(
                                     fontSize: 9,
-                                    color: isMe ? Colors.white70 : AppColors.textMuted,
+                                    color: isMe
+                                        ? Colors.white70
+                                        : AppColors.textMuted,
                                   ),
                                 ),
                               ],
@@ -137,7 +145,8 @@ class ChatBubbleView extends StatelessWidget {
                       ),
                       if (isMe) ...[
                         const SizedBox(width: 4),
-                        const Icon(Icons.done_all, size: 12, color: AppColors.warmSand),
+                        const Icon(Icons.done_all,
+                            size: 12, color: AppColors.warmSand),
                       ],
                     ],
                   ),

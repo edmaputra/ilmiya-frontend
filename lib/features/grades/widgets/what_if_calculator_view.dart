@@ -52,7 +52,9 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
   @override
   Widget build(BuildContext context) {
     // Dynamic recalculation
-    final avgSimScore = _simulations.fold(0.0, (sum, s) => sum + s.simulatedScore) / _simulations.length;
+    final avgSimScore =
+        _simulations.fold(0.0, (sum, s) => sum + s.simulatedScore) /
+            _simulations.length;
     final simUnweighted = (3.80 + (avgSimScore - 80) * 0.006).clamp(3.0, 4.0);
     final simWeighted = (4.00 + (avgSimScore - 80) * 0.009).clamp(3.5, 5.0);
 
@@ -75,7 +77,8 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.calculate_outlined, size: 20, color: AppColors.forestSage),
+                        Icon(Icons.calculate_outlined,
+                            size: 20, color: AppColors.forestSage),
                         SizedBox(width: 8),
                         Text(
                           'GPA What-If Scenario Prediction Studio',
@@ -90,7 +93,8 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
                     SizedBox(height: 4),
                     Text(
                       'Simulate upcoming midterm, final exam, and project scores to calculate their exact impact on your final cumulative GPA.',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -99,17 +103,23 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.forestSage,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
-                icon: const Icon(Icons.auto_awesome, size: 14, color: AppColors.warmSand),
-                label: const Text('Celebrate Target!', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                icon: const Icon(Icons.auto_awesome,
+                    size: 14, color: AppColors.warmSand),
+                label: const Text('Celebrate Target!',
+                    style:
+                        TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       backgroundColor: AppColors.forestSage,
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                       content: const Text(
                         '🎉 Congratulations! Projected GPA reaches top tier Dean\'s Honor Roll!',
                         style: TextStyle(fontWeight: FontWeight.w700),
@@ -196,7 +206,8 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
                             activeTrackColor: AppColors.forestSage,
                             inactiveTrackColor: AppColors.borderMedium,
                             thumbColor: AppColors.forestSage,
-                            overlayColor: AppColors.forestSage.withOpacity(0.12),
+                            overlayColor:
+                                AppColors.forestSage.withOpacity(0.12),
                             trackHeight: 4,
                           ),
                           child: Slider(
@@ -211,11 +222,15 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
                           ),
                         ),
                         Text(
-                          sim.simulatedScore >= 90 ? 'Maintains Grade A (4.0)' : 'Impact: Adjusts to B+ (3.3)',
+                          sim.simulatedScore >= 90
+                              ? 'Maintains Grade A (4.0)'
+                              : 'Impact: Adjusts to B+ (3.3)',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: sim.simulatedScore >= 90 ? AppColors.forestSage : AppColors.earthyTerra,
+                            color: sim.simulatedScore >= 90
+                                ? AppColors.forestSage
+                                : AppColors.earthyTerra,
                           ),
                         ),
                       ],
@@ -253,7 +268,8 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
                     SizedBox(height: 2),
                     Text(
                       'With these simulated scores, your semester GPA will adjust to:',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -263,7 +279,10 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
                       children: [
                         const Text(
                           'SIMULATED UNWEIGHTED',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted),
+                          style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textMuted),
                         ),
                         Text(
                           simUnweighted.toStringAsFixed(2),
@@ -280,7 +299,10 @@ class _WhatIfCalculatorViewState extends State<WhatIfCalculatorView> {
                       children: [
                         const Text(
                           'SIMULATED WEIGHTED',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted),
+                          style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textMuted),
                         ),
                         Text(
                           simWeighted.toStringAsFixed(2),

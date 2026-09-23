@@ -65,25 +65,40 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
           children: [
             Icon(Icons.calendar_today_rounded, color: AppColors.forestSage),
             SizedBox(width: 8),
-            Text('New Academic Year', style: TextStyle(fontFamily: 'serif', fontSize: 18)),
+            Text('New Academic Year',
+                style: TextStyle(fontFamily: 'serif', fontSize: 18)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Academic Year Name')),
+            TextField(
+                controller: nameCtrl,
+                decoration:
+                    const InputDecoration(labelText: 'Academic Year Name')),
             const SizedBox(height: 10),
-            TextField(controller: startCtrl, decoration: const InputDecoration(labelText: 'Start Date (YYYY-MM-DD)')),
+            TextField(
+                controller: startCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'Start Date (YYYY-MM-DD)')),
             const SizedBox(height: 10),
-            TextField(controller: endCtrl, decoration: const InputDecoration(labelText: 'End Date (YYYY-MM-DD)')),
+            TextField(
+                controller: endCtrl,
+                decoration:
+                    const InputDecoration(labelText: 'End Date (YYYY-MM-DD)')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.forestSage,
+                foregroundColor: Colors.white),
             onPressed: () async {
-              await academicYearService.createAcademicYear(CreateAcademicYearRequest(
+              await academicYearService
+                  .createAcademicYear(CreateAcademicYearRequest(
                 name: nameCtrl.text.trim(),
                 startDate: startCtrl.text.trim(),
                 endDate: endCtrl.text.trim(),
@@ -109,50 +124,71 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Row(
             children: [
               Icon(Icons.date_range_rounded, color: AppColors.forestSage),
               SizedBox(width: 8),
-              Text('Add Academic Term', style: TextStyle(fontFamily: 'serif', fontSize: 18)),
+              Text('Add Academic Term',
+                  style: TextStyle(fontFamily: 'serif', fontSize: 18)),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Term Name')),
+              TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Term Name')),
               const SizedBox(height: 10),
-              TextField(controller: displayCtrl, decoration: const InputDecoration(labelText: 'Display Label')),
+              TextField(
+                  controller: displayCtrl,
+                  decoration:
+                      const InputDecoration(labelText: 'Display Label')),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: termType,
                 decoration: const InputDecoration(labelText: 'Term Type'),
                 items: const [
-                  DropdownMenuItem(value: 'SEMESTER_1', child: Text('Semester 1 (Ganjil)')),
-                  DropdownMenuItem(value: 'SEMESTER_2', child: Text('Semester 2 (Genap)')),
-                  DropdownMenuItem(value: 'TRIMESTER_1', child: Text('Trimester 1')),
-                  DropdownMenuItem(value: 'QUARTER_1', child: Text('Quarter 1')),
+                  DropdownMenuItem(
+                      value: 'SEMESTER_1', child: Text('Semester 1 (Ganjil)')),
+                  DropdownMenuItem(
+                      value: 'SEMESTER_2', child: Text('Semester 2 (Genap)')),
+                  DropdownMenuItem(
+                      value: 'TRIMESTER_1', child: Text('Trimester 1')),
+                  DropdownMenuItem(
+                      value: 'QUARTER_1', child: Text('Quarter 1')),
                 ],
                 onChanged: (v) => setDlgState(() => termType = v ?? termType),
               ),
               const SizedBox(height: 10),
-              TextField(controller: startCtrl, decoration: const InputDecoration(labelText: 'Start Date')),
+              TextField(
+                  controller: startCtrl,
+                  decoration: const InputDecoration(labelText: 'Start Date')),
               const SizedBox(height: 10),
-              TextField(controller: endCtrl, decoration: const InputDecoration(labelText: 'End Date')),
+              TextField(
+                  controller: endCtrl,
+                  decoration: const InputDecoration(labelText: 'End Date')),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel')),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.forestSage, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.forestSage,
+                  foregroundColor: Colors.white),
               onPressed: () async {
-                await academicYearService.addTerm(yearId, AddAcademicTermRequest(
-                  name: nameCtrl.text.trim(),
-                  displayName: displayCtrl.text.trim(),
-                  type: termType,
-                  startDate: startCtrl.text.trim(),
-                  endDate: endCtrl.text.trim(),
-                ));
+                await academicYearService.addTerm(
+                    yearId,
+                    AddAcademicTermRequest(
+                      name: nameCtrl.text.trim(),
+                      displayName: displayCtrl.text.trim(),
+                      type: termType,
+                      startDate: startCtrl.text.trim(),
+                      endDate: endCtrl.text.trim(),
+                    ));
                 if (ctx.mounted) Navigator.of(ctx).pop();
                 if (mounted) await _loadAcademicYears();
               },
@@ -190,11 +226,13 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(LucideIcons.circleAlert, size: 48, color: AppColors.earthyTerra),
+            const Icon(LucideIcons.circleAlert,
+                size: 48, color: AppColors.earthyTerra),
             const SizedBox(height: 12),
             Text(_error!, style: t.p),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: _loadAcademicYears, child: const Text('Retry')),
+            ElevatedButton(
+                onPressed: _loadAcademicYears, child: const Text('Retry')),
           ],
         ),
       );
@@ -230,14 +268,16 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
               ),
               ElevatedButton.icon(
                 onPressed: canWrite ? _showCreateYearDialog : null,
-                icon: Icon(canWrite ? LucideIcons.plus : LucideIcons.lock, size: 16),
+                icon: Icon(canWrite ? LucideIcons.plus : LucideIcons.lock,
+                    size: 16),
                 label: const Text('New Academic Year'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: c.primary,
                   foregroundColor: c.primaryForeground,
                   disabledBackgroundColor: c.muted,
                   disabledForegroundColor: c.mutedForeground,
-                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
@@ -268,7 +308,8 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                               color: c.accent,
                               borderRadius: KiteRadius.allMd,
                             ),
-                            child: Icon(LucideIcons.star, color: c.primary, size: 20),
+                            child: Icon(LucideIcons.star,
+                                color: c.primary, size: 20),
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,7 +325,8 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                                   ),
                                   Text(
                                     '${_activeYear!.startDate} to ${_activeYear!.endDate}',
-                                    style: t.small.copyWith(color: c.mutedForeground),
+                                    style: t.small
+                                        .copyWith(color: c.mutedForeground),
                                   ),
                                 ],
                               ),
@@ -300,13 +342,18 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                         ],
                       ),
                       OutlinedButton.icon(
-                        onPressed: canWrite ? () => _showAddTermDialog(_activeYear!.id) : null,
-                        icon: Icon(canWrite ? LucideIcons.plus : LucideIcons.lock, size: 14),
+                        onPressed: canWrite
+                            ? () => _showAddTermDialog(_activeYear!.id)
+                            : null,
+                        icon: Icon(
+                            canWrite ? LucideIcons.plus : LucideIcons.lock,
+                            size: 14),
                         label: const Text('Add Term'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: c.foreground,
                           side: BorderSide(color: c.border),
-                          shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allMd),
+                          shape: const RoundedRectangleBorder(
+                              borderRadius: KiteRadius.allMd),
                         ),
                       ),
                     ],
@@ -314,11 +361,13 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                   Divider(height: 24, color: c.border),
                   Text(
                     'Terms & Semesters Breakdown',
-                    style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
+                    style: t.small.copyWith(
+                        fontWeight: FontWeight.bold, color: c.foreground),
                   ),
                   const SizedBox(height: 12),
                   if (_activeYear!.terms.isEmpty)
-                    Text('No terms configured yet.', style: t.small.copyWith(color: c.mutedForeground))
+                    Text('No terms configured yet.',
+                        style: t.small.copyWith(color: c.mutedForeground))
                   else
                     Wrap(
                       spacing: 12,
@@ -345,25 +394,31 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: Text(
                                           term.name,
                                           overflow: TextOverflow.ellipsis,
-                                          style: t.small.copyWith(fontWeight: FontWeight.bold, color: c.foreground),
+                                          style: t.small.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: c.foreground),
                                         ),
                                       ),
                                       KiteBadge(
                                         term.status,
-                                        tone: isTermActive ? KiteTone.success : KiteTone.neutral,
+                                        tone: isTermActive
+                                            ? KiteTone.success
+                                            : KiteTone.neutral,
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     '${term.startDate} → ${term.endDate}',
-                                    style: t.small.copyWith(fontSize: 10, color: c.mutedForeground),
+                                    style: t.small.copyWith(
+                                        fontSize: 10, color: c.mutedForeground),
                                   ),
                                 ],
                               ),
@@ -375,14 +430,18 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                                     ? Container(
                                         alignment: Alignment.center,
                                         decoration: BoxDecoration(
-                                          color: AppColors.forestSage.withOpacity(0.12),
+                                          color: AppColors.forestSage
+                                              .withOpacity(0.12),
                                           borderRadius: KiteRadius.allSm,
                                         ),
                                         child: const Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(LucideIcons.check, size: 12, color: AppColors.forestSage),
+                                            Icon(LucideIcons.check,
+                                                size: 12,
+                                                color: AppColors.forestSage),
                                             SizedBox(width: 4),
                                             Text(
                                               'Active Term',
@@ -411,14 +470,21 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                                             ),
                                           )
                                         : OutlinedButton(
-                                            onPressed: canWrite ? () => _handleActivateTerm(_activeYear!.id, term.id) : null,
+                                            onPressed: canWrite
+                                                ? () => _handleActivateTerm(
+                                                    _activeYear!.id, term.id)
+                                                : null,
                                             style: OutlinedButton.styleFrom(
                                               padding: EdgeInsets.zero,
                                               foregroundColor: c.primary,
                                               side: BorderSide(color: c.border),
-                                              shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          KiteRadius.allSm),
                                             ),
-                                            child: const Text('Activate Term', style: TextStyle(fontSize: 10)),
+                                            child: const Text('Activate Term',
+                                                style: TextStyle(fontSize: 10)),
                                           )),
                               ),
                             ],
@@ -439,7 +505,8 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(LucideIcons.calendarDays, color: c.foreground, size: 18),
+                    Icon(LucideIcons.calendarDays,
+                        color: c.foreground, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -458,7 +525,8 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                     decoration: BoxDecoration(
                       color: isActive ? c.accent.withOpacity(0.4) : c.card,
                       borderRadius: KiteRadius.allMd,
-                      border: Border.all(color: isActive ? c.primary : c.border),
+                      border:
+                          Border.all(color: isActive ? c.primary : c.border),
                     ),
                     child: Wrap(
                       spacing: 12,
@@ -476,18 +544,24 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                               children: [
                                 Text(
                                   ay.name,
-                                  style: t.small.copyWith(fontSize: 13, fontWeight: FontWeight.bold, color: c.foreground),
+                                  style: t.small.copyWith(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: c.foreground),
                                 ),
                                 KiteBadge(
                                   ay.status,
-                                  tone: isActive ? KiteTone.success : KiteTone.neutral,
+                                  tone: isActive
+                                      ? KiteTone.success
+                                      : KiteTone.neutral,
                                 ),
                               ],
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'Duration: ${ay.startDate} to ${ay.endDate} • ${ay.terms.length} Terms',
-                              style: t.small.copyWith(fontSize: 11, color: c.mutedForeground),
+                              style: t.small.copyWith(
+                                  fontSize: 11, color: c.mutedForeground),
                             ),
                           ],
                         ),
@@ -496,29 +570,40 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                           runSpacing: 8,
                           children: [
                             OutlinedButton(
-                              onPressed: canWrite ? () => _showAddTermDialog(ay.id) : null,
+                              onPressed: canWrite
+                                  ? () => _showAddTermDialog(ay.id)
+                                  : null,
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
                                 foregroundColor: c.foreground,
                                 side: BorderSide(color: c.border),
-                                shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius: KiteRadius.allSm),
                               ),
-                              child: const Text('+ Add Term', style: TextStyle(fontSize: 11)),
+                              child: const Text('+ Add Term',
+                                  style: TextStyle(fontSize: 11)),
                             ),
                             if (!isActive)
                               ElevatedButton(
-                                onPressed: canWrite ? () => _handleActivateYear(ay.id) : null,
+                                onPressed: canWrite
+                                    ? () => _handleActivateYear(ay.id)
+                                    : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: c.primary,
                                   foregroundColor: c.primaryForeground,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  shape: const RoundedRectangleBorder(borderRadius: KiteRadius.allSm),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 6),
+                                  shape: const RoundedRectangleBorder(
+                                      borderRadius: KiteRadius.allSm),
                                 ),
-                                child: const Text('Activate', style: TextStyle(fontSize: 11)),
+                                child: const Text('Activate',
+                                    style: TextStyle(fontSize: 11)),
                               )
                             else
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
                                   color: AppColors.forestSage.withOpacity(0.12),
                                   borderRadius: KiteRadius.allSm,
@@ -526,7 +611,8 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
                                 child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(LucideIcons.check, size: 12, color: AppColors.forestSage),
+                                    Icon(LucideIcons.check,
+                                        size: 12, color: AppColors.forestSage),
                                     SizedBox(width: 4),
                                     Text(
                                       'Active',

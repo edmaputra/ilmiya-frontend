@@ -45,7 +45,8 @@ class AcademicYearService {
     }
   }
 
-  Future<AcademicYearResponse> createAcademicYear(CreateAcademicYearRequest req) async {
+  Future<AcademicYearResponse> createAcademicYear(
+      CreateAcademicYearRequest req) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.createAcademicYear(_apiClient.tenantId, req);
     }
@@ -78,7 +79,8 @@ class AcademicYearService {
     }
   }
 
-  Future<AcademicYearResponse> addTerm(String yearId, AddAcademicTermRequest req) async {
+  Future<AcademicYearResponse> addTerm(
+      String yearId, AddAcademicTermRequest req) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.addAcademicTerm(yearId, req);
     }
@@ -95,7 +97,8 @@ class AcademicYearService {
     }
   }
 
-  Future<AcademicYearResponse> activateTerm(String yearId, String termId) async {
+  Future<AcademicYearResponse> activateTerm(
+      String yearId, String termId) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.activateAcademicTerm(yearId, termId);
     }
