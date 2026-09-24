@@ -289,6 +289,13 @@ class _SidebarContent extends StatelessWidget {
                 tabIndex: 2,
                 isActive: state.currentTab == 2,
               ),
+              _NavTile(
+                title: 'Tenant Console',
+                icon: LucideIcons.building2,
+                tabIndex: 8,
+                isActive: state.currentTab == 8,
+                badgeText: 'Admin',
+              ),
               const SizedBox(height: 12),
               _buildSectionHeader('Communications & Labs'),
               _NavTile(
@@ -807,6 +814,7 @@ class _TopBar extends StatelessWidget {
       'Courses & Grades',
       'Messages',
       'Notifications',
+      'Tenant Console',
     ];
 
     final currentTitle = state.currentTab < pageTitles.length

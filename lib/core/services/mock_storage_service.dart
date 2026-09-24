@@ -9,6 +9,7 @@ class MockStorageService {
   factory MockStorageService() => _instance;
 
   late SchoolResponse _school;
+  late List<SchoolResponse> _schools;
   late List<AcademicYearResponse> _academicYears;
   late List<UserResponse> _users;
   late List<RoleResponse> _roles;
@@ -21,28 +22,120 @@ class MockStorageService {
   }
 
   void reset() {
-    _school = SchoolResponse(
-      id: 'sch-001',
-      tenantId: DEFAULT_TENANT_ID,
-      name: 'SMA Negeri 1 Ilmiya (Lincoln High Campus)',
-      institutionCode: 'SMAN1-ILM',
-      address: 'Jl. Pendidikan No. 42, Kebayoran Baru, Jakarta Selatan',
-      contactEmail: 'admin@ilmiya-school.edu',
-      contactPhone: '+62 21 7890 1234',
-      logoUrl:
-          'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=300&auto=format&fit=crop&q=80',
-      status: 'ACTIVE',
-      governmentRegistrationNumber: 'NPSN-20109988',
-      registrationType: 'PUBLIC_PROVINCIAL',
-      accreditationStatus: 'ACCREDITED_A',
-      accreditationBody: 'BAN-S/M Indonesia',
-      accreditationValidUntil: '2028-12-31',
-      workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
-      gradingPreference: 'DESCRIPTIVE_KURIKULUM_MERDEKA',
-      termLayout: 'SEMESTER',
-      createdAt: '2026-01-01T00:00:00Z',
-      updatedAt: '2026-01-01T00:00:00Z',
-    );
+    _schools = [
+      SchoolResponse(
+        id: 'sch-001',
+        tenantId: DEFAULT_TENANT_ID,
+        name: 'SMA Negeri 1 Ilmiya (Lincoln High Campus)',
+        institutionCode: 'SMAN1-ILM',
+        address: '1240 Oakcrest Ave, Portland, OR 97201',
+        contactEmail: 'office@lincolnhigh.edu',
+        contactPhone: '+1 503 555 0192',
+        logoUrl:
+            'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=300&auto=format&fit=crop&q=80',
+        status: 'ACTIVE',
+        governmentRegistrationNumber: 'NPSN-10823401',
+        registrationType: 'PUBLIC_DISTRICT',
+        accreditationStatus: 'ACCREDITED_A',
+        accreditationBody: 'Northwest Accreditation Commission',
+        accreditationValidUntil: '2028-12-31',
+        workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+        gradingPreference: 'DESCRIPTIVE_KURIKULUM_MERDEKA',
+        termLayout: 'SEMESTER',
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      ),
+      SchoolResponse(
+        id: 'sch-002',
+        tenantId: 'tenant-sma1-ilmiya-002',
+        name: 'SMA Negeri 1 Ilmiya',
+        institutionCode: 'SMAN1-ILM',
+        address: 'Jl. Pendidikan No. 42, Kebayoran Baru, Jakarta Selatan',
+        contactEmail: 'admin@ilmiya-school.edu',
+        contactPhone: '+62 21 7890 1234',
+        logoUrl:
+            'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=300&auto=format&fit=crop&q=80',
+        status: 'ACTIVE',
+        governmentRegistrationNumber: 'NPSN-20109988',
+        registrationType: 'PUBLIC_PROVINCIAL',
+        accreditationStatus: 'ACCREDITED_A',
+        accreditationBody: 'BAN-S/M Indonesia',
+        accreditationValidUntil: '2028-12-31',
+        workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+        gradingPreference: 'DESCRIPTIVE_KURIKULUM_MERDEKA',
+        termLayout: 'SEMESTER',
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      ),
+      SchoolResponse(
+        id: 'sch-003',
+        tenantId: 'tenant-alazhar-003',
+        name: 'Al-Azhar Islamic Academy',
+        institutionCode: 'AZHAR-003',
+        address: 'Jl. Sisingamangaraja No. 1, Kebayoran Baru, Jakarta Selatan',
+        contactEmail: 'info@alazhar-academy.sch.id',
+        contactPhone: '+62 21 7278 8900',
+        status: 'ACTIVE',
+        governmentRegistrationNumber: 'NPSN-20104432',
+        registrationType: 'PRIVATE_FOUNDATION',
+        accreditationStatus: 'ACCREDITED_A',
+        accreditationBody: 'BAN-S/M Indonesia',
+        accreditationValidUntil: '2029-06-30',
+        workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+        gradingPreference: 'DESCRIPTIVE_KURIKULUM_MERDEKA',
+        termLayout: 'SEMESTER',
+        createdAt: '2026-02-10T00:00:00Z',
+        updatedAt: '2026-02-10T00:00:00Z',
+      ),
+      SchoolResponse(
+        id: 'sch-004',
+        tenantId: 'tenant-horizon-004',
+        name: 'Horizon International STEM Academy',
+        institutionCode: 'HORIZON-004',
+        address: '770 Innovation Blvd, Silicon Forest, WA 98052',
+        contactEmail: 'contact@horizon-stem.edu',
+        contactPhone: '+1 206 555 0148',
+        status: 'PENDING',
+        governmentRegistrationNumber: 'NPSN-30910022',
+        registrationType: 'CHARTER_REGIONAL',
+        accreditationStatus: 'ACCREDITED_B',
+        accreditationBody: 'STEM AdvancED Org',
+        accreditationValidUntil: '2027-10-31',
+        workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+        gradingPreference: 'STANDARD_LETTER_GRADE',
+        termLayout: 'TRIMESTER',
+        createdAt: '2026-03-01T00:00:00Z',
+        updatedAt: '2026-03-01T00:00:00Z',
+      ),
+      SchoolResponse(
+        id: 'sch-005',
+        tenantId: 'tenant-stjude-005',
+        name: 'St. Jude Preparatory School',
+        institutionCode: 'STJUDE-005',
+        address: '500 Cathedral St, Boston, MA 02118',
+        contactEmail: 'admin@stjude-prep.org',
+        contactPhone: '+1 617 555 0184',
+        status: 'SUSPENDED',
+        governmentRegistrationNumber: 'NPSN-10024955',
+        registrationType: 'PRIVATE_PAROCHIAL',
+        accreditationStatus: 'ACCREDITED_C',
+        accreditationBody: 'New England Schools Commission',
+        accreditationValidUntil: '2026-12-31',
+        workingDays: [
+          'MONDAY',
+          'TUESDAY',
+          'WEDNESDAY',
+          'THURSDAY',
+          'FRIDAY',
+          'SATURDAY'
+        ],
+        gradingPreference: 'NUMERIC_100_POINT',
+        termLayout: 'QUARTER',
+        createdAt: '2026-01-15T00:00:00Z',
+        updatedAt: '2026-01-15T00:00:00Z',
+      ),
+    ];
+    _school = _schools.first;
 
     _academicYears = [
       AcademicYearResponse(
@@ -348,10 +441,34 @@ class MockStorageService {
     ];
   }
 
-  // --- School Profile ---
+  // --- School Profile & Multi-Tenant Schools ---
+  List<SchoolResponse> listSchools({String? query, String? status}) {
+    return _schools.where((s) {
+      if (status != null &&
+          status.isNotEmpty &&
+          status.toUpperCase() != 'ALL') {
+        if (s.status.toUpperCase() != status.toUpperCase()) return false;
+      }
+      if (query != null && query.trim().isNotEmpty) {
+        final q = query.trim().toLowerCase();
+        final matches = s.name.toLowerCase().contains(q) ||
+            s.tenantId.toLowerCase().contains(q) ||
+            s.institutionCode.toLowerCase().contains(q) ||
+            (s.governmentRegistrationNumber?.toLowerCase().contains(q) ??
+                false) ||
+            s.contactEmail.toLowerCase().contains(q);
+        if (!matches) return false;
+      }
+      return true;
+    }).toList();
+  }
+
   SchoolResponse getSchoolProfile(String tenantId) {
-    if (_school.tenantId == tenantId) return _school;
-    return SchoolResponse(
+    final existing = _schools.where((s) => s.tenantId == tenantId);
+    if (existing.isNotEmpty) {
+      return existing.first;
+    }
+    final branch = SchoolResponse(
       id: 'sch-$tenantId',
       tenantId: tenantId,
       name: 'Branch Campus ($tenantId)',
@@ -366,10 +483,17 @@ class MockStorageService {
       createdAt: DateTime.now().toIso8601String(),
       updatedAt: DateTime.now().toIso8601String(),
     );
+    _schools.add(branch);
+    return branch;
   }
 
-  SchoolResponse updateSchoolProfile(UpdateSchoolRequest req) {
-    _school = _school.copyWith(
+  SchoolResponse updateSchoolProfile(UpdateSchoolRequest req,
+      {String? targetTenantId}) {
+    final tId = targetTenantId ?? _school.tenantId;
+    final index = _schools.indexWhere((s) => s.tenantId == tId);
+    final target = index != -1 ? _schools[index] : _school;
+
+    final updated = target.copyWith(
       name: req.name,
       address: req.address,
       contactEmail: req.contactEmail,
@@ -382,21 +506,44 @@ class MockStorageService {
       accreditationValidUntil: req.accreditationValidUntil,
       updatedAt: DateTime.now().toIso8601String(),
     );
-    return _school;
+
+    if (index != -1) {
+      _schools[index] = updated;
+    } else {
+      _schools.add(updated);
+    }
+    if (tId == _school.tenantId) {
+      _school = updated;
+    }
+    return updated;
   }
 
-  SchoolResponse configureSchoolSettings(ConfigureSchoolSettingsRequest req) {
-    _school = _school.copyWith(
+  SchoolResponse configureSchoolSettings(ConfigureSchoolSettingsRequest req,
+      {String? targetTenantId}) {
+    final tId = targetTenantId ?? _school.tenantId;
+    final index = _schools.indexWhere((s) => s.tenantId == tId);
+    final target = index != -1 ? _schools[index] : _school;
+
+    final updated = target.copyWith(
       workingDays: req.workingDays,
       gradingPreference: req.gradingPreference,
       termLayout: req.termLayout,
       updatedAt: DateTime.now().toIso8601String(),
     );
-    return _school;
+
+    if (index != -1) {
+      _schools[index] = updated;
+    } else {
+      _schools.add(updated);
+    }
+    if (tId == _school.tenantId) {
+      _school = updated;
+    }
+    return updated;
   }
 
   SchoolResponse registerSchool(RegisterSchoolRequest req) {
-    _school = SchoolResponse(
+    final newSchool = SchoolResponse(
       id: 'sch-${DateTime.now().millisecondsSinceEpoch}',
       tenantId: req.tenantId,
       name: req.name,
@@ -411,7 +558,35 @@ class MockStorageService {
       createdAt: DateTime.now().toIso8601String(),
       updatedAt: DateTime.now().toIso8601String(),
     );
-    return _school;
+    final existingIdx = _schools.indexWhere((s) => s.tenantId == req.tenantId);
+    if (existingIdx != -1) {
+      _schools[existingIdx] = newSchool;
+    } else {
+      _schools.add(newSchool);
+    }
+    return newSchool;
+  }
+
+  SchoolResponse updateSchoolStatus(String tenantId, String newStatus) {
+    final index = _schools.indexWhere((s) => s.tenantId == tenantId);
+    if (index != -1) {
+      final updated = _schools[index].copyWith(
+        status: newStatus.toUpperCase(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+      _schools[index] = updated;
+      if (tenantId == _school.tenantId) {
+        _school = updated;
+      }
+      return updated;
+    }
+    throw Exception('School tenant not found: $tenantId');
+  }
+
+  bool deleteSchool(String tenantId) {
+    final countBefore = _schools.length;
+    _schools.removeWhere((s) => s.tenantId == tenantId);
+    return _schools.length < countBefore;
   }
 
   // --- Academic Years ---

@@ -153,6 +153,17 @@ class _IlmiyaCommandPaletteState extends State<IlmiyaCommandPalette> {
           Navigator.of(context).pop();
         },
       ),
+      CommandActionItem(
+        title: 'Tenant Management Console (SuperAdmin)',
+        group: 'Navigation',
+        icon: LucideIcons.building2,
+        subtitle:
+            'Multi-tenant institution registry, accreditation oversight & quotas',
+        onSelect: () {
+          appState.setTab(8);
+          Navigator.of(context).pop();
+        },
+      ),
 
       // System Actions
       CommandActionItem(

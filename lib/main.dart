@@ -13,6 +13,7 @@ import 'features/messaging/presentation/messaging_screen.dart';
 import 'features/notifications/presentation/notifications_screen.dart';
 import 'features/preview/presentation/preview_screen.dart';
 import 'features/school_profile/presentation/school_profile_screen.dart';
+import 'features/school_profile/presentation/tenant_management_screen.dart';
 import 'shared_widgets/adaptive_scaffold.dart';
 import 'state/app_state.dart';
 import 'state/auth_notifier.dart';
@@ -170,8 +171,8 @@ class _LazyTabBodyState extends State<_LazyTabBody> {
   @override
   Widget build(BuildContext context) {
     return IndexedStack(
-      index: widget.currentTab.clamp(0, 7),
-      children: List.generate(8, (index) {
+      index: widget.currentTab.clamp(0, 8),
+      children: List.generate(9, (index) {
         if (!_activatedTabs.contains(index)) {
           return const SizedBox.shrink();
         }
@@ -198,6 +199,11 @@ class _LazyTabBodyState extends State<_LazyTabBody> {
           case 6:
             return const MessagingScreen();
           case 7:
+            return const NotificationsScreen();
+          case 8:
+            return TenantManagementScreen(
+                key: ValueKey(
+                    'tenant_mgmt_${widget.tenantId}_${widget.modeSuffix}'));
           default:
             return const NotificationsScreen();
         }
