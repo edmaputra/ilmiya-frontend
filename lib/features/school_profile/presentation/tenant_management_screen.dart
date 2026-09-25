@@ -98,8 +98,8 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
               ),
             ],
           ),
-          content: SizedBox(
-            width: 520,
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -347,8 +347,8 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
               ),
             ],
           ),
-          content: SizedBox(
-            width: 480,
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -472,8 +472,8 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
               ),
             ],
           ),
-          content: SizedBox(
-            width: 480,
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -722,8 +722,11 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
       return true;
     }).toList();
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompact = screenWidth < 600;
+
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isCompact ? 12 : 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -731,10 +734,12 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
           Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 8,
+            runSpacing: 4,
             children: [
               Text(
                 'Tenant & School Profile Management',
-                style: t.h2.copyWith(fontWeight: FontWeight.bold),
+                style: (isCompact ? t.h3 : t.h2)
+                    .copyWith(fontWeight: FontWeight.bold),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -873,28 +878,75 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     final suspendedCount =
         _schools.where((s) => s.status == 'SUSPENDED').length;
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardPadding = screenWidth < 600 ? 12.0 : 16.0;
+
     return KiteCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      padding: EdgeInsets.all(cardPadding),
+      child: ListView(
         children: [
           // Metric Summary Row
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _metricPill(context, 'TOTAL TENANTS', '$totalCount',
-                  LucideIcons.building2),
-              _metricPill(context, 'ACTIVE SCHOOLS', '$activeCount',
-                  LucideIcons.checkCircle2,
-                  color: AppColors.forestSage),
-              _metricPill(context, 'PENDING ONBOARDING', '$pendingCount',
-                  LucideIcons.clock,
-                  color: Colors.amber.shade700),
-              _metricPill(
+          LayoutBuilder(
+            builder: (ctx, constraints) {
+              final w = constraints.maxWidth;
+              final pill1 = _metricPill(context, 'TOTAL TENANTS', '$totalCount',
+                  LucideIcons.building2);
+              final pill2 = _metricPill(context, 'ACTIVE SCHOOLS',
+                  '$activeCount', LucideIcons.checkCircle2,
+                  color: AppColors.forestSage);
+              final pill3 = _metricPill(context, 'PENDING ONBOARDING',
+                  '$pendingCount', LucideIcons.clock,
+                  color: Colors.amber.shade700);
+              final pill4 = _metricPill(
                   context, 'SUSPENDED', '$suspendedCount', LucideIcons.ban,
-                  color: AppColors.earthyTerra),
-            ],
+                  color: AppColors.earthyTerra);
+
+              if (w >= 760) {
+                return Row(
+                  children: [
+                    Expanded(child: pill1),
+                    const SizedBox(width: 12),
+                    Expanded(child: pill2),
+                    const SizedBox(width: 12),
+                    Expanded(child: pill3),
+                    const SizedBox(width: 12),
+                    Expanded(child: pill4),
+                  ],
+                );
+              } else if (w >= 400) {
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: pill1),
+                        const SizedBox(width: 12),
+                        Expanded(child: pill2),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: pill3),
+                        const SizedBox(width: 12),
+                        Expanded(child: pill4),
+                      ],
+                    ),
+                  ],
+                );
+              } else {
+                return Column(
+                  children: [
+                    pill1,
+                    const SizedBox(height: 8),
+                    pill2,
+                    const SizedBox(height: 8),
+                    pill3,
+                    const SizedBox(height: 8),
+                    pill4,
+                  ],
+                );
+              }
+            },
           ),
 
           const SizedBox(height: 16),
@@ -925,21 +977,17 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
                 runSpacing: 8,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Wrap(
-                    spacing: 6,
-                    children:
-                        ['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED'].map((st) {
-                      final isSel = _selectedStatusFilter == st;
-                      return ChoiceChip(
-                        label: Text(st, style: const TextStyle(fontSize: 11)),
-                        selected: isSel,
-                        selectedColor: AppColors.warmSand,
-                        onSelected: (val) {
-                          if (val) setState(() => _selectedStatusFilter = st);
-                        },
-                      );
-                    }).toList(),
-                  ),
+                  ...['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED'].map((st) {
+                    final isSel = _selectedStatusFilter == st;
+                    return ChoiceChip(
+                      label: Text(st, style: const TextStyle(fontSize: 11)),
+                      selected: isSel,
+                      selectedColor: AppColors.warmSand,
+                      onSelected: (val) {
+                        if (val) setState(() => _selectedStatusFilter = st);
+                      },
+                    );
+                  }),
                   FilledButton.icon(
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.forestSage,
@@ -978,185 +1026,222 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
           const SizedBox(height: 14),
 
           // Schools List
-          Expanded(
-            child: schools.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+          if (schools.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(LucideIcons.building,
+                        size: 40, color: c.mutedForeground),
+                    const SizedBox(height: 8),
+                    Text('No school tenants matched the criteria.', style: t.p),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...schools.map((s) {
+              final isCurrentTenant = s.tenantId == auth.tenantId;
+
+              KiteTone statusTone = KiteTone.neutral;
+              if (s.status == 'ACTIVE') statusTone = KiteTone.success;
+              if (s.status == 'SUSPENDED') statusTone = KiteTone.danger;
+              if (s.status == 'PENDING') statusTone = KiteTone.warning;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: LayoutBuilder(
+                  builder: (ctx, itemConstraints) {
+                    final isCompact = itemConstraints.maxWidth < 650;
+
+                    final avatar = Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.forestSage.withOpacity(0.12),
+                      ),
+                      child: const Center(
+                        child: Icon(LucideIcons.landmark,
+                            size: 20, color: AppColors.forestSage),
+                      ),
+                    );
+
+                    final nameAndBadges = Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
-                        Icon(LucideIcons.building,
-                            size: 40, color: c.mutedForeground),
-                        const SizedBox(height: 8),
-                        Text('No school tenants matched the criteria.',
-                            style: t.p),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: schools.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (ctx, idx) {
-                      final s = schools[idx];
-                      final isCurrentTenant = s.tenantId == auth.tenantId;
-
-                      KiteTone statusTone = KiteTone.neutral;
-                      if (s.status == 'ACTIVE') statusTone = KiteTone.success;
-                      if (s.status == 'SUSPENDED') statusTone = KiteTone.danger;
-                      if (s.status == 'PENDING') statusTone = KiteTone.warning;
-
-                      return Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isCurrentTenant
-                              ? AppColors.forestSage.withOpacity(0.04)
-                              : c.card,
-                          borderRadius: KiteRadius.allMd,
-                          border: Border.all(
-                            color: isCurrentTenant
-                                ? AppColors.forestSage.withOpacity(0.4)
-                                : c.border,
-                          ),
+                        Text(
+                          s.name,
+                          style: t.small.copyWith(
+                              fontWeight: FontWeight.bold, fontSize: 14),
                         ),
-                        child: Row(
-                          children: [
-                            // School Avatar
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: AppColors.forestSage.withOpacity(0.12),
-                              ),
-                              child: const Center(
-                                child: Icon(LucideIcons.landmark,
-                                    size: 20, color: AppColors.forestSage),
+                        KiteBadge(s.status, tone: statusTone),
+                        if (isCurrentTenant)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: AppColors.forestSage.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'ACTIVE SESSION',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.forestSage,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                          ),
+                      ],
+                    );
 
-                            // School Info
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        s.name,
-                                        style: t.small.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      KiteBadge(s.status, tone: statusTone),
-                                      if (isCurrentTenant) ...[
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 6, vertical: 1),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.forestSage
-                                                .withOpacity(0.12),
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                          ),
-                                          child: const Text(
-                                            'ACTIVE SESSION',
-                                            style: TextStyle(
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.w800,
-                                              color: AppColors.forestSage,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Wrap(
-                                    spacing: 12,
-                                    children: [
-                                      Text('Tenant: ${s.tenantId}',
-                                          style:
-                                              t.muted.copyWith(fontSize: 11)),
-                                      Text('Code: ${s.institutionCode}',
-                                          style:
-                                              t.muted.copyWith(fontSize: 11)),
-                                      if (s.governmentRegistrationNumber !=
-                                          null)
-                                        Text(
-                                            'NPSN: ${s.governmentRegistrationNumber}',
-                                            style:
-                                                t.muted.copyWith(fontSize: 11)),
-                                      Text(
-                                          'Accreditation: ${s.accreditationStatus ?? '-'}',
-                                          style:
-                                              t.muted.copyWith(fontSize: 11)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${s.address} • ${s.contactEmail} • ${s.contactPhone}',
-                                    style: t.muted.copyWith(fontSize: 11),
-                                  ),
-                                ],
-                              ),
+                    final metadataWrap = Wrap(
+                      spacing: 12,
+                      runSpacing: 4,
+                      children: [
+                        Text('Tenant: ${s.tenantId}',
+                            style: t.muted.copyWith(fontSize: 11)),
+                        Text('Code: ${s.institutionCode}',
+                            style: t.muted.copyWith(fontSize: 11)),
+                        if (s.governmentRegistrationNumber != null)
+                          Text('NPSN: ${s.governmentRegistrationNumber}',
+                              style: t.muted.copyWith(fontSize: 11)),
+                        Text('Accreditation: ${s.accreditationStatus ?? '-'}',
+                            style: t.muted.copyWith(fontSize: 11)),
+                      ],
+                    );
+
+                    final contactInfo = Text(
+                      '${s.address} • ${s.contactEmail} • ${s.contactPhone}',
+                      style: t.muted.copyWith(fontSize: 11),
+                    );
+
+                    final actionButtons = Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (!isCurrentTenant)
+                          OutlinedButton.icon(
+                            onPressed: () => _switchActiveTenant(s.tenantId),
+                            icon: const Icon(LucideIcons.arrowRightLeft,
+                                size: 13),
+                            label: const Text('Switch',
+                                style: TextStyle(fontSize: 11)),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              foregroundColor: AppColors.forestSage,
                             ),
+                          ),
+                        IconButton(
+                          iconSize: 16,
+                          tooltip: 'Edit Profile',
+                          icon: const Icon(LucideIcons.pencil),
+                          onPressed: () => _showEditProfileDialog(s),
+                        ),
+                        IconButton(
+                          iconSize: 16,
+                          tooltip: 'Operational Settings',
+                          icon: const Icon(LucideIcons.settings),
+                          onPressed: () => _showSettingsDialog(s),
+                        ),
+                        IconButton(
+                          iconSize: 16,
+                          tooltip: s.status == 'ACTIVE'
+                              ? 'Suspend Tenant'
+                              : 'Activate Tenant',
+                          icon: Icon(
+                            s.status == 'ACTIVE'
+                                ? LucideIcons.ban
+                                : LucideIcons.checkCircle,
+                            color: s.status == 'ACTIVE'
+                                ? AppColors.earthyTerra
+                                : AppColors.forestSage,
+                          ),
+                          onPressed: () => _toggleTenantStatus(s),
+                        ),
+                      ],
+                    );
 
-                            // Action Buttons
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isCurrentTenant
+                            ? AppColors.forestSage.withOpacity(0.04)
+                            : c.card,
+                        borderRadius: KiteRadius.allMd,
+                        border: Border.all(
+                          color: isCurrentTenant
+                              ? AppColors.forestSage.withOpacity(0.4)
+                              : c.border,
+                        ),
+                      ),
+                      child: isCompact
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                if (!isCurrentTenant)
-                                  OutlinedButton.icon(
-                                    onPressed: () =>
-                                        _switchActiveTenant(s.tenantId),
-                                    icon: const Icon(LucideIcons.arrowRightLeft,
-                                        size: 13),
-                                    label: const Text('Switch',
-                                        style: TextStyle(fontSize: 11)),
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 6),
-                                      foregroundColor: AppColors.forestSage,
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    avatar,
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          nameAndBadges,
+                                          const SizedBox(height: 4),
+                                          metadataWrap,
+                                          const SizedBox(height: 4),
+                                          contactInfo,
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                const SizedBox(width: 6),
-                                IconButton(
-                                  iconSize: 16,
-                                  tooltip: 'Edit Profile',
-                                  icon: const Icon(LucideIcons.pencil),
-                                  onPressed: () => _showEditProfileDialog(s),
+                                  ],
                                 ),
-                                IconButton(
-                                  iconSize: 16,
-                                  tooltip: 'Operational Settings',
-                                  icon: const Icon(LucideIcons.settings),
-                                  onPressed: () => _showSettingsDialog(s),
-                                ),
-                                IconButton(
-                                  iconSize: 16,
-                                  tooltip: s.status == 'ACTIVE'
-                                      ? 'Suspend Tenant'
-                                      : 'Activate Tenant',
-                                  icon: Icon(
-                                    s.status == 'ACTIVE'
-                                        ? LucideIcons.ban
-                                        : LucideIcons.checkCircle,
-                                    color: s.status == 'ACTIVE'
-                                        ? AppColors.earthyTerra
-                                        : AppColors.forestSage,
-                                  ),
-                                  onPressed: () => _toggleTenantStatus(s),
+                                const SizedBox(height: 10),
+                                const Divider(height: 1),
+                                const SizedBox(height: 6),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: actionButtons,
                                 ),
                               ],
+                            )
+                          : Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                avatar,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      nameAndBadges,
+                                      const SizedBox(height: 4),
+                                      metadataWrap,
+                                      const SizedBox(height: 4),
+                                      contactInfo,
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                actionButtons,
+                              ],
                             ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          ),
+                    );
+                  },
+                ),
+              );
+            }),
         ],
       ),
     );
@@ -1169,38 +1254,55 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     final themeColor = color ?? c.primary;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: c.background,
-        borderRadius: BorderRadius.circular(10),
+        color: c.card,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: c.border),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: themeColor),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
-                  color: Color(0xFF94A3B8),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: themeColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Icon(icon, size: 18, color: themeColor),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    color: c.mutedForeground,
+                  ),
                 ),
-              ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: themeColor,
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: themeColor,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1224,53 +1326,119 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Tenant Selector Header
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: c.card,
-              borderRadius: KiteRadius.allMd,
-              border: Border.all(color: c.border),
-            ),
-            child: Row(
-              children: [
-                const Icon(LucideIcons.searchCode,
-                    size: 18, color: AppColors.forestSage),
-                const SizedBox(width: 10),
-                const Text(
-                  'Select Tenant to Inspect:',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          LayoutBuilder(
+            builder: (ctx, selectorConstraints) {
+              final isCompact = selectorConstraints.maxWidth < 600;
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: c.card,
+                  borderRadius: KiteRadius.allMd,
+                  border: Border.all(color: c.border),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: inspected.tenantId,
-                      isExpanded: true,
-                      items: _schools
-                          .map((s) => DropdownMenuItem(
-                                value: s.tenantId,
+                child: isCompact
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(LucideIcons.searchCode,
+                                  size: 18, color: AppColors.forestSage),
+                              SizedBox(width: 10),
+                              Expanded(
                                 child: Text(
-                                    '${s.name} (${s.tenantId} • ${s.institutionCode})'),
-                              ))
-                          .toList(),
-                      onChanged: (newId) {
-                        if (newId != null) {
-                          setState(() {
-                            _inspectedSchool =
-                                _schools.firstWhere((s) => s.tenantId == newId);
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => _showEditProfileDialog(inspected),
-                  icon: const Icon(LucideIcons.pencil, size: 14),
-                  label: const Text('Edit'),
-                ),
-              ],
-            ),
+                                  'Select Tenant to Inspect:',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: inspected.tenantId,
+                                    isExpanded: true,
+                                    items: _schools
+                                        .map((s) => DropdownMenuItem(
+                                              value: s.tenantId,
+                                              child: Text(
+                                                  '${s.name} (${s.tenantId})',
+                                                  overflow:
+                                                      TextOverflow.ellipsis),
+                                            ))
+                                        .toList(),
+                                    onChanged: (newId) {
+                                      if (newId != null) {
+                                        setState(() {
+                                          _inspectedSchool =
+                                              _schools.firstWhere(
+                                                  (s) => s.tenantId == newId);
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              OutlinedButton.icon(
+                                onPressed: () =>
+                                    _showEditProfileDialog(inspected),
+                                icon: const Icon(LucideIcons.pencil, size: 14),
+                                label: const Text('Edit'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          const Icon(LucideIcons.searchCode,
+                              size: 18, color: AppColors.forestSage),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Select Tenant to Inspect:',
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: inspected.tenantId,
+                                isExpanded: true,
+                                items: _schools
+                                    .map((s) => DropdownMenuItem(
+                                          value: s.tenantId,
+                                          child: Text(
+                                              '${s.name} (${s.tenantId} • ${s.institutionCode})'),
+                                        ))
+                                    .toList(),
+                                onChanged: (newId) {
+                                  if (newId != null) {
+                                    setState(() {
+                                      _inspectedSchool = _schools.firstWhere(
+                                          (s) => s.tenantId == newId);
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: () => _showEditProfileDialog(inspected),
+                            icon: const Icon(LucideIcons.pencil, size: 14),
+                            label: const Text('Edit'),
+                          ),
+                        ],
+                      ),
+              );
+            },
           ),
 
           const SizedBox(height: 16),
@@ -1279,179 +1447,167 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
           LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth > 800;
-              return Flex(
-                direction: isWide ? Axis.horizontal : Axis.vertical,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left Card: Institutional Details
-                  Expanded(
-                    flex: isWide ? 6 : 0,
-                    child: KiteCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(LucideIcons.landmark,
-                                  color: AppColors.forestSage, size: 18),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Legal & Institutional Identity',
-                                style: t.large
-                                    .copyWith(fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          Divider(height: 24, color: c.border),
-                          _infoRow(context, LucideIcons.fingerprint,
-                              'Tenant ID', inspected.tenantId),
-                          const SizedBox(height: 10),
-                          _infoRow(context, LucideIcons.barcode,
-                              'Institution Code', inspected.institutionCode),
-                          const SizedBox(height: 10),
-                          _infoRow(
-                              context,
-                              LucideIcons.badgeCheck,
-                              'Govt Registration (NPSN)',
-                              inspected.governmentRegistrationNumber ?? '-'),
-                          const SizedBox(height: 10),
-                          _infoRow(context, LucideIcons.award, 'Accreditation',
-                              '${inspected.accreditationStatus ?? '-'} (${inspected.accreditationBody ?? ''})'),
-                          const SizedBox(height: 10),
-                          _infoRow(
-                              context,
-                              LucideIcons.calendarCheck,
-                              'Accreditation Valid Until',
-                              inspected.accreditationValidUntil ?? '-'),
-                          const SizedBox(height: 10),
-                          _infoRow(context, LucideIcons.mapPin,
-                              'Campus Address', inspected.address),
-                          const SizedBox(height: 10),
-                          _infoRow(context, LucideIcons.mail, 'Contact Email',
-                              inspected.contactEmail),
-                          const SizedBox(height: 10),
-                          _infoRow(context, LucideIcons.phone, 'Contact Phone',
-                              inspected.contactPhone),
-                        ],
-                      ),
-                    ),
-                  ),
 
-                  if (isWide)
-                    const SizedBox(width: 16)
-                  else
+              final leftCard = KiteCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.landmark,
+                            color: AppColors.forestSage, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Legal & Institutional Identity',
+                            style:
+                                t.large.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Divider(height: 24, color: c.border),
+                    _infoRow(context, LucideIcons.fingerprint, 'Tenant ID',
+                        inspected.tenantId),
+                    const SizedBox(height: 10),
+                    _infoRow(context, LucideIcons.barcode, 'Institution Code',
+                        inspected.institutionCode),
+                    const SizedBox(height: 10),
+                    _infoRow(
+                        context,
+                        LucideIcons.badgeCheck,
+                        'Govt Registration (NPSN)',
+                        inspected.governmentRegistrationNumber ?? '-'),
+                    const SizedBox(height: 10),
+                    _infoRow(context, LucideIcons.award, 'Accreditation',
+                        '${inspected.accreditationStatus ?? '-'} (${inspected.accreditationBody ?? ''})'),
+                    const SizedBox(height: 10),
+                    _infoRow(
+                        context,
+                        LucideIcons.calendarCheck,
+                        'Accreditation Valid Until',
+                        inspected.accreditationValidUntil ?? '-'),
+                    const SizedBox(height: 10),
+                    _infoRow(context, LucideIcons.mapPin, 'Campus Address',
+                        inspected.address),
+                    const SizedBox(height: 10),
+                    _infoRow(context, LucideIcons.mail, 'Contact Email',
+                        inspected.contactEmail),
+                    const SizedBox(height: 10),
+                    _infoRow(context, LucideIcons.phone, 'Contact Phone',
+                        inspected.contactPhone),
+                  ],
+                ),
+              );
+
+              final rightCard = KiteCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.sliders,
+                            color: AppColors.forestSage, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Operational Policies',
+                            style:
+                                t.large.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton.icon(
+                          onPressed: () => _showSettingsDialog(inspected),
+                          icon: const Icon(LucideIcons.settings, size: 13),
+                          label: const Text('Configure',
+                              style: TextStyle(fontSize: 11)),
+                        ),
+                      ],
+                    ),
+                    Divider(height: 24, color: c.border),
+                    Text('Working Days',
+                        style: t.small.copyWith(
+                            fontWeight: FontWeight.bold, color: c.foreground)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: _allDays.map((d) {
+                        final active = inspected.workingDays.contains(d);
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: active ? c.accent : c.muted.withOpacity(0.5),
+                            borderRadius: KiteRadius.allMd,
+                            border: Border.all(
+                                color: active ? c.primary : c.border),
+                          ),
+                          child: Text(
+                            d.substring(0, 3),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight:
+                                  active ? FontWeight.bold : FontWeight.normal,
+                              color: active ? c.foreground : c.mutedForeground,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                     const SizedBox(height: 16),
-
-                  // Right Card: Operational Schedule & Rules
-                  Expanded(
-                    flex: isWide ? 4 : 0,
-                    child: KiteCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            alignment: WrapAlignment.spaceBetween,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(LucideIcons.sliders,
-                                      color: AppColors.forestSage, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Operational Policies',
-                                    style: t.large
-                                        .copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              TextButton.icon(
-                                onPressed: () => _showSettingsDialog(inspected),
-                                icon:
-                                    const Icon(LucideIcons.settings, size: 13),
-                                label: const Text('Configure',
-                                    style: TextStyle(fontSize: 11)),
-                              ),
-                            ],
-                          ),
-                          Divider(height: 24, color: c.border),
-                          Text('Working Days',
-                              style: t.small.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: c.foreground)),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            children: _allDays.map((d) {
-                              final active = inspected.workingDays.contains(d);
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: active
-                                      ? c.accent
-                                      : c.muted.withOpacity(0.5),
-                                  borderRadius: KiteRadius.allMd,
-                                  border: Border.all(
-                                      color: active ? c.primary : c.border),
-                                ),
-                                child: Text(
-                                  d.substring(0, 3),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: active
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    color: active
-                                        ? c.foreground
-                                        : c.mutedForeground,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          const SizedBox(height: 16),
-                          Text('Grading Preference',
-                              style: t.small.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: c.foreground)),
-                          const SizedBox(height: 4),
-                          Text(
-                            inspected.gradingPreference.replaceAll('_', ' '),
-                            style: t.small.copyWith(
-                                color: c.primary, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 14),
-                          Text('Academic Term Layout',
-                              style: t.small.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: c.foreground)),
-                          const SizedBox(height: 4),
-                          Text(
-                            inspected.termLayout,
-                            style: t.small.copyWith(
-                                color: c.primary, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 14),
-                          Text('Tenant Status',
-                              style: t.small.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: c.foreground)),
-                          const SizedBox(height: 4),
-                          KiteBadge(
-                            inspected.status,
-                            tone: inspected.status == 'ACTIVE'
-                                ? KiteTone.success
-                                : KiteTone.danger,
-                          ),
-                        ],
-                      ),
+                    Text('Grading Preference',
+                        style: t.small.copyWith(
+                            fontWeight: FontWeight.bold, color: c.foreground)),
+                    const SizedBox(height: 4),
+                    Text(
+                      inspected.gradingPreference.replaceAll('_', ' '),
+                      style: t.small.copyWith(
+                          color: c.primary, fontWeight: FontWeight.w600),
                     ),
-                  ),
+                    const SizedBox(height: 14),
+                    Text('Academic Term Layout',
+                        style: t.small.copyWith(
+                            fontWeight: FontWeight.bold, color: c.foreground)),
+                    const SizedBox(height: 4),
+                    Text(
+                      inspected.termLayout,
+                      style: t.small.copyWith(
+                          color: c.primary, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 14),
+                    Text('Tenant Status',
+                        style: t.small.copyWith(
+                            fontWeight: FontWeight.bold, color: c.foreground)),
+                    const SizedBox(height: 4),
+                    KiteBadge(
+                      inspected.status,
+                      tone: inspected.status == 'ACTIVE'
+                          ? KiteTone.success
+                          : KiteTone.danger,
+                    ),
+                  ],
+                ),
+              );
+
+              if (isWide) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 6, child: leftCard),
+                    const SizedBox(width: 16),
+                    Expanded(flex: 4, child: rightCard),
+                  ],
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  leftCard,
+                  const SizedBox(height: 16),
+                  rightCard,
                 ],
               );
             },
@@ -1465,87 +1621,107 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
 
-    return SingleChildScrollView(
+    final governanceCard = KiteCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          KiteCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(LucideIcons.shieldCheck,
-                        size: 20, color: AppColors.forestSage),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Multi-Tenant Platform Governance & Quotas',
-                      style: t.large.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                  ],
+          Row(
+            children: [
+              const Icon(LucideIcons.shieldCheck,
+                  size: 20, color: AppColors.forestSage),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Multi-Tenant Platform Governance & Quotas',
+                  style: t.large.copyWith(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  'Platform-level default resource quotas, storage thresholds, and cross-tenant data isolation rules.',
-                  style: t.muted,
-                ),
-                Divider(height: 24, color: c.border),
-                _quotaRow(context, 'Max Active Student Accounts',
-                    '1,000 / Tenant', 0.65),
-                const SizedBox(height: 16),
-                _quotaRow(context, 'Max Faculty & Staff Accounts',
-                    '150 / Tenant', 0.42),
-                const SizedBox(height: 16),
-                _quotaRow(
-                    context, 'Cloud Storage Volume', '50 GB / Tenant', 0.28),
-                const SizedBox(height: 16),
-                _quotaRow(
-                    context, 'Monthly REST API Calls', '500,000 reqs', 0.19),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: 6),
+          Text(
+            'Platform-level default resource quotas, storage thresholds, and cross-tenant data isolation rules.',
+            style: t.muted,
+          ),
+          Divider(height: 24, color: c.border),
+          _quotaRow(
+              context, 'Max Active Student Accounts', '1,000 / Tenant', 0.65),
           const SizedBox(height: 16),
-          KiteCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(LucideIcons.lock,
-                        size: 18, color: AppColors.forestSage),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Data Isolation & Security Policies',
-                      style: t.large.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                  ],
+          _quotaRow(
+              context, 'Max Faculty & Staff Accounts', '150 / Tenant', 0.42),
+          const SizedBox(height: 16),
+          _quotaRow(context, 'Cloud Storage Volume', '50 GB / Tenant', 0.28),
+          const SizedBox(height: 16),
+          _quotaRow(context, 'Monthly REST API Calls', '500,000 reqs', 0.19),
+        ],
+      ),
+    );
+
+    final securityCard = KiteCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(LucideIcons.lock,
+                  size: 18, color: AppColors.forestSage),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Data Isolation & Security Policies',
+                  style: t.large.copyWith(fontWeight: FontWeight.bold),
                 ),
-                Divider(height: 24, color: c.border),
-                _policyTile(
-                  context,
-                  'Row-Level Tenant Isolation',
-                  'Every SQL and storage query enforces strict X-Tenant-ID isolation preventing cross-school leakage.',
-                  true,
-                ),
-                const SizedBox(height: 10),
-                _policyTile(
-                  context,
-                  'End-to-End Chat Encryption (E2EE)',
-                  'Direct messages between teachers and parents are cryptographically signed and encrypted.',
-                  true,
-                ),
-                const SizedBox(height: 10),
-                _policyTile(
-                  context,
-                  'Multi-Campus Hierarchical Scopes',
-                  'Allows enterprise institutions to establish subsidiary branches (SMP/SMA) under one parent tenant.',
-                  true,
-                ),
-              ],
-            ),
+              ),
+            ],
+          ),
+          Divider(height: 24, color: c.border),
+          _policyTile(
+            context,
+            'Row-Level Tenant Isolation',
+            'Every SQL and storage query enforces strict X-Tenant-ID isolation preventing cross-school leakage.',
+            true,
+          ),
+          const SizedBox(height: 10),
+          _policyTile(
+            context,
+            'End-to-End Chat Encryption (E2EE)',
+            'Direct messages between teachers and parents are cryptographically signed and encrypted.',
+            true,
+          ),
+          const SizedBox(height: 10),
+          _policyTile(
+            context,
+            'Multi-Campus Hierarchical Scopes',
+            'Allows enterprise institutions to establish subsidiary branches (SMP/SMA) under one parent tenant.',
+            true,
           ),
         ],
       ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 900;
+        return SingleChildScrollView(
+          child: isWide
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: governanceCard),
+                    const SizedBox(width: 16),
+                    Expanded(child: securityCard),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    governanceCard,
+                    const SizedBox(height: 16),
+                    securityCard,
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -1557,12 +1733,17 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(title, style: t.small.copyWith(fontWeight: FontWeight.w600)),
+            Expanded(
+              child: Text(
+                title,
+                style: t.small.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ),
+            const SizedBox(width: 8),
             Text(limit, style: t.muted.copyWith(fontSize: 12)),
           ],
         ),
@@ -1616,7 +1797,7 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
         Icon(icon, size: 16, color: c.mutedForeground),
         const SizedBox(width: 8),
         SizedBox(
-          width: 150,
+          width: 140,
           child: Text(label, style: t.small.copyWith(color: c.mutedForeground)),
         ),
         Expanded(
