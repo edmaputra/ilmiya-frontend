@@ -306,5 +306,108 @@ void main() {
 
       expect(find.text('Tenant & School Profile Management'), findsOneWidget);
     });
+
+    testWidgets(
+        'renders Tenants Directory without overflow on mobile viewport (375x667)',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(375, 667);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableTenantScreen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tenant & School Profile Management'), findsOneWidget);
+      expect(find.text('TOTAL TENANTS'), findsOneWidget);
+      expect(find.text('Register School'), findsOneWidget);
+      expect(find.textContaining('Lincoln', skipOffstage: false), findsWidgets);
+    });
+
+    testWidgets(
+        'renders System & Quotas tab without overflow on mobile viewport (375x667)',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(375, 667);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableTenantScreen());
+      await tester.pumpAndSettle();
+
+      final quotasTab = find.text('System & Quotas');
+      await tester.ensureVisible(quotasTab);
+      await tester.tap(quotasTab);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Multi-Tenant Platform Governance & Quotas'),
+          findsOneWidget);
+      expect(find.text('Max Active Student Accounts'), findsOneWidget);
+      expect(find.text('Data Isolation & Security Policies'), findsOneWidget);
+    });
+
+    testWidgets(
+        'renders Institutional Inspector tab on mobile (375x667) and tablet (768x1024) without overflow',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(375, 667);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableTenantScreen());
+      await tester.pumpAndSettle();
+
+      final inspectorTab = find.text('Institutional Inspector');
+      await tester.ensureVisible(inspectorTab);
+      await tester.tap(inspectorTab);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Select Tenant to Inspect:'), findsOneWidget);
+      expect(find.text('Legal & Institutional Identity'), findsOneWidget);
+      expect(find.text('Operational Policies'), findsOneWidget);
+
+      // Also verify on tablet portrait (768x1024)
+      tester.view.physicalSize = const Size(768, 1024);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Legal & Institutional Identity'), findsOneWidget);
+      expect(find.text('Operational Policies'), findsOneWidget);
+    });
+
+    testWidgets(
+        'renders full-width metric cards responsively across desktop, tablet, and mobile',
+        (WidgetTester tester) async {
+      // Desktop viewport (1280x800) -> 4-column row
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableTenantScreen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('TOTAL TENANTS'), findsOneWidget);
+      expect(find.text('ACTIVE SCHOOLS'), findsOneWidget);
+      expect(find.text('PENDING ONBOARDING'), findsOneWidget);
+      expect(find.text('SUSPENDED'), findsWidgets);
+
+      // Tablet viewport (600x900) -> 2x2 grid
+      tester.view.physicalSize = const Size(600, 900);
+      await tester.pumpAndSettle();
+
+      expect(find.text('TOTAL TENANTS'), findsOneWidget);
+      expect(find.text('ACTIVE SCHOOLS'), findsOneWidget);
+      expect(find.text('PENDING ONBOARDING'), findsOneWidget);
+      expect(find.text('SUSPENDED'), findsWidgets);
+
+      // Narrow mobile viewport (320x568) -> 1-column stack
+      tester.view.physicalSize = const Size(320, 568);
+      await tester.pumpAndSettle();
+
+      expect(find.text('TOTAL TENANTS'), findsOneWidget);
+      expect(find.text('ACTIVE SCHOOLS'), findsOneWidget);
+      expect(find.text('PENDING ONBOARDING'), findsOneWidget);
+      expect(find.text('SUSPENDED'), findsWidgets);
+    });
   });
 }

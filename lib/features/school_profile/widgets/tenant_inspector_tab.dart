@@ -42,50 +42,111 @@ class TenantInspectorTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Tenant Selector Header
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: c.card,
-              borderRadius: KiteRadius.allMd,
-              border: Border.all(color: c.border),
-            ),
-            child: Row(
-              children: [
-                const Icon(LucideIcons.searchCode,
-                    size: 18, color: AppColors.forestSage),
-                const SizedBox(width: 10),
-                const Text(
-                  'Select Tenant to Inspect:',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          LayoutBuilder(
+            builder: (ctx, selectorConstraints) {
+              final isCompact = selectorConstraints.maxWidth < 600;
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: c.card,
+                  borderRadius: KiteRadius.allMd,
+                  border: Border.all(color: c.border),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: inspected.tenantId,
-                      isExpanded: true,
-                      items: schools
-                          .map((s) => DropdownMenuItem(
-                                value: s.tenantId,
+                child: isCompact
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(LucideIcons.searchCode,
+                                  size: 18, color: AppColors.forestSage),
+                              SizedBox(width: 10),
+                              Expanded(
                                 child: Text(
-                                    '${s.name} (${s.tenantId} • ${s.institutionCode})'),
-                              ))
-                          .toList(),
-                      onChanged: (newId) {
-                        if (newId != null) {
-                          onSelectSchool(newId);
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => onEditProfile(inspected),
-                  icon: const Icon(LucideIcons.pencil, size: 14),
-                  label: const Text('Edit'),
-                ),
-              ],
-            ),
+                                  'Select Tenant to Inspect:',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: inspected.tenantId,
+                                    isExpanded: true,
+                                    items: schools
+                                        .map((s) => DropdownMenuItem(
+                                              value: s.tenantId,
+                                              child: Text(
+                                                '${s.name} (${s.tenantId})',
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ))
+                                        .toList(),
+                                    onChanged: (newId) {
+                                      if (newId != null) {
+                                        onSelectSchool(newId);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              OutlinedButton.icon(
+                                onPressed: () => onEditProfile(inspected),
+                                icon: const Icon(LucideIcons.pencil, size: 14),
+                                label: const Text('Edit'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          const Icon(LucideIcons.searchCode,
+                              size: 18, color: AppColors.forestSage),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Select Tenant to Inspect:',
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: inspected.tenantId,
+                                isExpanded: true,
+                                items: schools
+                                    .map((s) => DropdownMenuItem(
+                                          value: s.tenantId,
+                                          child: Text(
+                                              '${s.name} (${s.tenantId} • ${s.institutionCode})'),
+                                        ))
+                                    .toList(),
+                                onChanged: (newId) {
+                                  if (newId != null) {
+                                    onSelectSchool(newId);
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: () => onEditProfile(inspected),
+                            icon: const Icon(LucideIcons.pencil, size: 14),
+                            label: const Text('Edit'),
+                          ),
+                        ],
+                      ),
+              );
+            },
           ),
 
           const SizedBox(height: 16),
@@ -94,29 +155,30 @@ class TenantInspectorTab extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth > 800;
-              return Flex(
-                direction: isWide ? Axis.horizontal : Axis.vertical,
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+              final leftCard = TenantIdentityCard(school: inspected);
+              final rightCard = TenantOperationalPoliciesCard(
+                school: inspected,
+                onSettings: onSettings,
+              );
+
+              if (isWide) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 6, child: leftCard),
+                    const SizedBox(width: 16),
+                    Expanded(flex: 4, child: rightCard),
+                  ],
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Left Card: Institutional Details
-                  Expanded(
-                    flex: isWide ? 6 : 0,
-                    child: TenantIdentityCard(school: inspected),
-                  ),
-
-                  if (isWide)
-                    const SizedBox(width: 16)
-                  else
-                    const SizedBox(height: 16),
-
-                  // Right Card: Operational Schedule & Rules
-                  Expanded(
-                    flex: isWide ? 4 : 0,
-                    child: TenantOperationalPoliciesCard(
-                      school: inspected,
-                      onSettings: onSettings,
-                    ),
-                  ),
+                  leftCard,
+                  const SizedBox(height: 16),
+                  rightCard,
                 ],
               );
             },

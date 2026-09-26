@@ -183,8 +183,11 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
       return true;
     }).toList();
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompact = screenWidth < 600;
+
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isCompact ? 12 : 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -192,10 +195,12 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
           Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 8,
+            runSpacing: 4,
             children: [
               Text(
                 'Tenant & School Profile Management',
-                style: t.h2.copyWith(fontWeight: FontWeight.bold),
+                style: (isCompact ? t.h3 : t.h2)
+                    .copyWith(fontWeight: FontWeight.bold),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

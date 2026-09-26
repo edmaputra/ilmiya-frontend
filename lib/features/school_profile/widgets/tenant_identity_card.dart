@@ -27,9 +27,11 @@ class TenantIdentityCard extends StatelessWidget {
               const Icon(LucideIcons.landmark,
                   color: AppColors.forestSage, size: 18),
               const SizedBox(width: 8),
-              Text(
-                'Legal & Institutional Identity',
-                style: t.large.copyWith(fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  'Legal & Institutional Identity',
+                  style: t.large.copyWith(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),

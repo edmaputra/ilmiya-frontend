@@ -34,24 +34,18 @@ class TenantOperationalPoliciesCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 4,
+          Row(
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(LucideIcons.sliders,
-                      color: AppColors.forestSage, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Operational Policies',
-                    style: t.large.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ],
+              const Icon(LucideIcons.sliders,
+                  color: AppColors.forestSage, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Operational Policies',
+                  style: t.large.copyWith(fontWeight: FontWeight.bold),
+                ),
               ),
+              const SizedBox(width: 8),
               TextButton.icon(
                 onPressed: () => onSettings(school),
                 icon: const Icon(LucideIcons.settings, size: 13),

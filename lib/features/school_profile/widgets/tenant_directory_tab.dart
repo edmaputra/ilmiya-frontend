@@ -48,40 +48,87 @@ class TenantDirectoryTab extends StatelessWidget {
     final suspendedCount =
         allSchools.where((s) => s.status == 'SUSPENDED').length;
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardPadding = screenWidth < 600 ? 12.0 : 16.0;
+
     return KiteCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      padding: EdgeInsets.all(cardPadding),
+      child: ListView(
         children: [
           // Metric Summary Row
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              TenantMetricPill(
+          LayoutBuilder(
+            builder: (ctx, constraints) {
+              final w = constraints.maxWidth;
+              final pill1 = TenantMetricPill(
                 label: 'TOTAL TENANTS',
                 value: '$totalCount',
                 icon: LucideIcons.building2,
-              ),
-              TenantMetricPill(
+              );
+              final pill2 = TenantMetricPill(
                 label: 'ACTIVE SCHOOLS',
                 value: '$activeCount',
                 icon: LucideIcons.checkCircle2,
                 color: AppColors.forestSage,
-              ),
-              TenantMetricPill(
+              );
+              final pill3 = TenantMetricPill(
                 label: 'PENDING ONBOARDING',
                 value: '$pendingCount',
                 icon: LucideIcons.clock,
                 color: Colors.amber.shade700,
-              ),
-              TenantMetricPill(
+              );
+              final pill4 = TenantMetricPill(
                 label: 'SUSPENDED',
                 value: '$suspendedCount',
                 icon: LucideIcons.ban,
                 color: AppColors.earthyTerra,
-              ),
-            ],
+              );
+
+              if (w >= 760) {
+                return Row(
+                  children: [
+                    Expanded(child: pill1),
+                    const SizedBox(width: 12),
+                    Expanded(child: pill2),
+                    const SizedBox(width: 12),
+                    Expanded(child: pill3),
+                    const SizedBox(width: 12),
+                    Expanded(child: pill4),
+                  ],
+                );
+              } else if (w >= 400) {
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: pill1),
+                        const SizedBox(width: 12),
+                        Expanded(child: pill2),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: pill3),
+                        const SizedBox(width: 12),
+                        Expanded(child: pill4),
+                      ],
+                    ),
+                  ],
+                );
+              } else {
+                return Column(
+                  children: [
+                    pill1,
+                    const SizedBox(height: 8),
+                    pill2,
+                    const SizedBox(height: 8),
+                    pill3,
+                    const SizedBox(height: 8),
+                    pill4,
+                  ],
+                );
+              }
+            },
           ),
 
           const SizedBox(height: 16),
@@ -112,31 +159,36 @@ class TenantDirectoryTab extends StatelessWidget {
                 runSpacing: 8,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Wrap(
-                    spacing: 6,
-                    children:
-                        ['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED'].map((st) {
-                      final isSel = selectedStatusFilter == st;
-                      return ChoiceChip(
-                        label: Text(st, style: const TextStyle(fontSize: 11)),
-                        selected: isSel,
-                        selectedColor: AppColors.warmSand,
-                        onSelected: (val) {
-                          if (val) onStatusFilterChanged(st);
-                        },
-                      );
-                    }).toList(),
-                  ),
+                  // Status filter chips
+                  ...['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED'].map((st) {
+                    final isSel = selectedStatusFilter == st;
+                    return ChoiceChip(
+                      label: Text(st, style: const TextStyle(fontSize: 11)),
+                      selected: isSel,
+                      selectedColor: AppColors.warmSand,
+                      onSelected: (val) {
+                        if (val) onStatusFilterChanged(st);
+                      },
+                    );
+                  }),
+
+                  // Register School action
                   FilledButton.icon(
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.forestSage,
                       foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 10),
                     ),
                     onPressed: onRegisterTenant,
                     icon: const Icon(LucideIcons.plus, size: 16),
-                    label: const Text('Register School'),
+                    label: const Text(
+                      'Register School',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               );
@@ -162,39 +214,37 @@ class TenantDirectoryTab extends StatelessWidget {
             },
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
-          // Schools List
-          Expanded(
-            child: filteredSchools.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(LucideIcons.building,
-                            size: 40, color: c.mutedForeground),
-                        const SizedBox(height: 8),
-                        Text('No school tenants matched the criteria.',
-                            style: t.p),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: filteredSchools.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (ctx, idx) {
-                      final s = filteredSchools[idx];
-                      return TenantSchoolCard(
-                        school: s,
-                        isCurrentTenant: s.tenantId == currentTenantId,
-                        onSwitchTenant: onSwitchTenant,
-                        onEditProfile: onEditProfile,
-                        onSettings: onSettings,
-                        onToggleStatus: onToggleStatus,
-                      );
-                    },
-                  ),
-          ),
+          // Tenants List
+          if (filteredSchools.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  children: [
+                    Icon(LucideIcons.building,
+                        size: 40, color: c.mutedForeground),
+                    const SizedBox(height: 8),
+                    Text('No school tenants matched the criteria.', style: t.p),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...filteredSchools.map((s) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: TenantSchoolCard(
+                  school: s,
+                  isCurrentTenant: s.tenantId == currentTenantId,
+                  onSwitchTenant: onSwitchTenant,
+                  onEditProfile: onEditProfile,
+                  onSettings: onSettings,
+                  onToggleStatus: onToggleStatus,
+                ),
+              );
+            }),
         ],
       ),
     );
