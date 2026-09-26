@@ -38,8 +38,8 @@ class GradesHeaderCard extends StatelessWidget {
     final gpa = state.cumulativeGpa;
 
     return Container(
-      padding: EdgeInsets.all(
-          MediaQuery.of(context).size.width < 500 ? 16 : 24),
+      padding:
+          EdgeInsets.all(MediaQuery.of(context).size.width < 500 ? 16 : 24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
@@ -89,8 +89,8 @@ class GradesHeaderCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   const Text(
                     'Real-time GPA computation, weighted category breakdowns, and feedback rubrics',
-                    style: TextStyle(
-                        fontSize: 11, color: AppColors.textSecondary),
+                    style:
+                        TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ],
               );
@@ -104,8 +104,7 @@ class GradesHeaderCard extends StatelessWidget {
                   border: Border.all(color: AppColors.borderMedium),
                 ),
                 child: Row(
-                  mainAxisSize:
-                      isCompact ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisSize: isCompact ? MainAxisSize.max : MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Expanded(
@@ -127,9 +126,7 @@ class GradesHeaderCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Container(
-                        width: 1,
-                        height: 32,
-                        color: AppColors.borderLight),
+                        width: 1, height: 32, color: AppColors.borderLight),
                     const SizedBox(width: 12),
                     Expanded(
                       flex: isCompact ? 1 : 0,

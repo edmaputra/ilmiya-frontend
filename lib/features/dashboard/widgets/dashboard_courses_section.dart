@@ -23,20 +23,21 @@ class DashboardCoursesSection extends StatelessWidget {
           spacing: 12,
           runSpacing: 8,
           children: [
-            Flexible(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(LucideIcons.bookOpen,
-                      size: 18, color: AppColors.forestSage),
-                  const SizedBox(width: KiteSpace.sm),
-                  Flexible(
-                    child: Text('Active Academic Courses',
-                        overflow: TextOverflow.ellipsis,
-                        style: t.h4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(LucideIcons.bookOpen,
+                    size: 18, color: AppColors.forestSage),
+                const SizedBox(width: KiteSpace.sm),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 260),
+                  child: Text(
+                    'Active Academic Courses',
+                    overflow: TextOverflow.ellipsis,
+                    style: t.h4,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             TextButton.icon(
               onPressed: () => state.setTab(5),

@@ -72,8 +72,8 @@ class TranscriptDocumentCard extends StatelessWidget {
                     : CrossAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.warmSand,
                       borderRadius: BorderRadius.circular(20),
@@ -143,8 +143,8 @@ class TranscriptDocumentCard extends StatelessWidget {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildInfoColumn('GRADE LEVEL',
-                                  user.gradeLevel ?? 'Grade 11'),
+                              _buildInfoColumn(
+                                  'GRADE LEVEL', user.gradeLevel ?? 'Grade 11'),
                               _buildInfoColumn(
                                   'ACADEMIC TERM', 'Spring 2026 (Q3)'),
                             ],
@@ -155,10 +155,9 @@ class TranscriptDocumentCard extends StatelessWidget {
                         children: [
                           _buildInfoColumn('STUDENT NAME', user.name),
                           _buildInfoColumn('STUDENT ID', user.schoolId),
-                          _buildInfoColumn('GRADE LEVEL',
-                              user.gradeLevel ?? 'Grade 11'),
                           _buildInfoColumn(
-                              'ACADEMIC TERM', 'Spring 2026 (Q3)'),
+                              'GRADE LEVEL', user.gradeLevel ?? 'Grade 11'),
+                          _buildInfoColumn('ACADEMIC TERM', 'Spring 2026 (Q3)'),
                         ],
                       ),
               );

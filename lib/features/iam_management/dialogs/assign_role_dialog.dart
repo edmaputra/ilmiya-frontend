@@ -8,16 +8,20 @@ class AssignRoleDialog extends StatefulWidget {
   final UserResponse user;
   final List<RoleResponse> roles;
 
+  final VoidCallback? onRoleAssigned;
+
   const AssignRoleDialog({
     super.key,
     required this.user,
     required this.roles,
+    this.onRoleAssigned,
   });
 
   static Future<void> show(
     BuildContext context, {
     required UserResponse user,
     required List<RoleResponse> roles,
+    VoidCallback? onRoleAssigned,
   }) {
     if (roles.isEmpty) return Future.value();
     return showDialog(
@@ -25,6 +29,7 @@ class AssignRoleDialog extends StatefulWidget {
       builder: (ctx) => AssignRoleDialog(
         user: user,
         roles: roles,
+        onRoleAssigned: onRoleAssigned,
       ),
     );
   }
@@ -51,6 +56,7 @@ class _AssignRoleDialogState extends State<AssignRoleDialog> {
 
     if (mounted) {
       Navigator.of(context).pop();
+      widget.onRoleAssigned?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Role successfully assigned')),
       );

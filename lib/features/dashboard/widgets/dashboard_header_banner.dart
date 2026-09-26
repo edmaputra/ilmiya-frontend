@@ -24,8 +24,9 @@ class DashboardHeaderBanner extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: EdgeInsets.all(
-          MediaQuery.of(context).size.width < 500 ? KiteSpace.md : KiteSpace.xl),
+      padding: EdgeInsets.all(MediaQuery.of(context).size.width < 500
+          ? KiteSpace.md
+          : KiteSpace.xl),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF262925) : Colors.white,
         borderRadius: KiteRadius.allLg,
@@ -54,8 +55,8 @@ class DashboardHeaderBanner extends StatelessWidget {
                   const KiteBadge('2025/2026 Term 2 Active',
                       tone: KiteTone.success),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: c.muted,
                       borderRadius: BorderRadius.circular(999),
@@ -82,7 +83,8 @@ class DashboardHeaderBanner extends StatelessWidget {
               const SizedBox(height: KiteSpace.sm),
               Text(
                 'Welcome back, ${user.name}',
-                style: (isMobile ? t.h4 : t.h3).copyWith(fontWeight: FontWeight.w800),
+                style: (isMobile ? t.h4 : t.h3)
+                    .copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 4),
               Text(
@@ -99,45 +101,45 @@ class DashboardHeaderBanner extends StatelessWidget {
             children: [
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                   side: BorderSide(color: c.border),
                 ),
                 icon: const Icon(LucideIcons.calendar, size: 15),
                 label: const Text('Academic Terms',
-                    style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w600)),
+                    style:
+                        TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 onPressed: () => state.setTab(1),
               ),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                   side: BorderSide(color: c.border),
                 ),
                 icon: const Icon(LucideIcons.graduationCap, size: 15),
                 label: const Text('Gradebook',
-                    style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w600)),
+                    style:
+                        TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 onPressed: () => state.setTab(5),
               ),
               FilledButton.icon(
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.forestSage,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                 ),
                 icon: const Icon(LucideIcons.userPlus, size: 15),
                 label: const Text('IAM Console',
-                    style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w700)),
+                    style:
+                        TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 onPressed: () => state.setTab(2),
               ),
             ],

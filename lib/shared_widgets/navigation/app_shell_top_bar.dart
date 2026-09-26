@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/theme/app_theme.dart';
 import '../../features/search/ilmiya_command_palette.dart';
 import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';

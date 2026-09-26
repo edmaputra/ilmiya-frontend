@@ -15,6 +15,7 @@ class DashboardActivitySidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
+    final isMobile = KiteBreak.isMobile(context);
 
     return Column(
       children: [
@@ -25,6 +26,7 @@ class DashboardActivitySidebar extends StatelessWidget {
 
         // 2. Kite-styled Live Stream Feed Card
         KiteCard(
+          padding: EdgeInsets.all(isMobile ? KiteSpace.md : KiteSpace.xl),
           title: 'Live Activity & Notifications',
           trailing: InkWell(
             onTap: () => state.simulateNotification('grade'),
@@ -106,10 +108,14 @@ class DashboardActivitySidebar extends StatelessWidget {
               const SizedBox(height: KiteSpace.sm),
               Center(
                 child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ),
                   onPressed: () => state.setTab(7),
-                  icon: const Text('View All Notifications',
+                  icon: const Icon(LucideIcons.arrowRight, size: 14),
+                  label: const Text('View All Notifications',
                       style: TextStyle(fontSize: 12)),
-                  label: const Icon(LucideIcons.arrowRight, size: 14),
                 ),
               ),
             ],
