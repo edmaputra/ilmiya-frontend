@@ -70,9 +70,11 @@ class IamScopesTab extends StatelessWidget {
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
 
+    final isMobile = MediaQuery.of(context).size.width < 500;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: EdgeInsets.only(left: (node.depth * 20.0)),
+      padding: EdgeInsets.only(left: (node.depth * (isMobile ? 12.0 : 20.0))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -93,24 +95,65 @@ class IamScopesTab extends StatelessWidget {
                   color: c.foreground,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  node.name,
-                  style: t.small.copyWith(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: c.foreground,
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      final isNarrow = box.maxWidth < 220;
+                      if (isNarrow) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              node.name,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: t.small.copyWith(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: c.foreground),
+                            ),
+                            Text(
+                              node.code,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: t.small.copyWith(
+                                  fontSize: 10,
+                                  fontFamily: 'monospace',
+                                  color: c.mutedForeground),
+                            ),
+                          ],
+                        );
+                      }
+                      return Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              node.name,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: t.small.copyWith(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: c.foreground),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            node.code,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: t.small.copyWith(
+                                fontSize: 10,
+                                fontFamily: 'monospace',
+                                color: c.mutedForeground),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  node.code,
-                  style: t.small.copyWith(
-                    fontSize: 10,
-                    fontFamily: 'monospace',
-                    color: c.mutedForeground,
-                  ),
-                ),
-                const Spacer(),
                 TextButton.icon(
                   onPressed: canCreate ? () => onAddChildScope(node.id) : null,
                   icon: Icon(
@@ -120,7 +163,7 @@ class IamScopesTab extends StatelessWidget {
                   label:
                       const Text('Add Child', style: TextStyle(fontSize: 10)),
                   style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     foregroundColor: c.primary,
                   ),
                 ),

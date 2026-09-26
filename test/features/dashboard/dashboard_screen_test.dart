@@ -44,4 +44,21 @@ void main() {
     expect(find.byType(DashboardScreen), findsOneWidget);
     expect(find.textContaining('Lincoln High School'), findsOneWidget);
   });
+
+  testWidgets(
+      'DashboardScreen renders welcome header and alert card on mobile (360x740) without overflow',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(buildTestableWidget());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DashboardScreen), findsOneWidget);
+    expect(find.textContaining('Welcome back'), findsOneWidget);
+    expect(find.textContaining('Lincoln High School'), findsOneWidget);
+    expect(find.textContaining('Final Term Capstone'), findsOneWidget);
+  });
 }

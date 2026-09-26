@@ -98,6 +98,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       context,
       user: user,
       roles: _roles,
+      onRoleAssigned: _loadAllIamData,
     );
   }
 

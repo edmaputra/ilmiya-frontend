@@ -14,7 +14,8 @@ class TranscriptView extends StatelessWidget {
     final gpa = state.cumulativeGpa;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding:
+          EdgeInsets.all(MediaQuery.of(context).size.width < 500 ? 16 : 24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
@@ -23,10 +24,10 @@ class TranscriptView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Column(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 600;
+              const titleSection = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -44,8 +45,9 @@ class TranscriptView extends StatelessWidget {
                         TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ],
-              ),
-              ElevatedButton.icon(
+              );
+
+              final printButton = ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.forestSage,
                   foregroundColor: Colors.white,
@@ -75,8 +77,28 @@ class TranscriptView extends StatelessWidget {
                     ),
                   );
                 },
-              ),
-            ],
+              );
+
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleSection,
+                    const SizedBox(height: 12),
+                    printButton,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(child: titleSection),
+                  const SizedBox(width: 12),
+                  printButton,
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 20),

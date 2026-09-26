@@ -75,7 +75,7 @@ final List<Course> initialCourses = [
     credits: 4.0,
     currentPercentage: 96.4,
     letterGrade: 'A',
-    color: Color(0xFF5F6F52),
+    color: Color(0xFF2563EB),
     iconName: 'Code',
     attendanceRate: 98.5,
     officeHours: 'Mon/Wed 3:15 - 4:15 PM (Room 402)',
@@ -673,7 +673,7 @@ final List<SchedulePeriod> weeklySchedule = [
       courseName: 'AP Computer Science A',
       room: 'Lab Tech-402',
       teacher: 'Dr. Vance',
-      color: Color(0xFF5F6F52),
+      color: Color(0xFF2563EB),
       day: 'Mon'),
   const SchedulePeriod(
       id: 's2',

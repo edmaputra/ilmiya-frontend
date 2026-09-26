@@ -1,182 +1,211 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kite_ui/shadcn.dart';
-import '../constants/app_colors.dart';
+
+/// Accents following the official Colorlib Kite UI design system.
+enum KiteAccent {
+  slate('Slate'),
+  blue('Blue'),
+  violet('Violet');
+
+  const KiteAccent(this.label);
+  final String label;
+
+  ShadColorScheme scheme(Brightness b) => switch ((this, b)) {
+        (KiteAccent.slate, Brightness.light) =>
+          const ShadSlateColorScheme.light(),
+        (KiteAccent.slate, Brightness.dark) =>
+          const ShadSlateColorScheme.dark(),
+        (KiteAccent.blue, Brightness.light) =>
+          const ShadBlueColorScheme.light(),
+        (KiteAccent.blue, Brightness.dark) => const ShadBlueColorScheme.dark(),
+        (KiteAccent.violet, Brightness.light) =>
+          const ShadVioletColorScheme.light(),
+        (KiteAccent.violet, Brightness.dark) =>
+          const ShadVioletColorScheme.dark(),
+      };
+
+  Color primaryColor(Brightness b) => scheme(b).primary;
+}
 
 class AppTheme {
   AppTheme._();
 
-  static ShadThemeData get shadLightTheme => ShadThemeData(
-        brightness: Brightness.light,
-        colorScheme: const ShadSlateColorScheme.light(),
+  static ShadThemeData shadTheme(KiteAccent accent, Brightness brightness) =>
+      ShadThemeData(
+        brightness: brightness,
+        colorScheme: accent.scheme(brightness),
       );
 
-  static ShadThemeData get shadDarkTheme => ShadThemeData(
-        brightness: Brightness.dark,
-        colorScheme: const ShadSlateColorScheme.dark(),
-      );
+  static ShadThemeData get shadLightTheme =>
+      shadTheme(KiteAccent.slate, Brightness.light);
 
-  static ThemeData get lightTheme {
+  static ShadThemeData get shadDarkTheme =>
+      shadTheme(KiteAccent.slate, Brightness.dark);
+
+  static ThemeData lightTheme([KiteAccent accent = KiteAccent.slate]) {
+    final scheme = accent.scheme(Brightness.light);
     final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme();
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: AppColors.naturalParchment,
-      primaryColor: AppColors.forestSage,
-      colorScheme: const ColorScheme.light(
-        primary: AppColors.forestSage,
-        secondary: AppColors.softKhaki,
-        surface: AppColors.surfaceWhite,
-        error: AppColors.earthyTerra,
-        onPrimary: Colors.white,
-        onSecondary: AppColors.textPrimary,
-        onSurface: AppColors.textPrimary,
+      scaffoldBackgroundColor: scheme.background,
+      primaryColor: scheme.primary,
+      colorScheme: ColorScheme.light(
+        primary: scheme.primary,
+        secondary: scheme.secondary,
+        surface: scheme.card,
+        error: scheme.destructive,
+        onPrimary: scheme.primaryForeground,
+        onSecondary: scheme.secondaryForeground,
+        onSurface: scheme.foreground,
       ),
       cardTheme: CardThemeData(
-        color: AppColors.surfaceWhite,
+        color: scheme.card,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: AppColors.borderLight, width: 1),
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: scheme.border, width: 1),
         ),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surfaceWhite,
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.card,
         elevation: 0,
         centerTitle: false,
         scrolledUnderElevation: 0,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: scheme.foreground),
         titleTextStyle: TextStyle(
-          color: AppColors.textPrimary,
+          color: scheme.foreground,
           fontSize: 18,
           fontWeight: FontWeight.w700,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.naturalParchment,
+        fillColor: scheme.card,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.borderMedium),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: scheme.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.borderMedium),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: scheme.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.forestSage, width: 1.5),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: scheme.ring, width: 1.5),
         ),
-        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+        hintStyle: TextStyle(color: scheme.mutedForeground, fontSize: 13),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.forestSage,
-          foregroundColor: Colors.white,
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.primaryForeground,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
           ),
           textStyle: const TextStyle(
             fontSize: 13,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
       textTheme: baseTextTheme.apply(
-        bodyColor: AppColors.textPrimary,
-        displayColor: AppColors.textPrimary,
+        bodyColor: scheme.foreground,
+        displayColor: scheme.foreground,
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.borderLight,
+      dividerTheme: DividerThemeData(
+        color: scheme.border,
         thickness: 1,
         space: 1,
       ),
     );
   }
 
-  static ThemeData get darkTheme {
+  static ThemeData darkTheme([KiteAccent accent = KiteAccent.slate]) {
+    final scheme = accent.scheme(Brightness.dark);
     final baseTextTheme =
         GoogleFonts.plusJakartaSansTextTheme(ThemeData.dark().textTheme);
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.darkBg,
-      primaryColor: AppColors.forestSage,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.forestSage,
-        secondary: AppColors.softKhaki,
-        surface: AppColors.darkSurface,
-        error: AppColors.earthyTerra,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: Colors.white,
+      scaffoldBackgroundColor: scheme.background,
+      primaryColor: scheme.primary,
+      colorScheme: ColorScheme.dark(
+        primary: scheme.primary,
+        secondary: scheme.secondary,
+        surface: scheme.card,
+        error: scheme.destructive,
+        onPrimary: scheme.primaryForeground,
+        onSecondary: scheme.secondaryForeground,
+        onSurface: scheme.foreground,
       ),
       cardTheme: CardThemeData(
-        color: AppColors.darkCard,
+        color: scheme.card,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: AppColors.darkBorder, width: 1),
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: scheme.border, width: 1),
         ),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.darkSurface,
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.card,
         elevation: 0,
         centerTitle: false,
         scrolledUnderElevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: scheme.foreground),
         titleTextStyle: TextStyle(
-          color: Colors.white,
+          color: scheme.foreground,
           fontSize: 18,
           fontWeight: FontWeight.w700,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.darkSurface,
+        fillColor: scheme.card,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.darkBorder),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: scheme.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.darkBorder),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: scheme.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.forestSage, width: 1.5),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: scheme.ring, width: 1.5),
         ),
-        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+        hintStyle: TextStyle(color: scheme.mutedForeground, fontSize: 13),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.forestSage,
-          foregroundColor: Colors.white,
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.primaryForeground,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
           ),
           textStyle: const TextStyle(
             fontSize: 13,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
       textTheme: baseTextTheme.apply(
-        bodyColor: Colors.white,
-        displayColor: Colors.white,
+        bodyColor: scheme.foreground,
+        displayColor: scheme.foreground,
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.darkBorder,
+      dividerTheme: DividerThemeData(
+        color: scheme.border,
         thickness: 1,
         space: 1,
       ),

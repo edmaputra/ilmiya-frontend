@@ -29,74 +29,55 @@ class AssignmentRubricCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.borderLight,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.borderMedium),
-                          ),
-                          child: Text(
-                            assignment.category.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.8,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Due: ${assignment.dueDate}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                        if (assignment.submittedDate != null) ...[
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              '• Submitted on ${assignment.submittedDate}',
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.forestSage,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 440;
+
+              final metaTags = Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.borderLight,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.borderMedium),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      assignment.title,
+                    child: Text(
+                      assignment.category.toUpperCase(),
                       style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              if (isGraded)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
+                  ),
+                  Text(
+                    'Due: ${assignment.dueDate}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                  if (assignment.submittedDate != null)
+                    Text(
+                      '• Submitted on ${assignment.submittedDate}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.forestSage,
+                      ),
+                    ),
+                ],
+              );
+
+              final scoreWidget = isGraded
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           '${assignment.score.toStringAsFixed(0)} / ${assignment.maxScore.toStringAsFixed(0)}',
@@ -116,28 +97,75 @@ class AssignmentRubricCard extends StatelessWidget {
                           ),
                         ),
                       ],
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.warmSand,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.borderMedium),
+                      ),
+                      child: const Text(
+                        'Pending Grading',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.earthyTerra,
+                        ),
+                      ),
+                    );
+
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: metaTags),
+                        const SizedBox(width: 8),
+                        scoreWidget,
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      assignment.title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
-                )
-              else
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.warmSand,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.borderMedium),
-                  ),
-                  child: const Text(
-                    'Pending Grading',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.earthyTerra,
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        metaTags,
+                        const SizedBox(height: 6),
+                        Text(
+                          assignment.title,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-            ],
+                  const SizedBox(width: 12),
+                  scoreWidget,
+                ],
+              );
+            },
           ),
 
           // Instructor Feedback & Rubric

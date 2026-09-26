@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/theme/app_theme.dart';
 import '../../features/search/ilmiya_command_palette.dart';
 import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
@@ -136,6 +137,46 @@ class AppShellTopBar extends StatelessWidget {
               child: const Icon(LucideIcons.bell),
             ),
             onPressed: () => state.setTab(7),
+          ),
+
+          // Kite Accent Selector
+          PopupMenuButton<KiteAccent>(
+            tooltip: 'Kite Theme Accent',
+            icon: Icon(
+              LucideIcons.palette,
+              size: 18,
+              color: c.primary,
+            ),
+            initialValue: state.accent,
+            onSelected: (accent) => state.setAccent(accent),
+            itemBuilder: (context) => [
+              for (final accent in KiteAccent.values)
+                PopupMenuItem(
+                  value: accent,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: accent.primaryColor(
+                            state.themeMode == ThemeMode.dark
+                                ? Brightness.dark
+                                : Brightness.light,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(accent.label),
+                      if (state.accent == accent) ...[
+                        const Spacer(),
+                        Icon(LucideIcons.check, size: 14, color: c.primary),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
           ),
 
           // Dark/Light Theme toggle

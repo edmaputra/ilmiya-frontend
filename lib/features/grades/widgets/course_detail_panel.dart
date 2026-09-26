@@ -52,11 +52,14 @@ class CourseDetailPanel extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              selectedCourse.period,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textMuted,
+                            Flexible(
+                              child: Text(
+                                selectedCourse.period,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textMuted,
+                                ),
                               ),
                             ),
                           ],
@@ -177,8 +180,11 @@ class CourseDetailPanel extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
                 children: [
                   const Text(
                     'Graded Assignments & Tasks',

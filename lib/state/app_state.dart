@@ -7,6 +7,7 @@ import '../core/models/chat_message.dart';
 import '../core/models/schedule_period.dart';
 import '../core/data/mock_data.dart';
 import '../core/services/notification_service.dart';
+import '../core/theme/app_theme.dart';
 
 class AppState extends ChangeNotifier {
   UserRole _currentRole = UserRole.student;
@@ -28,11 +29,13 @@ class AppState extends ChangeNotifier {
   bool _soundEnabled = true;
   Timer? _toastTimer;
   ThemeMode _themeMode = ThemeMode.light;
+  KiteAccent _accent = KiteAccent.slate;
 
   // Getters
   UserRole get currentRole => _currentRole;
   int get currentTab => _currentTab;
   ThemeMode get themeMode => _themeMode;
+  KiteAccent get accent => _accent;
   List<Course> get courses => _courses;
   List<NotificationItem> get notifications => _notifications;
   List<ChatChannel> get channels => _channels;
@@ -116,6 +119,13 @@ class AppState extends ChangeNotifier {
     _themeMode =
         _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
+  }
+
+  void setAccent(KiteAccent accent) {
+    if (_accent != accent) {
+      _accent = accent;
+      notifyListeners();
+    }
   }
 
   void setActiveChannel(String channelId) {

@@ -19,7 +19,8 @@ class TranscriptDocumentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding:
+          EdgeInsets.all(MediaQuery.of(context).size.width < 500 ? 16 : 24),
       decoration: BoxDecoration(
         color: AppColors.naturalParchment,
         borderRadius: BorderRadius.circular(24),
@@ -36,37 +37,39 @@ class TranscriptDocumentCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // School Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Column(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 600;
+              final schoolInfo = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'LINCOLN HIGH STEM ACADEMY',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: isCompact ? 14 : 16,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: 2),
-                  Text(
+                  const SizedBox(height: 2),
+                  const Text(
                     '1200 Innovation Parkway, Silicon Valley, CA 94025',
                     style:
                         TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
-                  Text(
+                  const Text(
                     'Official Student Academic Record • Accredited WASC',
                     style:
                         TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              );
+
+              final honorPill = Column(
+                crossAxisAlignment: isCompact
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.end,
                 children: [
                   Container(
                     padding:
@@ -91,28 +94,74 @@ class TranscriptDocumentCard extends StatelessWidget {
                     style: TextStyle(fontSize: 10, color: AppColors.textMuted),
                   ),
                 ],
-              ),
-            ],
+              );
+
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    schoolInfo,
+                    const SizedBox(height: 10),
+                    honorPill,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  schoolInfo,
+                  honorPill,
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 20),
 
           // Student Info Grid
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: Row(
-              children: [
-                _buildInfoColumn('STUDENT NAME', user.name),
-                _buildInfoColumn('STUDENT ID', user.schoolId),
-                _buildInfoColumn('GRADE LEVEL', user.gradeLevel ?? 'Grade 11'),
-                _buildInfoColumn('ACADEMIC TERM', 'Spring 2026 (Q3)'),
-              ],
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 500;
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: isCompact
+                    ? Column(
+                        children: [
+                          Row(
+                            children: [
+                              _buildInfoColumn('STUDENT NAME', user.name),
+                              _buildInfoColumn('STUDENT ID', user.schoolId),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              _buildInfoColumn(
+                                  'GRADE LEVEL', user.gradeLevel ?? 'Grade 11'),
+                              _buildInfoColumn(
+                                  'ACADEMIC TERM', 'Spring 2026 (Q3)'),
+                            ],
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          _buildInfoColumn('STUDENT NAME', user.name),
+                          _buildInfoColumn('STUDENT ID', user.schoolId),
+                          _buildInfoColumn(
+                              'GRADE LEVEL', user.gradeLevel ?? 'Grade 11'),
+                          _buildInfoColumn('ACADEMIC TERM', 'Spring 2026 (Q3)'),
+                        ],
+                      ),
+              );
+            },
           ),
 
           const SizedBox(height: 20),
@@ -123,10 +172,10 @@ class TranscriptDocumentCard extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Transcript Summary Footer
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Column(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 500;
+              const leftCol = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -138,9 +187,12 @@ class TranscriptDocumentCard extends StatelessWidget {
                     style: TextStyle(fontSize: 10, color: AppColors.textMuted),
                   ),
                 ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              );
+
+              final rightCol = Column(
+                crossAxisAlignment: isCompact
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.end,
                 children: [
                   Text(
                     'Unweighted GPA: ${gpa['unweighted']}',
@@ -158,8 +210,27 @@ class TranscriptDocumentCard extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-            ],
+              );
+
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    leftCol,
+                    const SizedBox(height: 12),
+                    rightCol,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  leftCol,
+                  rightCol,
+                ],
+              );
+            },
           ),
         ],
       ),

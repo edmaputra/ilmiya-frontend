@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:ilmiya_app/features/grades/presentation/grades_screen.dart';
 import 'package:ilmiya_app/features/grades/widgets/teacher_gradebook_editor.dart';
 import 'package:ilmiya_app/features/grades/widgets/transcript_view.dart';
 import 'package:ilmiya_app/features/grades/widgets/what_if_calculator_view.dart';
@@ -209,5 +210,60 @@ void main() {
     expect(find.textContaining('Teacher Gradebook & Roster Editor'),
         findsOneWidget);
     expect(find.text('Publish Grades & Notify'), findsOneWidget);
+  });
+
+  testWidgets(
+      'GradesScreen renders Official Records and Final Term Capstone on mobile (360x740) without overflow',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final appState = AppState();
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider<AppState>.value(
+        value: appState,
+        child: const MaterialApp(
+          home: Scaffold(
+            body: GradesScreen(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('OFFICIAL RECORDS'), findsOneWidget);
+    expect(find.textContaining('Grade Tracking & Academic Performance'),
+        findsOneWidget);
+    expect(find.textContaining('Final Term Capstone'), findsWidgets);
+  });
+
+  testWidgets(
+      'TranscriptView renders official records on mobile (360x740) without overflow',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final appState = AppState();
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider<AppState>.value(
+        value: appState,
+        child: const MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(child: TranscriptView()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Official Academic Transcript'), findsOneWidget);
+    expect(find.text('LINCOLN HIGH STEM ACADEMY'), findsOneWidget);
+    expect(find.textContaining('Cumulative Credits Earned'), findsOneWidget);
   });
 }

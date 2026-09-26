@@ -4,7 +4,6 @@ import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
-import '../core/constants/app_colors.dart';
 import '../features/search/ilmiya_command_palette.dart';
 import '../state/app_state.dart';
 import 'navigation/app_shell_sidebar.dart';
@@ -49,7 +48,7 @@ class IlmiyaAppShell extends StatelessWidget {
                   selectedIndex: state.currentTab.clamp(0, 3),
                   onDestinationSelected: (index) => state.setTab(index),
                   backgroundColor: c.card,
-                  indicatorColor: AppColors.forestSage.withOpacity(0.18),
+                  indicatorColor: c.primary.withOpacity(0.18),
                   destinations: const [
                     NavigationDestination(
                       icon: Icon(LucideIcons.school, size: 20),

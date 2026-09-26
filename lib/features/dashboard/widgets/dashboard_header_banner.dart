@@ -24,7 +24,9 @@ class DashboardHeaderBanner extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(KiteSpace.xl),
+      padding: EdgeInsets.all(MediaQuery.of(context).size.width < 500
+          ? KiteSpace.md
+          : KiteSpace.xl),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF262925) : Colors.white,
         borderRadius: KiteRadius.allLg,
@@ -40,111 +42,127 @@ class DashboardHeaderBanner extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 700;
+          final isMobile = constraints.maxWidth < 500;
 
-          return Flex(
-            direction: isWide ? Axis.horizontal : Axis.vertical,
-            crossAxisAlignment:
-                isWide ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          final textContent = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Wrap(
+                spacing: KiteSpace.sm,
+                runSpacing: KiteSpace.xs,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  const KiteBadge('2025/2026 Term 2 Active',
+                      tone: KiteTone.success),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: c.muted,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const KiteBadge('2025/2026 Term 2 Active',
-                            tone: KiteTone.success),
-                        const SizedBox(width: KiteSpace.sm),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: c.muted,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(LucideIcons.shieldCheck,
-                                  size: 12, color: AppColors.forestSage),
-                              const SizedBox(width: 4),
-                              Text(
-                                'FERPA & RBAC Verified',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: c.mutedForeground,
-                                ),
-                              ),
-                            ],
+                        const Icon(LucideIcons.shieldCheck,
+                            size: 12, color: AppColors.forestSage),
+                        const SizedBox(width: 4),
+                        Text(
+                          'FERPA & RBAC Verified',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: c.mutedForeground,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: KiteSpace.sm),
-                    Text(
-                      'Welcome back, ${user.name}',
-                      style: t.h3.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$schoolName • Administrative Portal & Student Information Control',
-                      style: t.muted.copyWith(fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-              if (!isWide) const SizedBox(height: KiteSpace.md),
-              Wrap(
-                spacing: KiteSpace.sm,
-                runSpacing: KiteSpace.sm,
-                children: [
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      side: BorderSide(color: c.border),
-                    ),
-                    icon: const Icon(LucideIcons.calendar, size: 15),
-                    label: const Text('Academic Terms',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600)),
-                    onPressed: () => state.setTab(1),
-                  ),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      side: BorderSide(color: c.border),
-                    ),
-                    icon: const Icon(LucideIcons.graduationCap, size: 15),
-                    label: const Text('Gradebook',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600)),
-                    onPressed: () => state.setTab(5),
-                  ),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.forestSage,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                    ),
-                    icon: const Icon(LucideIcons.userPlus, size: 15),
-                    label: const Text('IAM Console',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w700)),
-                    onPressed: () => state.setTab(2),
                   ),
                 ],
               ),
+              const SizedBox(height: KiteSpace.sm),
+              Text(
+                'Welcome back, ${user.name}',
+                style: (isMobile ? t.h4 : t.h3)
+                    .copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '$schoolName • Administrative Portal & Student Information Control',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: t.muted.copyWith(fontSize: isMobile ? 11 : 13),
+              ),
+            ],
+          );
+          final actions = Wrap(
+            spacing: KiteSpace.sm,
+            runSpacing: KiteSpace.sm,
+            children: [
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  side: BorderSide(color: c.border),
+                ),
+                icon: const Icon(LucideIcons.calendar, size: 15),
+                label: const Text('Academic Terms',
+                    style:
+                        TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                onPressed: () => state.setTab(1),
+              ),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  side: BorderSide(color: c.border),
+                ),
+                icon: const Icon(LucideIcons.graduationCap, size: 15),
+                label: const Text('Gradebook',
+                    style:
+                        TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                onPressed: () => state.setTab(5),
+              ),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.forestSage,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(LucideIcons.userPlus, size: 15),
+                label: const Text('IAM Console',
+                    style:
+                        TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                onPressed: () => state.setTab(2),
+              ),
+            ],
+          );
+
+          if (isWide) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: textContent),
+                const SizedBox(width: KiteSpace.md),
+                actions,
+              ],
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              textContent,
+              const SizedBox(height: KiteSpace.md),
+              actions,
             ],
           );
         },

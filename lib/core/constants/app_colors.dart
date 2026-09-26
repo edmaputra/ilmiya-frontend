@@ -1,38 +1,50 @@
 import 'package:flutter/material.dart';
 
-/// Natural Tones Palette for Ilmiya SIS
+/// Academic Indigo Palette for Ilmiya SIS
+/// A modern, authoritative, and high-contrast theme inspired by elite collegiate
+/// platforms and modern SaaS.
 class AppColors {
   AppColors._();
 
-  // Primary Brand Colors
-  static const Color forestSage = Color(0xFF5F6F52);
-  static const Color forestSageDark = Color(0xFF4A5740);
-  static const Color softKhaki = Color(0xFFA9B388);
-  static const Color warmSand = Color(0xFFFEFAE0);
-  static const Color warmSandHover = Color(0xFFF4F0D6);
+  // Primary Brand Colors (Academic Royal Indigo & Sapphire)
+  static const Color forestSage = Color(0xFF2563EB); // Royal Indigo primary
+  static const Color forestSageDark = Color(0xFF1D4ED8); // Deep Sapphire
+  static const Color softKhaki =
+      Color(0xFF60A5FA); // Sky Blue secondary / accent
+  static const Color warmSand = Color(0xFFEFF6FF); // Soft Ice Blue tint surface
+  static const Color warmSandHover = Color(0xFFDBEAFE); // Hover tint
+
+  // Semantic Aliases
+  static const Color primary = forestSage;
+  static const Color primaryDark = forestSageDark;
+  static const Color primaryLight = softKhaki;
+  static const Color primarySubtle = warmSand;
 
   // Accents & Alerts
-  static const Color earthyTerra = Color(0xFFD67D5B);
-  static const Color warmAmber = Color(0xFFC28E58);
-  static const Color deepForest = Color(0xFF43423E);
+  static const Color earthyTerra = Color(0xFFE11D48); // Vibrant Rose/Crimson
+  static const Color warmAmber = Color(0xFFF59E0B); // Academic Gold / Amber
+  static const Color deepForest = Color(0xFF0F172A); // Midnight Slate
+  static const Color emeraldSuccess = Color(0xFF10B981); // Crisp Success Green
 
-  // Canvas & Background Surfaces
-  static const Color naturalParchment = Color(0xFFFAF9F6);
-  static const Color surfaceWhite = Color(0xFFFFFFFF);
-  static const Color surfaceMuted = Color(0xFFF2EDE4);
+  // Canvas & Background Surfaces (Light Mode)
+  static const Color naturalParchment =
+      Color(0xFFF8FAFC); // Clean Cool Slate canvas
+  static const Color surfaceWhite = Color(0xFFFFFFFF); // Pure White cards
+  static const Color surfaceMuted = Color(0xFFF1F5F9); // Muted slate surface
 
   // Text & Typography
-  static const Color textPrimary = Color(0xFF2C2E2A);
-  static const Color textSecondary = Color(0xFF6B6E68);
-  static const Color textMuted = Color(0xFF8C887D);
+  static const Color textPrimary = Color(0xFF0F172A); // Deep Slate
+  static const Color textSecondary = Color(0xFF475569); // Medium Slate
+  static const Color textMuted = Color(0xFF94A3B8); // Muted Slate
 
   // Borders & Dividers
-  static const Color borderLight = Color(0xFFE9E4DB);
-  static const Color borderMedium = Color(0xFFD9D1C5);
+  static const Color borderLight =
+      Color(0xFFE2E8F0); // Crisp Hairline Slate border
+  static const Color borderMedium = Color(0xFFCBD5E1); // Cool Slate divider
 
-  // Dark Mode Surfaces
-  static const Color darkBg = Color(0xFF1E201E);
-  static const Color darkSurface = Color(0xFF242724);
-  static const Color darkCard = Color(0xFF2C2E2A);
-  static const Color darkBorder = Color(0xFF3E423E);
+  // Dark Mode Surfaces (Midnight Navy Slate)
+  static const Color darkBg = Color(0xFF0B0F19); // Midnight Navy background
+  static const Color darkSurface = Color(0xFF111827); // Deep Navy Surface
+  static const Color darkCard = Color(0xFF1E293B); // Navy Slate Card
+  static const Color darkBorder = Color(0xFF334155); // Subtle Slate Border
 }
