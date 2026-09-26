@@ -25,9 +25,9 @@ class IlmiyaLogo extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF2D7A82),
-              Color(0xFF1E6570),
-              Color(0xFF144C57),
+              Color(0xFF3B82F6),
+              Color(0xFF2563EB),
+              Color(0xFF1D4ED8),
             ],
           ),
           boxShadow: [

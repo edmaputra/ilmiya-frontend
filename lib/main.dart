@@ -94,16 +94,20 @@ class _IlmiyaAppState extends State<IlmiyaApp> {
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final isDark = appState.themeMode == ThemeMode.dark;
+    final accent = appState.accent;
 
     return ShadTheme(
-      data: isDark ? AppTheme.shadDarkTheme : AppTheme.shadLightTheme,
+      data: AppTheme.shadTheme(
+        accent,
+        isDark ? Brightness.dark : Brightness.light,
+      ),
       child: MaterialApp(
         title: 'Ilmiya - School Information System',
         debugShowCheckedModeBanner: false,
         scaffoldMessengerKey: appScaffoldMessengerKey,
         navigatorKey: appNavigatorKey,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme(accent),
+        darkTheme: AppTheme.darkTheme(accent),
         themeMode: appState.themeMode,
         builder: (context, child) {
           return MediaQuery(

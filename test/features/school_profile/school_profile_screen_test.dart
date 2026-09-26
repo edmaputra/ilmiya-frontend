@@ -169,5 +169,24 @@ void main() {
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     });
+
+    testWidgets(
+        'renders cleanly without overflow on mobile phone dimensions (390x844)',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SchoolProfileScreen), findsOneWidget);
+      expect(find.text('Edit Profile'), findsOneWidget);
+      expect(find.text('Institutional Details'), findsOneWidget);
+      expect(find.text('Operational Rules'), findsOneWidget);
+      expect(find.text('Active Working Days'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

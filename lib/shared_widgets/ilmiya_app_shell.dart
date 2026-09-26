@@ -4,9 +4,9 @@ import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
-import '../core/constants/app_colors.dart';
 import '../core/models/iam.dart';
 import '../core/services/api_client.dart';
+import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/login_dialog.dart';
 import '../features/search/ilmiya_command_palette.dart';
 import '../state/app_state.dart';
@@ -52,7 +52,7 @@ class IlmiyaAppShell extends StatelessWidget {
                   selectedIndex: state.currentTab.clamp(0, 3),
                   onDestinationSelected: (index) => state.setTab(index),
                   backgroundColor: c.card,
-                  indicatorColor: AppColors.forestSage.withOpacity(0.18),
+                  indicatorColor: c.primary.withOpacity(0.18),
                   destinations: const [
                     NavigationDestination(
                       icon: Icon(LucideIcons.school, size: 20),
@@ -161,15 +161,15 @@ class _SidebarContent extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppColors.forestSage.withOpacity(0.12),
+                                color: c.primary.withOpacity(0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'SIS',
                                 style: TextStyle(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w800,
-                                  color: AppColors.forestSage,
+                                  color: c.primary,
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -203,10 +203,10 @@ class _SidebarContent extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         LucideIcons.building,
                         size: 14,
-                        color: AppColors.forestSage,
+                        color: c.primary,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -440,13 +440,13 @@ class _SidebarContent extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundColor: AppColors.forestSage.withOpacity(0.15),
+                backgroundColor: c.primary.withOpacity(0.15),
                 child: Text(
                   userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.forestSage,
+                    color: c.primary,
                   ),
                 ),
               ),
@@ -545,8 +545,7 @@ class _SidebarContent extends StatelessWidget {
                 Icon(
                   isActive ? LucideIcons.checkCircle2 : LucideIcons.circle,
                   size: 14,
-                  color:
-                      isActive ? AppColors.forestSage : const Color(0xFF94A3B8),
+                  color: isActive ? c.primary : c.mutedForeground,
                 ),
                 const SizedBox(width: 8),
                 Column(
@@ -562,8 +561,10 @@ class _SidebarContent extends StatelessWidget {
                     ),
                     Text(
                       persona.roleLabel,
-                      style: const TextStyle(
-                          fontSize: 10, color: Color(0xFF94A3B8)),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: c.mutedForeground,
+                      ),
                     ),
                   ],
                 ),
@@ -572,25 +573,25 @@ class _SidebarContent extends StatelessWidget {
           );
         }),
         const PopupMenuDivider(),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'login',
           child: Row(
             children: [
-              Icon(LucideIcons.logIn, size: 15, color: AppColors.forestSage),
-              SizedBox(width: 8),
-              Text('Sign In with Credentials...',
+              Icon(LucideIcons.logIn, size: 15, color: c.primary),
+              const SizedBox(width: 8),
+              const Text('Sign In with Credentials...',
                   style: TextStyle(fontSize: 12)),
             ],
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'logout',
           child: Row(
             children: [
-              Icon(LucideIcons.logOut, size: 15, color: AppColors.earthyTerra),
-              SizedBox(width: 8),
+              Icon(LucideIcons.logOut, size: 15, color: c.destructive),
+              const SizedBox(width: 8),
               Text('Sign Out',
-                  style: TextStyle(fontSize: 12, color: AppColors.earthyTerra)),
+                  style: TextStyle(fontSize: 12, color: c.destructive)),
             ],
           ),
         ),
@@ -602,83 +603,89 @@ class _SidebarContent extends StatelessWidget {
     final tenantCtrl = TextEditingController(text: auth.tenantId);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(LucideIcons.building, color: AppColors.forestSage, size: 20),
-            SizedBox(width: 8),
-            Text('Switch School Tenant', style: TextStyle(fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Select or enter target school tenant ID to isolate data partitions:',
-              style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: tenantCtrl,
-              decoration: InputDecoration(
-                labelText: 'Tenant ID',
-                prefixIcon: const Icon(LucideIcons.school, size: 16),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                ActionChip(
-                  avatar: const Icon(LucideIcons.school, size: 14),
-                  label: const Text('Lincoln High',
-                      style: TextStyle(fontSize: 11)),
-                  onPressed: () => tenantCtrl.text = 'tenant-lincoln-high-001',
-                ),
-                ActionChip(
-                  avatar: const Icon(LucideIcons.graduationCap, size: 14),
-                  label: const Text('SMAN 1 Ilmiya',
-                      style: TextStyle(fontSize: 11)),
-                  onPressed: () => tenantCtrl.text = 'tenant-sma1-ilmiya-002',
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+      builder: (ctx) {
+        final dialogColors = KiteColors.of(ctx);
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(LucideIcons.building, color: dialogColors.primary, size: 20),
+              const SizedBox(width: 8),
+              const Text('Switch School Tenant',
+                  style: TextStyle(fontSize: 16)),
+            ],
           ),
-          FilledButton(
-            onPressed: () async {
-              final newTenant = tenantCtrl.text.trim();
-              if (newTenant.isNotEmpty) {
-                Navigator.of(ctx).pop();
-                try {
-                  await auth.switchTenant(newTenant);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Switched tenant to $newTenant')),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error switching tenant: $e')),
-                    );
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Select or enter target school tenant ID to isolate data partitions:',
+                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: tenantCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Tenant ID',
+                  prefixIcon: const Icon(LucideIcons.school, size: 16),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  ActionChip(
+                    avatar: const Icon(LucideIcons.school, size: 14),
+                    label: const Text('Lincoln High',
+                        style: TextStyle(fontSize: 11)),
+                    onPressed: () =>
+                        tenantCtrl.text = 'tenant-lincoln-high-001',
+                  ),
+                  ActionChip(
+                    avatar: const Icon(LucideIcons.graduationCap, size: 14),
+                    label: const Text('SMAN 1 Ilmiya',
+                        style: TextStyle(fontSize: 11)),
+                    onPressed: () => tenantCtrl.text = 'tenant-sma1-ilmiya-002',
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final newTenant = tenantCtrl.text.trim();
+                if (newTenant.isNotEmpty) {
+                  Navigator.of(ctx).pop();
+                  try {
+                    await auth.switchTenant(newTenant);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Switched tenant to $newTenant')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error switching tenant: $e')),
+                      );
+                    }
                   }
                 }
-              }
-            },
-            child: const Text('Switch Tenant'),
-          ),
-        ],
-      ),
+              },
+              child: const Text('Switch Tenant'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -708,11 +715,7 @@ class _NavTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Material(
-        color: isActive
-            ? (Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF2C2E2A)
-                : const Color(0xFFF1F5F9))
-            : Colors.transparent,
+        color: isActive ? c.muted : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
@@ -729,7 +732,7 @@ class _NavTile extends StatelessWidget {
                 Icon(
                   icon,
                   size: 16,
-                  color: isActive ? AppColors.forestSage : c.mutedForeground,
+                  color: isActive ? c.primary : c.mutedForeground,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -746,15 +749,15 @@ class _NavTile extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
-                      color: AppColors.forestSage,
+                      color: c.primary,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       '$unreadCount',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: c.primaryForeground,
                       ),
                     ),
                   )
@@ -852,10 +855,10 @@ class _TopBar extends StatelessWidget {
                   schoolDisplayName,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.forestSage,
+                    color: c.primary,
                   ),
                 ),
               ],
@@ -912,6 +915,46 @@ class _TopBar extends StatelessWidget {
               child: const Icon(LucideIcons.bell),
             ),
             onPressed: () => state.setTab(7),
+          ),
+
+          // Kite Accent Selector
+          PopupMenuButton<KiteAccent>(
+            tooltip: 'Kite Theme Accent',
+            icon: Icon(
+              LucideIcons.palette,
+              size: 18,
+              color: c.primary,
+            ),
+            initialValue: state.accent,
+            onSelected: (accent) => state.setAccent(accent),
+            itemBuilder: (context) => [
+              for (final accent in KiteAccent.values)
+                PopupMenuItem(
+                  value: accent,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: accent.primaryColor(
+                            state.themeMode == ThemeMode.dark
+                                ? Brightness.dark
+                                : Brightness.light,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(accent.label),
+                      if (state.accent == accent) ...[
+                        const Spacer(),
+                        Icon(LucideIcons.check, size: 14, color: c.primary),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
           ),
 
           // Dark/Light Theme toggle

@@ -42,7 +42,8 @@ class _GradesScreenState extends State<GradesScreen> {
         children: [
           // 1. Top GPA Header & Sub-nav
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(
+                MediaQuery.of(context).size.width < 500 ? 16 : 24),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(28),
@@ -51,51 +52,54 @@ class _GradesScreenState extends State<GradesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'OFFICIAL RECORDS',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.1,
-                                  color: AppColors.forestSage,
-                                ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 650;
+                    final titleWidget = Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          children: [
+                            Text(
+                              'OFFICIAL RECORDS',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.1,
+                                color: AppColors.forestSage,
                               ),
-                              SizedBox(width: 8),
-                              Text('• Spring 2026 Academic Term',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textMuted)),
-                            ],
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Grade Tracking & Academic Performance',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
-                              letterSpacing: -0.5,
                             ),
+                            Text(
+                              '• Spring 2026 Academic Term',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Grade Tracking & Academic Performance',
+                          style: TextStyle(
+                            fontSize: isCompact ? 18 : 20,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                            letterSpacing: -0.5,
                           ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Real-time GPA computation, weighted category breakdowns, and feedback rubrics',
-                            style: TextStyle(
-                                fontSize: 11, color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Real-time GPA computation, weighted category breakdowns, and feedback rubrics',
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    );
+
+                    final gpaWidget = Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
@@ -104,45 +108,73 @@ class _GradesScreenState extends State<GradesScreen> {
                         border: Border.all(color: AppColors.borderMedium),
                       ),
                       child: Row(
+                        mainAxisSize:
+                            isCompact ? MainAxisSize.max : MainAxisSize.min,
                         children: [
-                          Column(
-                            children: [
-                              const Text('UNWEIGHTED GPA',
-                                  style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.textMuted)),
-                              Text(gpa['unweighted'] ?? '3.88',
-                                  style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.textPrimary)),
-                            ],
+                          Expanded(
+                            flex: isCompact ? 1 : 0,
+                            child: Column(
+                              children: [
+                                const Text('UNWEIGHTED GPA',
+                                    style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.textMuted)),
+                                Text(gpa['unweighted'] ?? '3.88',
+                                    style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.textPrimary)),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
                           Container(
                               width: 1,
                               height: 32,
                               color: AppColors.borderLight),
-                          const SizedBox(width: 16),
-                          Column(
-                            children: [
-                              const Text('WEIGHTED GPA',
-                                  style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.textMuted)),
-                              Text(gpa['weighted'] ?? '4.12',
-                                  style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.forestSage)),
-                            ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: isCompact ? 1 : 0,
+                            child: Column(
+                              children: [
+                                const Text('WEIGHTED GPA',
+                                    style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.textMuted)),
+                                Text(gpa['weighted'] ?? '4.12',
+                                    style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.forestSage)),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    );
+
+                    if (isCompact) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          titleWidget,
+                          const SizedBox(height: 14),
+                          gpaWidget,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(child: titleWidget),
+                        const SizedBox(width: 16),
+                        gpaWidget,
+                      ],
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 16),
@@ -385,9 +417,14 @@ class _GradesScreenState extends State<GradesScreen> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text(_selectedCourse.period,
+                            Flexible(
+                              child: Text(
+                                _selectedCourse.period,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                    fontSize: 11, color: AppColors.textMuted)),
+                                    fontSize: 11, color: AppColors.textMuted),
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -490,8 +527,11 @@ class _GradesScreenState extends State<GradesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
                 children: [
                   const Text(
                     'Graded Assignments & Tasks',

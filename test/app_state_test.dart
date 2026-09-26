@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ilmiya_app/core/models/user_profile.dart';
 import 'package:ilmiya_app/core/models/notification_item.dart';
+import 'package:ilmiya_app/core/theme/app_theme.dart';
 import 'package:ilmiya_app/state/app_state.dart';
 
 void main() {
@@ -58,6 +60,38 @@ void main() {
           contains('Midterm Schedule Updated'));
       expect(state.notifications.first.priority,
           equals(NotificationPriority.high));
+    });
+
+    test('KiteAccent switching updates accent state and notifies listeners',
+        () {
+      final state = AppState();
+      expect(state.accent, equals(KiteAccent.slate));
+
+      bool notified = false;
+      state.addListener(() => notified = true);
+
+      state.setAccent(KiteAccent.blue);
+      expect(state.accent, equals(KiteAccent.blue));
+      expect(notified, isTrue);
+
+      state.setAccent(KiteAccent.violet);
+      expect(state.accent, equals(KiteAccent.violet));
+    });
+
+    test('AppTheme generates valid themes for all KiteAccent options', () {
+      for (final accent in KiteAccent.values) {
+        final lightTheme = AppTheme.lightTheme(accent);
+        final darkTheme = AppTheme.darkTheme(accent);
+        final shadLight = AppTheme.shadTheme(accent, Brightness.light);
+        final shadDark = AppTheme.shadTheme(accent, Brightness.dark);
+
+        expect(lightTheme.brightness, equals(Brightness.light));
+        expect(darkTheme.brightness, equals(Brightness.dark));
+        expect(shadLight.brightness, equals(Brightness.light));
+        expect(shadDark.brightness, equals(Brightness.dark));
+        expect(accent.primaryColor(Brightness.light), isNotNull);
+        expect(accent.primaryColor(Brightness.dark), isNotNull);
+      }
     });
   });
 }

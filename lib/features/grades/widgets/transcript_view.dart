@@ -13,7 +13,8 @@ class TranscriptView extends StatelessWidget {
     final gpa = state.cumulativeGpa;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding:
+          EdgeInsets.all(MediaQuery.of(context).size.width < 500 ? 16 : 24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
@@ -22,10 +23,10 @@ class TranscriptView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Column(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 600;
+              const titleSection = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -43,8 +44,9 @@ class TranscriptView extends StatelessWidget {
                         TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ],
-              ),
-              ElevatedButton.icon(
+              );
+
+              final printButton = ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.forestSage,
                   foregroundColor: Colors.white,
@@ -72,15 +74,36 @@ class TranscriptView extends StatelessWidget {
                     ),
                   );
                 },
-              ),
-            ],
+              );
+
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleSection,
+                    const SizedBox(height: 12),
+                    printButton,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(child: titleSection),
+                  const SizedBox(width: 12),
+                  printButton,
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 20),
 
           // Official Document Box
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(
+                MediaQuery.of(context).size.width < 500 ? 16 : 24),
             decoration: BoxDecoration(
               color: AppColors.naturalParchment,
               borderRadius: BorderRadius.circular(24),
@@ -97,37 +120,39 @@ class TranscriptView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // School Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Column(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 600;
+                    final schoolInfo = Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'LINCOLN HIGH STEM ACADEMY',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: isCompact ? 14 : 16,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
                             color: AppColors.textPrimary,
                           ),
                         ),
-                        SizedBox(height: 2),
-                        Text(
+                        const SizedBox(height: 2),
+                        const Text(
                           '1200 Innovation Parkway, Silicon Valley, CA 94025',
                           style: TextStyle(
                               fontSize: 11, color: AppColors.textSecondary),
                         ),
-                        Text(
+                        const Text(
                           'Official Student Academic Record • Accredited WASC',
                           style: TextStyle(
                               fontSize: 11, color: AppColors.textSecondary),
                         ),
                       ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    );
+
+                    final honorPill = Column(
+                      crossAxisAlignment: isCompact
+                          ? CrossAxisAlignment.start
+                          : CrossAxisAlignment.end,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -153,29 +178,77 @@ class TranscriptView extends StatelessWidget {
                               fontSize: 10, color: AppColors.textMuted),
                         ),
                       ],
-                    ),
-                  ],
+                    );
+
+                    if (isCompact) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          schoolInfo,
+                          const SizedBox(height: 10),
+                          honorPill,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: schoolInfo),
+                        const SizedBox(width: 12),
+                        honorPill,
+                      ],
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 20),
 
                 // Student Info Grid
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.borderLight),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildInfoColumn('STUDENT NAME', user.name),
-                      _buildInfoColumn('STUDENT ID', user.schoolId),
-                      _buildInfoColumn(
-                          'GRADE LEVEL', user.gradeLevel ?? 'Grade 11'),
-                      _buildInfoColumn('ACADEMIC TERM', 'Spring 2026 (Q3)'),
-                    ],
-                  ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 600;
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.borderLight),
+                      ),
+                      child: isCompact
+                          ? Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    _buildInfoColumn('STUDENT NAME', user.name),
+                                    _buildInfoColumn(
+                                        'STUDENT ID', user.schoolId),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    _buildInfoColumn('GRADE LEVEL',
+                                        user.gradeLevel ?? 'Grade 11'),
+                                    _buildInfoColumn(
+                                        'ACADEMIC TERM', 'Spring 2026 (Q3)'),
+                                  ],
+                                ),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                _buildInfoColumn('STUDENT NAME', user.name),
+                                _buildInfoColumn('STUDENT ID', user.schoolId),
+                                _buildInfoColumn('GRADE LEVEL',
+                                    user.gradeLevel ?? 'Grade 11'),
+                                _buildInfoColumn(
+                                    'ACADEMIC TERM', 'Spring 2026 (Q3)'),
+                              ],
+                            ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 20),
@@ -188,119 +261,145 @@ class TranscriptView extends StatelessWidget {
                       color: Colors.white,
                       border: Border.all(color: AppColors.borderLight),
                     ),
-                    child: Column(
-                      children: [
-                        // Table Header
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          color: AppColors.borderLight,
-                          child: const Row(
-                            children: [
-                              Expanded(
-                                  flex: 2,
-                                  child: Text('COURSE CODE',
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800))),
-                              Expanded(
-                                  flex: 4,
-                                  child: Text('COURSE TITLE',
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800))),
-                              Expanded(
-                                  flex: 3,
-                                  child: Text('INSTRUCTOR',
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800))),
-                              Expanded(
-                                  flex: 1,
-                                  child: Text('CREDITS',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800))),
-                              Expanded(
-                                  flex: 1,
-                                  child: Text('PCT',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800))),
-                              Expanded(
-                                  flex: 1,
-                                  child: Text('GRADE',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800))),
-                            ],
-                          ),
-                        ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final tableWidth = constraints.maxWidth < 550
+                            ? 550.0
+                            : constraints.maxWidth;
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: tableWidth,
+                            child: Column(
+                              children: [
+                                // Table Header
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 10),
+                                  color: AppColors.borderLight,
+                                  child: const Row(
+                                    children: [
+                                      Expanded(
+                                          flex: 2,
+                                          child: Text('COURSE CODE',
+                                              style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight:
+                                                      FontWeight.w800))),
+                                      Expanded(
+                                          flex: 4,
+                                          child: Text('COURSE TITLE',
+                                              style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight:
+                                                      FontWeight.w800))),
+                                      Expanded(
+                                          flex: 3,
+                                          child: Text('INSTRUCTOR',
+                                              style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight:
+                                                      FontWeight.w800))),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('CREDITS',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight:
+                                                      FontWeight.w800))),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('PCT',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight:
+                                                      FontWeight.w800))),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('GRADE',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight:
+                                                      FontWeight.w800))),
+                                    ],
+                                  ),
+                                ),
 
-                        // Table Rows
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: state.courses.length,
-                          separatorBuilder: (_, __) => const Divider(
-                              height: 1, color: AppColors.borderLight),
-                          itemBuilder: (context, index) {
-                            final course = state.courses[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                      flex: 2,
-                                      child: Text(course.code,
-                                          style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700))),
-                                  Expanded(
-                                      flex: 4,
-                                      child: Text(course.name,
-                                          style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600))),
-                                  Expanded(
-                                      flex: 3,
-                                      child: Text(course.teacherName,
-                                          style: const TextStyle(
-                                              fontSize: 11,
-                                              color: AppColors.textSecondary))),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text(
-                                          course.credits.toStringAsFixed(1),
-                                          textAlign: TextAlign.center,
-                                          style:
-                                              const TextStyle(fontSize: 11))),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text(
-                                          '${course.currentPercentage}%',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                              fontSize: 11,
-                                              color: AppColors.textSecondary))),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text(course.letterGrade,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w800,
-                                              color: AppColors.forestSage))),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                                // Table Rows
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: state.courses.length,
+                                  separatorBuilder: (_, __) => const Divider(
+                                      height: 1, color: AppColors.borderLight),
+                                  itemBuilder: (context, index) {
+                                    final course = state.courses[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 10),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                              flex: 2,
+                                              child: Text(course.code,
+                                                  style: const TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w700))),
+                                          Expanded(
+                                              flex: 4,
+                                              child: Text(course.name,
+                                                  style: const TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w600))),
+                                          Expanded(
+                                              flex: 3,
+                                              child: Text(course.teacherName,
+                                                  style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: AppColors
+                                                          .textSecondary))),
+                                          Expanded(
+                                              flex: 1,
+                                              child: Text(
+                                                  course.credits
+                                                      .toStringAsFixed(1),
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                      fontSize: 11))),
+                                          Expanded(
+                                              flex: 1,
+                                              child: Text(
+                                                  '${course.currentPercentage}%',
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: AppColors
+                                                          .textSecondary))),
+                                          Expanded(
+                                              flex: 1,
+                                              child: Text(course.letterGrade,
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: AppColors
+                                                          .forestSage))),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -308,10 +407,10 @@ class TranscriptView extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Transcript Summary Footer
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Column(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 500;
+                    const leftCol = Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Cumulative Credits Earned: 48.0',
@@ -321,9 +420,12 @@ class TranscriptView extends StatelessWidget {
                             style: TextStyle(
                                 fontSize: 10, color: AppColors.textMuted)),
                       ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    );
+
+                    final rightCol = Column(
+                      crossAxisAlignment: isCompact
+                          ? CrossAxisAlignment.start
+                          : CrossAxisAlignment.end,
                       children: [
                         Text('Unweighted GPA: ${gpa['unweighted']}',
                             style: const TextStyle(
@@ -334,8 +436,27 @@ class TranscriptView extends StatelessWidget {
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.forestSage)),
                       ],
-                    ),
-                  ],
+                    );
+
+                    if (isCompact) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          leftCol,
+                          const SizedBox(height: 12),
+                          rightCol,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        leftCol,
+                        rightCol,
+                      ],
+                    );
+                  },
                 ),
               ],
             ),

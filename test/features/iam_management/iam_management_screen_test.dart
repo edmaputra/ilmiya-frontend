@@ -302,5 +302,26 @@ void main() {
       // Title should still be rendered on a narrow screen
       expect(find.text('Identity & Access Management (IAM)'), findsOneWidget);
     });
+
+    testWidgets(
+        'Scope Tree tab renders node hierarchy without overflow on mobile (360x740)',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(360, 740);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableWidget());
+      await tester.pumpAndSettle();
+
+      final scopeTreeTab = find.text('Scope Tree');
+      await tester.ensureVisible(scopeTreeTab.first);
+      await tester.tap(scopeTreeTab.first, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hierarchical Scope Tree'), findsOneWidget);
+      expect(find.text('Lincoln High Main Campus'), findsWidgets);
+      expect(find.text('Add Child'), findsWidgets);
+    });
   });
 }
