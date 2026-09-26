@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:ilmiya_app/core/models/iam.dart';
 import 'package:ilmiya_app/core/services/api_client.dart';
 import 'package:ilmiya_app/core/services/iam_service.dart';
 import 'package:ilmiya_app/core/services/mock_storage_service.dart';
@@ -128,6 +129,15 @@ class _MockHttpClientResponse extends Fake implements HttpClientResponse {
   }
 }
 
+class _FailingIamService extends IamService {
+  _FailingIamService({required super.apiClient, required super.mockStorage});
+
+  @override
+  Future<TokenResponse> login(LoginRequest req) async {
+    throw Exception('Invalid credentials provided');
+  }
+}
+
 void main() {
   setUpAll(() {
     HttpOverrides.global = _MockHttpOverrides();
@@ -137,72 +147,347 @@ void main() {
     HttpOverrides.global = null;
   });
 
-  testWidgets('LoginDialog renders and allows quick persona selection',
-      (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1280, 900);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  group('LoginDialog Tests', () {
+    late ApiClient client;
+    late MockStorageService storage;
+    late IamService iam;
+    late AuthNotifier authNotifier;
 
-    final client = ApiClient();
-    client.isMockMode = true;
-    final storage = MockStorageService();
-    final iam = IamService(apiClient: client, mockStorage: storage);
-    final authNotifier = AuthNotifier(iamService: iam, apiClient: client);
+    setUp(() {
+      client = apiClient;
+      client.isMockMode = true;
+      storage = MockStorageService();
+      iam = IamService(apiClient: client, mockStorage: storage);
+      authNotifier = AuthNotifier(iamService: iam, apiClient: client);
+    });
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider<AuthNotifier>.value(
-          value: authNotifier,
-          child: const Scaffold(
-            body: LoginDialog(isStandalone: true),
+    testWidgets('LoginDialog renders and allows quick persona selection',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<AuthNotifier>.value(
+            value: authNotifier,
+            child: const Scaffold(
+              body: LoginDialog(isStandalone: true),
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    expect(find.textContaining('Ilmiya Institutional Access'), findsOneWidget);
-    expect(find.textContaining('Platform SuperAdmin'), findsOneWidget);
-    expect(find.textContaining('School Principal'), findsOneWidget);
+      expect(
+          find.textContaining('Ilmiya Institutional Access'), findsOneWidget);
+      expect(find.textContaining('Platform SuperAdmin'), findsOneWidget);
+      expect(find.textContaining('School Principal'), findsOneWidget);
 
-    // Tap the School Principal persona
-    await tester.tap(find.textContaining('School Principal'));
-    await tester.pumpAndSettle();
+      // Tap the School Principal persona
+      await tester.tap(find.textContaining('School Principal'));
+      await tester.pumpAndSettle();
 
-    expect(authNotifier.user?.fullName, contains('Marcus Chen'));
-  });
+      expect(authNotifier.user?.fullName, contains('Marcus Chen'));
+    });
 
-  testWidgets('LoginDialog manual login form validation',
-      (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1280, 900);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+        'LoginDialog manual login form validation and visibility toggle',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final client = ApiClient();
-    client.isMockMode = true;
-    final storage = MockStorageService();
-    final iam = IamService(apiClient: client, mockStorage: storage);
-    final authNotifier = AuthNotifier(iamService: iam, apiClient: client);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider<AuthNotifier>.value(
-          value: authNotifier,
-          child: const Scaffold(
-            body: LoginDialog(isStandalone: true),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<AuthNotifier>.value(
+            value: authNotifier,
+            child: const Scaffold(
+              body: LoginDialog(isStandalone: true),
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    final signInBtn = find.text('Sign In to Portal');
-    expect(signInBtn, findsOneWidget);
+      final signInBtn = find.text('Sign In to Portal');
+      expect(signInBtn, findsOneWidget);
 
-    await tester.ensureVisible(signInBtn);
-    await tester.tap(signInBtn);
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(signInBtn);
+      await tester.tap(signInBtn);
+      await tester.pumpAndSettle();
 
-    expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Password is required'), findsOneWidget);
+
+      // Toggle password visibility
+      final visibilityBtn = find.byIcon(Icons.visibility_off);
+      expect(visibilityBtn, findsOneWidget);
+      await tester.tap(visibilityBtn);
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.visibility), findsOneWidget);
+    });
+
+    testWidgets(
+        'LoginDialog.show opens dialog, displays close button, and pops on close',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AuthNotifier>.value(
+          value: authNotifier,
+          child: MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => LoginDialog.show(context),
+                  child: const Text('Open Dialog'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Dialog'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoginDialog), findsOneWidget);
+      final closeBtn = find.byIcon(Icons.close);
+      expect(closeBtn, findsOneWidget);
+
+      await tester.tap(closeBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoginDialog), findsNothing);
+    });
+
+    testWidgets(
+        'LoginDialog renders in mobile layout (< 800) and displays credentials form',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<AuthNotifier>.value(
+            value: authNotifier,
+            child: const Scaffold(
+              body: LoginDialog(isStandalone: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoginDialog), findsOneWidget);
+      expect(find.text('Sign In to Portal'), findsOneWidget);
+    });
+
+    testWidgets(
+        'LoginDialog manual login succeeds and triggers onSuccess and pop',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      bool successCalled = false;
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AuthNotifier>.value(
+          value: authNotifier,
+          child: MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => Material(
+                        child: LoginDialog(
+                          isStandalone: false,
+                          onSuccess: () => successCalled = true,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open Modal'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Modal'));
+      await tester.pumpAndSettle();
+
+      // Enter valid mock credentials
+      final textFields = find.byType(TextFormField);
+      await tester.enterText(textFields.at(0), 'superadmin@ilmiya.edu');
+      await tester.enterText(textFields.at(1), 'admin123');
+
+      final signInBtn = find.text('Sign In to Portal');
+      await tester.ensureVisible(signInBtn);
+      await tester.tap(signInBtn);
+      await tester.pumpAndSettle();
+
+      expect(successCalled, isTrue);
+      expect(find.byType(LoginDialog), findsNothing);
+      expect(authNotifier.isAuthenticated, isTrue);
+    });
+
+    testWidgets(
+        'LoginDialog manual login with @springfield.local or UUID tenant switches mock mode',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      client.isMockMode = true;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<AuthNotifier>.value(
+            value: authNotifier,
+            child: const Scaffold(
+              body: LoginDialog(isStandalone: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final textFields = find.byType(TextFormField);
+      await tester.enterText(textFields.at(0), 'admin@springfield.local');
+      await tester.enterText(textFields.at(1), 'password123');
+      await tester.enterText(
+          textFields.at(2), '01940000-0000-7000-8000-000000000001');
+
+      final signInBtn = find.text('Sign In to Portal');
+      await tester.ensureVisible(signInBtn);
+      await tester.tap(signInBtn);
+      await tester.pumpAndSettle();
+
+      expect(client.isMockMode, isFalse);
+    });
+
+    testWidgets('LoginDialog manual login failure displays error banner',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final failingIam =
+          _FailingIamService(apiClient: client, mockStorage: storage);
+      final failingAuthNotifier =
+          AuthNotifier(iamService: failingIam, apiClient: client);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<AuthNotifier>.value(
+            value: failingAuthNotifier,
+            child: const Scaffold(
+              body: LoginDialog(isStandalone: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final textFields = find.byType(TextFormField);
+      await tester.enterText(textFields.at(0), 'unknown@domain.com');
+      await tester.enterText(textFields.at(1), 'wrongpass');
+
+      final signInBtn = find.text('Sign In to Portal');
+      await tester.ensureVisible(signInBtn);
+      await tester.tap(signInBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(
+          find.textContaining('Invalid credentials provided'), findsOneWidget);
+    });
+
+    testWidgets('LoginDialog persona login failure displays error banner',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final failingIam =
+          _FailingIamService(apiClient: client, mockStorage: storage);
+      final failingAuthNotifier =
+          AuthNotifier(iamService: failingIam, apiClient: client);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<AuthNotifier>.value(
+            value: failingAuthNotifier,
+            child: const Scaffold(
+              body: LoginDialog(isStandalone: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('School Principal'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.textContaining('Failed to authenticate persona'),
+          findsOneWidget);
+    });
+
+    testWidgets(
+        'LoginDialog reacts to ApiClient mode changes and updates tenant',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      client.isMockMode = true;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<AuthNotifier>.value(
+            value: authNotifier,
+            child: const Scaffold(
+              body: LoginDialog(isStandalone: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap mode switch inside CredentialsForm
+      final modeSwitch = find.text('Mode: Mock Simulation');
+      expect(modeSwitch, findsOneWidget);
+      await tester.ensureVisible(modeSwitch);
+      await tester.tap(modeSwitch);
+      await tester.pumpAndSettle();
+
+      expect(client.isMockMode, isFalse);
+
+      // Tap again to switch back
+      final liveSwitch = find.text('Mode: Live REST API');
+      expect(liveSwitch, findsOneWidget);
+      await tester.ensureVisible(liveSwitch);
+      await tester.tap(liveSwitch);
+      await tester.pumpAndSettle();
+
+      expect(client.isMockMode, isTrue);
+    });
   });
 }
