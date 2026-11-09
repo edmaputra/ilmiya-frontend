@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kite_ui/shadcn.dart';
 import 'package:provider/provider.dart';
@@ -22,8 +23,11 @@ final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    await apiClient.loadRuntimeConfig();
+  }
   runApp(
     MultiProvider(
       providers: [
