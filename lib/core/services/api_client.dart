@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 class ApiException implements Exception {
@@ -48,6 +49,38 @@ class ApiClient extends ChangeNotifier {
 
   void toggleMockMode() {
     isMockMode = !_isMockMode;
+  }
+
+  /// Loads runtime configuration from assets/config.json if available (e.g. injected by Vault / Consul)
+  Future<void> loadRuntimeConfig() async {
+    try {
+      final content = await rootBundle.loadString('assets/config.json');
+      _applyConfigJson(content);
+    } catch (_) {
+      try {
+        final response = await http.get(Uri.parse('assets/config.json'));
+        if (response.statusCode == 200) {
+          _applyConfigJson(response.body);
+        }
+      } catch (_) {
+        // Gracefully fall back to compile-time --dart-define or defaults
+      }
+    }
+  }
+
+  void _applyConfigJson(String rawJson) {
+    final dynamic data = json.decode(rawJson);
+    if (data is Map<String, dynamic>) {
+      if (data['apiBaseUrl'] is String && (data['apiBaseUrl'] as String).isNotEmpty) {
+        baseUrl = data['apiBaseUrl'] as String;
+      }
+      if (data['defaultTenantId'] is String && (data['defaultTenantId'] as String).isNotEmpty) {
+        tenantId = data['defaultTenantId'] as String;
+      }
+      if (data['mockMode'] is bool) {
+        isMockMode = data['mockMode'] as bool;
+      }
+    }
   }
 
   String get tenantId => _tenantId;
