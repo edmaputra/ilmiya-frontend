@@ -40,7 +40,8 @@ class ApiClient extends ChangeNotifier {
       _isMockMode = value;
       if (!_isMockMode && _tenantId == 'tenant-lincoln-high-001') {
         _tenantId = '01940000-0000-7000-8000-000000000001';
-      } else if (_isMockMode && _tenantId == '01940000-0000-7000-8000-000000000001') {
+      } else if (_isMockMode &&
+          _tenantId == '01940000-0000-7000-8000-000000000001') {
         _tenantId = 'tenant-lincoln-high-001';
       }
       notifyListeners();
@@ -71,10 +72,12 @@ class ApiClient extends ChangeNotifier {
   void _applyConfigJson(String rawJson) {
     final dynamic data = json.decode(rawJson);
     if (data is Map<String, dynamic>) {
-      if (data['apiBaseUrl'] is String && (data['apiBaseUrl'] as String).isNotEmpty) {
+      if (data['apiBaseUrl'] is String &&
+          (data['apiBaseUrl'] as String).isNotEmpty) {
         baseUrl = data['apiBaseUrl'] as String;
       }
-      if (data['defaultTenantId'] is String && (data['defaultTenantId'] as String).isNotEmpty) {
+      if (data['defaultTenantId'] is String &&
+          (data['defaultTenantId'] as String).isNotEmpty) {
         tenantId = data['defaultTenantId'] as String;
       }
       if (data['mockMode'] is bool) {
@@ -124,7 +127,8 @@ class ApiClient extends ChangeNotifier {
   }
 
   void triggerAccessDenied([String? reason]) {
-    final msg = reason ?? 'Access denied (403): You do not have sufficient permission to access this resource.';
+    final msg = reason ??
+        'Access denied (403): You do not have sufficient permission to access this resource.';
     for (final listener in List.of(_onAccessDeniedListeners)) {
       try {
         (listener as dynamic)(msg);
@@ -143,8 +147,11 @@ class ApiClient extends ChangeNotifier {
     final cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/$endpoint';
     final url = Uri.parse('$_baseUrl$cleanEndpoint');
 
-    final isUuid = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(tenantId);
-    final shouldSendTenantHeader = tenantId.isNotEmpty && (_isMockMode || isUuid);
+    final isUuid = RegExp(
+            r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+        .hasMatch(tenantId);
+    final shouldSendTenantHeader =
+        tenantId.isNotEmpty && (_isMockMode || isUuid);
 
     final requestHeaders = <String, String>{
       'Content-Type': 'application/json',
@@ -156,17 +163,21 @@ class ApiClient extends ChangeNotifier {
 
     try {
       http.Response response;
-      final encodedBody = body is String ? body : (body != null ? jsonEncode(body) : null);
+      final encodedBody =
+          body is String ? body : (body != null ? jsonEncode(body) : null);
 
       switch (method.toUpperCase()) {
         case 'POST':
-          response = await http.post(url, headers: requestHeaders, body: encodedBody);
+          response =
+              await http.post(url, headers: requestHeaders, body: encodedBody);
           break;
         case 'PUT':
-          response = await http.put(url, headers: requestHeaders, body: encodedBody);
+          response =
+              await http.put(url, headers: requestHeaders, body: encodedBody);
           break;
         case 'PATCH':
-          response = await http.patch(url, headers: requestHeaders, body: encodedBody);
+          response =
+              await http.patch(url, headers: requestHeaders, body: encodedBody);
           break;
         case 'DELETE':
           response = await http.delete(url, headers: requestHeaders);
@@ -206,7 +217,8 @@ class ApiClient extends ChangeNotifier {
               body: body,
             );
           } else {
-            triggerAuthExpired('Session refresh token expired (401). Please sign in again.');
+            triggerAuthExpired(
+                'Session refresh token expired (401). Please sign in again.');
           }
         } catch (_) {
           triggerAuthExpired('Session refresh failed. Please sign in again.');

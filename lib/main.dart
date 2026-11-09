@@ -19,7 +19,8 @@ import 'state/app_state.dart';
 import 'state/auth_notifier.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,7 +62,8 @@ class _IlmiyaAppState extends State<IlmiyaApp> {
         SnackBar(
           backgroundColor: const Color(0xFFDC2626),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           content: Row(
             children: [
               const Icon(Icons.gpp_bad_rounded, color: Colors.white, size: 20),
@@ -70,7 +72,10 @@ class _IlmiyaAppState extends State<IlmiyaApp> {
                 child: Text(
                   reason?.toString() ??
                       'Access denied (403): You do not have sufficient permission to access this resource.',
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500),
                 ),
               ),
             ],
@@ -176,15 +181,22 @@ class _LazyTabBodyState extends State<_LazyTabBody> {
         }
         switch (index) {
           case 0:
-            return SchoolProfileScreen(key: ValueKey('school_profile_${widget.tenantId}_${widget.modeSuffix}'));
+            return SchoolProfileScreen(
+                key: ValueKey(
+                    'school_profile_${widget.tenantId}_${widget.modeSuffix}'));
           case 1:
-            return AcademicYearsScreen(key: ValueKey('academic_years_${widget.tenantId}_${widget.modeSuffix}'));
+            return AcademicYearsScreen(
+                key: ValueKey(
+                    'academic_years_${widget.tenantId}_${widget.modeSuffix}'));
           case 2:
-            return IamManagementScreen(key: ValueKey('iam_management_${widget.tenantId}_${widget.modeSuffix}'));
+            return IamManagementScreen(
+                key: ValueKey(
+                    'iam_management_${widget.tenantId}_${widget.modeSuffix}'));
           case 3:
             return const PreviewScreen();
           case 4:
-            return DashboardScreen(key: ValueKey('dashboard_${widget.tenantId}'));
+            return DashboardScreen(
+                key: ValueKey('dashboard_${widget.tenantId}'));
           case 5:
             return const GradesScreen();
           case 6:
