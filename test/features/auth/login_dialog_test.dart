@@ -340,5 +340,42 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
       expect(find.text('Invalid credentials provided'), findsOneWidget);
     });
+
+    testWidgets(
+        'LoginDialog submits form when Enter is pressed on password field',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      bool successCalled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<AuthNotifier>.value(
+            value: authNotifier,
+            child: Scaffold(
+              body: LoginDialog(
+                isStandalone: true,
+                onSuccess: () => successCalled = true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final textFields = find.byType(TextFormField);
+      await tester.enterText(textFields.at(0), 'admin.utama@ilmiya.edu');
+      await tester.enterText(textFields.at(1), 'Superadmin@123');
+
+      // Submit by triggering onFieldSubmitted on password field (Enter key)
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      expect(successCalled, isTrue);
+      expect(authNotifier.isAuthenticated, isTrue);
+    });
   });
 }

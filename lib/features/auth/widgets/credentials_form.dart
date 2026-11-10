@@ -52,6 +52,15 @@ class _CredentialsFormState extends State<CredentialsForm> {
           // Email / Username
           TextFormField(
             controller: widget.emailController,
+            textInputAction: TextInputAction.next,
+            onFieldSubmitted: (_) {
+              if (widget.passwordController.text.isNotEmpty &&
+                  !widget.auth.isLoading) {
+                widget.onSubmit();
+              } else {
+                FocusScope.of(context).nextFocus();
+              }
+            },
             style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
               labelText: 'Institutional Email or Username',
@@ -71,6 +80,12 @@ class _CredentialsFormState extends State<CredentialsForm> {
           TextFormField(
             controller: widget.passwordController,
             obscureText: _obscurePassword,
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) {
+              if (!widget.auth.isLoading) {
+                widget.onSubmit();
+              }
+            },
             style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
               labelText: 'Password',
