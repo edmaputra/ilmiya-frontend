@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
 import '../../../core/services/school_service.dart';
+import '../../../core/utils/app_toast.dart';
 
 class RegisterTenantDialog extends StatefulWidget {
   final VoidCallback onTenantRegistered;
@@ -61,34 +62,37 @@ class _RegisterTenantDialogState extends State<RegisterTenantDialog> {
     final email = _emailCtrl.text.trim();
 
     if (tId.isEmpty || name.isEmpty || code.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('Please complete Tenant ID, Name, and Institution Code.'),
-        ),
+      AppToast.showError(
+        context,
+        'Please complete Tenant ID, Name, and Institution Code.',
       );
       return;
     }
 
-    await schoolService.registerSchool(RegisterSchoolRequest(
-      tenantId: tId,
-      name: name,
-      institutionCode: code,
-      address: addr.isNotEmpty ? addr : 'Campus Address',
-      contactEmail: email.isNotEmpty ? email : 'admin@$tId.edu',
-      contactPhone: _phoneCtrl.text.trim().isNotEmpty
-          ? _phoneCtrl.text.trim()
-          : '+1 555 0100',
-    ));
+    try {
+      await schoolService.registerSchool(RegisterSchoolRequest(
+        tenantId: tId,
+        name: name,
+        institutionCode: code,
+        address: addr.isNotEmpty ? addr : 'Campus Address',
+        contactEmail: email.isNotEmpty ? email : 'admin@$tId.edu',
+        contactPhone: _phoneCtrl.text.trim().isNotEmpty
+            ? _phoneCtrl.text.trim()
+            : '+1 555 0100',
+      ));
 
-    if (mounted) {
-      Navigator.of(context).pop();
-      widget.onTenantRegistered();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('School tenant "$name" successfully registered!'),
-        ),
-      );
+      if (mounted) {
+        Navigator.of(context).pop();
+        widget.onTenantRegistered();
+        AppToast.showSuccess(
+          context,
+          'School tenant "$name" successfully registered!',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, 'Failed to register tenant: $e');
+      }
     }
   }
 

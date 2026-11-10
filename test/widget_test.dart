@@ -144,6 +144,10 @@ void main() {
     HttpOverrides.global = _MockHttpOverrides();
   });
 
+  setUp(() {
+    apiClient.isMockMode = true;
+  });
+
   tearDownAll(() {
     HttpOverrides.global = null;
   });
@@ -178,7 +182,7 @@ void main() {
     expect(find.text('Feature Previews'), findsWidgets);
 
     // Verify School Profile content loaded
-    expect(find.textContaining('SMA Negeri 1 Ilmiya'), findsOneWidget);
+    expect(find.textContaining('SMA Negeri 1 Ilmiya'), findsWidgets);
     expect(find.text('Operational Rules'), findsOneWidget);
   });
 
@@ -302,8 +306,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Initial tenant is Lincoln High School
-    expect(find.text('Lincoln High School'), findsWidgets);
+    // Initial tenant is SMA Negeri 1 Ilmiya (Lincoln High Campus)
+    expect(find.textContaining('SMA Negeri 1 Ilmiya (Lincoln High Campus)'),
+        findsWidgets);
 
     // Switch tenant to SMAN 1 Ilmiya
     await authNotifier.switchTenant('tenant-sma1-ilmiya-002');

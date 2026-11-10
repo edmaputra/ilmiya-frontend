@@ -88,6 +88,7 @@ void main() {
       final created = await service.createUser(CreateUserRequest(
         email: 'temp.user@ilmiya.edu',
         fullName: 'Temporary User',
+        password: 'Password123!',
       ));
       expect(created.id, isNotEmpty);
 
@@ -127,6 +128,7 @@ void main() {
 
     test('createRole and createGroup and createScope', () async {
       final newRole = await service.createRole(CreateRoleRequest(
+        tenantId: 'tenant-lincoln-high-001',
         code: 'COUNSELOR',
         name: 'School Counselor',
         description: 'Counseling staff',
@@ -138,6 +140,7 @@ void main() {
       expect(roles.any((r) => r.code == 'COUNSELOR'), isTrue);
 
       final newGroup = await service.createGroup(CreateGroupRequest(
+        tenantId: 'tenant-lincoln-high-001',
         code: 'COUNSELORS',
         name: 'Counselor Group',
         description: 'All counselors',
@@ -148,6 +151,7 @@ void main() {
       expect(groups.any((g) => g.code == 'COUNSELORS'), isTrue);
 
       final newScope = await service.createScope(CreateScopeRequest(
+        tenantId: 'tenant-lincoln-high-001',
         code: 'WEST_WING',
         name: 'West Wing Campus',
       ));

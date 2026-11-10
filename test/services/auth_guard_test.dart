@@ -139,8 +139,12 @@ void main() {
       expect(find.textContaining('Session expired (401)'), findsOneWidget);
       expect(find.byType(AdaptiveScaffold), findsNothing);
 
-      // User signs back in with a demo persona
-      await tester.tap(find.text('Dr. Sarah Jenkins').first);
+      // User signs back in with valid credentials
+      final emailFields = find.byType(TextFormField);
+      await tester.enterText(emailFields.at(0), 'admin.utama@lincoln.edu');
+      await tester.enterText(emailFields.at(1), 'Password123!');
+      await tester
+          .tap(find.widgetWithText(ElevatedButton, 'Sign In to Portal'));
       await tester.pumpAndSettle();
 
       // Back into main layout

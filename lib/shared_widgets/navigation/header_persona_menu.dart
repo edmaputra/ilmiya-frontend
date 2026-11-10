@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
-import '../../core/models/iam.dart';
+import '../../core/utils/app_toast.dart';
 import '../../features/auth/presentation/login_dialog.dart';
 import '../../state/auth_notifier.dart';
+import 'header_tenant_switcher_dialog.dart';
 
 class HeaderPersonaMenu extends StatelessWidget {
   final AuthNotifier auth;
@@ -21,106 +22,111 @@ class HeaderPersonaMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = auth.user;
+    final email = user?.email ?? '';
+
     return PopupMenuButton<String>(
-      tooltip: 'Account & Personas',
+      tooltip: 'Account Options',
       offset: const Offset(0, 48),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.borderLight),
       ),
       onSelected: (action) {
-        if (action == 'login') {
+        if (action == 'switch_tenant') {
+          HeaderTenantSwitcherDialog.show(context, auth);
+        } else if (action == 'login') {
           LoginDialog.show(context);
         } else if (action == 'logout') {
           auth.logout();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Signed out successfully.')),
-          );
-        } else if (action.startsWith('persona:')) {
-          final keyStr = action.replaceFirst('persona:', '');
-          final personaKey = DemoPersonaKey.values.firstWhere(
-            (k) => k.name == keyStr,
-            orElse: () => DemoPersonaKey.superadmin,
-          );
-          auth.loginAsPersona(personaKey);
+          AppToast.showSuccess(context, 'Signed out successfully.');
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           enabled: false,
-          child: Text(
-            '1-CLICK PERSONAS (RBAC)',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textMuted,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-        ...DemoPersonaKey.values.map((key) {
-          final persona = DEMO_PERSONAS[key]!;
-          final isActive = auth.user?.email == persona.email;
-          return PopupMenuItem<String>(
-            value: 'persona:${key.name}',
-            child: Row(
-              children: [
-                Icon(
-                  isActive
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_off,
-                  size: 14,
-                  color: isActive ? AppColors.forestSage : AppColors.textMuted,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                actorName,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        persona.name,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight:
-                              isActive ? FontWeight.w800 : FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        '${persona.roleLabel} • ${persona.email}',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textMuted,
-                        ),
-                      ),
-                    ],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (email.isNotEmpty)
+                Text(
+                  email,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.forestSage.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  primaryRole,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.forestSage,
                   ),
                 ),
-              ],
-            ),
-          );
-        }),
+              ),
+            ],
+          ),
+        ),
         const PopupMenuDivider(),
         const PopupMenuItem<String>(
-          value: 'login',
+          value: 'switch_tenant',
           child: Row(
             children: [
-              Icon(Icons.login, size: 16, color: AppColors.forestSage),
+              Icon(Icons.apartment_rounded,
+                  size: 16, color: AppColors.forestSage),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Sign In with Custom Credentials...',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  'Switch School Tenant...',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                 ),
               ),
             ],
           ),
         ),
         const PopupMenuItem<String>(
+          value: 'login',
+          child: Row(
+            children: [
+              Icon(Icons.login_rounded, size: 16, color: AppColors.forestSage),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Sign In with Another Account...',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem<String>(
           value: 'logout',
           child: Row(
             children: [
-              Icon(Icons.logout, size: 16, color: AppColors.earthyTerra),
+              Icon(Icons.logout_rounded,
+                  size: 16, color: AppColors.earthyTerra),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -161,7 +167,7 @@ class HeaderPersonaMenu extends StatelessWidget {
             if (isTablet) ...[
               const SizedBox(width: 8),
               ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 100),
+                constraints: const BoxConstraints(maxWidth: 120),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,

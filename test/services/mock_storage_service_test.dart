@@ -105,6 +105,7 @@ void main() {
       final created = storage.createUser(CreateUserRequest(
         email: 'test.unique@ilmiya.edu',
         fullName: 'Test Unique',
+        password: 'Password123!',
       ));
       expect(created.status, 'ACTIVE');
 
@@ -127,6 +128,7 @@ void main() {
       final createdRole = storage.createRole(
         DEFAULT_TENANT_ID,
         CreateRoleRequest(
+          tenantId: DEFAULT_TENANT_ID,
           code: 'LIBRARIAN',
           name: 'Librarian',
           permissions: ['books:read', 'books:issue'],
@@ -142,6 +144,7 @@ void main() {
       final createdGroup = storage.createGroup(
         DEFAULT_TENANT_ID,
         CreateGroupRequest(
+          tenantId: DEFAULT_TENANT_ID,
           code: 'DEBATE_CLUB',
           name: 'Debate Club',
         ),
@@ -156,6 +159,7 @@ void main() {
       final createdScope = storage.createScope(
         DEFAULT_TENANT_ID,
         CreateScopeRequest(
+          tenantId: DEFAULT_TENANT_ID,
           code: 'LIBRARY_BUILDING',
           name: 'Library Building',
         ),
@@ -166,6 +170,7 @@ void main() {
       final childScope = storage.createScope(
         DEFAULT_TENANT_ID,
         CreateScopeRequest(
+          tenantId: DEFAULT_TENANT_ID,
           code: 'ROOM_201',
           name: 'Reading Room 201',
           parentId: createdScope.id,

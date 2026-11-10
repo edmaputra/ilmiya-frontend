@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/services/api_client.dart';
 import '../../../state/auth_notifier.dart';
 
 class CredentialsForm extends StatefulWidget {
   final AuthNotifier auth;
   final TextEditingController emailController;
   final TextEditingController passwordController;
-  final TextEditingController tenantController;
   final GlobalKey<FormState> formKey;
   final VoidCallback onSubmit;
 
@@ -16,7 +14,6 @@ class CredentialsForm extends StatefulWidget {
     required this.auth,
     required this.emailController,
     required this.passwordController,
-    required this.tenantController,
     required this.formKey,
     required this.onSubmit,
   });
@@ -40,7 +37,7 @@ class _CredentialsFormState extends State<CredentialsForm> {
               Icon(Icons.lock_outline, size: 16, color: AppColors.forestSage),
               SizedBox(width: 6),
               Text(
-                'Direct Credentials',
+                'Institutional Credentials',
                 style: TextStyle(
                   fontFamily: 'serif',
                   fontSize: 14,
@@ -52,20 +49,21 @@ class _CredentialsFormState extends State<CredentialsForm> {
           ),
           const SizedBox(height: 12),
 
-          // Email
+          // Email / Username
           TextFormField(
             controller: widget.emailController,
             style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
-              labelText: 'Institutional Email',
+              labelText: 'Institutional Email or Username',
               hintText: 'name@ilmiya.edu',
-              prefixIcon: const Icon(Icons.email_outlined, size: 18),
+              prefixIcon: const Icon(Icons.person_outline_rounded, size: 18),
               isDense: true,
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Email is required' : null,
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? 'Institutional email or username is required'
+                : null,
           ),
           const SizedBox(height: 10),
 
@@ -92,21 +90,7 @@ class _CredentialsFormState extends State<CredentialsForm> {
             validator: (v) =>
                 (v == null || v.isEmpty) ? 'Password is required' : null,
           ),
-          const SizedBox(height: 10),
-
-          // Tenant ID
-          TextFormField(
-            controller: widget.tenantController,
-            style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
-            decoration: InputDecoration(
-              labelText: 'Tenant ID',
-              prefixIcon: const Icon(Icons.business_outlined, size: 18),
-              isDense: true,
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
           ElevatedButton.icon(
             onPressed: widget.auth.isLoading ? null : widget.onSubmit,
@@ -130,69 +114,6 @@ class _CredentialsFormState extends State<CredentialsForm> {
                 : const Icon(Icons.login_rounded, size: 18),
             label: Text(
               widget.auth.isLoading ? 'Signing In...' : 'Sign In to Portal',
-            ),
-          ),
-
-          const SizedBox(height: 12),
-          Center(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {
-                setState(() {
-                  apiClient.toggleMockMode();
-                });
-              },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: apiClient.isMockMode
-                      ? const Color(0xFFF3E8FF)
-                      : const Color(0xFFE6F4EA),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: apiClient.isMockMode
-                        ? const Color(0xFFD8B4FE)
-                        : const Color(0xFFA8DAB5),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: apiClient.isMockMode
-                            ? const Color(0xFF9333EA)
-                            : const Color(0xFF137333),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      apiClient.isMockMode
-                          ? 'Mode: Mock Simulation'
-                          : 'Mode: Live REST API',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: apiClient.isMockMode
-                            ? const Color(0xFF7E22CE)
-                            : const Color(0xFF137333),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.sync_rounded,
-                      size: 12,
-                      color: apiClient.isMockMode
-                          ? const Color(0xFF7E22CE)
-                          : const Color(0xFF137333),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
         ],

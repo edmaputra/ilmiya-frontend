@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/models/iam.dart';
 import '../../../core/services/iam_service.dart';
+import '../../../core/utils/app_toast.dart';
 
 class IamUserTile extends StatelessWidget {
   final UserResponse user;
@@ -110,8 +111,20 @@ class IamUserTile extends StatelessWidget {
                       onChanged: canUpdateStatus
                           ? (val) async {
                               if (val != null) {
-                                await iamService.changeUserStatus(user.id, val);
-                                await onDataReload();
+                                try {
+                                  await iamService.changeUserStatus(
+                                      user.id, val);
+                                  await onDataReload();
+                                  if (context.mounted) {
+                                    AppToast.showSuccess(
+                                        context, 'User status updated to $val');
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    AppToast.showError(
+                                        context, 'Failed to update status: $e');
+                                  }
+                                }
                               }
                             }
                           : null,
@@ -134,8 +147,19 @@ class IamUserTile extends StatelessWidget {
                           size: 16, color: c.destructive),
                       onPressed: canDelete
                           ? () async {
-                              await iamService.deleteUser(user.id);
-                              await onDataReload();
+                              try {
+                                await iamService.deleteUser(user.id);
+                                await onDataReload();
+                                if (context.mounted) {
+                                  AppToast.showSuccess(context,
+                                      "User '${user.fullName}' deleted successfully");
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  AppToast.showError(
+                                      context, 'Failed to delete user: $e');
+                                }
+                              }
                             }
                           : null,
                     ),
@@ -200,8 +224,19 @@ class IamUserTile extends StatelessWidget {
                 onChanged: canUpdateStatus
                     ? (val) async {
                         if (val != null) {
-                          await iamService.changeUserStatus(user.id, val);
-                          await onDataReload();
+                          try {
+                            await iamService.changeUserStatus(user.id, val);
+                            await onDataReload();
+                            if (context.mounted) {
+                              AppToast.showSuccess(
+                                  context, 'User status updated to $val');
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              AppToast.showError(
+                                  context, 'Failed to update status: $e');
+                            }
+                          }
                         }
                       }
                     : null,
@@ -225,8 +260,19 @@ class IamUserTile extends StatelessWidget {
                 icon: Icon(LucideIcons.trash2, size: 16, color: c.destructive),
                 onPressed: canDelete
                     ? () async {
-                        await iamService.deleteUser(user.id);
-                        await onDataReload();
+                        try {
+                          await iamService.deleteUser(user.id);
+                          await onDataReload();
+                          if (context.mounted) {
+                            AppToast.showSuccess(context,
+                                "User '${user.fullName}' deleted successfully");
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            AppToast.showError(
+                                context, 'Failed to delete user: $e');
+                          }
+                        }
                       }
                     : null,
               ),

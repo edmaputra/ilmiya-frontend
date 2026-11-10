@@ -136,10 +136,10 @@ void main() {
       await tester.tap(createRoleBtn);
       await tester.pumpAndSettle();
 
-      // Locate the dialog title text inside the AlertDialog
+      // Locate the dialog title text inside the Dialog
       expect(
         find.descendant(
-          of: find.byType(AlertDialog),
+          of: find.byType(Dialog),
           matching: find.text('Create Custom Role'),
         ),
         findsOneWidget,
@@ -149,8 +149,8 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
       await tester.pumpAndSettle();
 
-      // AlertDialog should be gone
-      expect(find.byType(AlertDialog), findsNothing);
+      // Dialog should be gone
+      expect(find.byType(Dialog), findsNothing);
     });
 
     testWidgets(
@@ -275,6 +275,7 @@ void main() {
 
       await tester.enterText(textFields.at(0), 'test.created@ilmiya.edu');
       await tester.enterText(textFields.at(1), 'Test Created User');
+      await tester.enterText(textFields.at(2), 'SecretPass123!');
       await tester.pumpAndSettle();
 
       // Tap the submit button inside AlertDialog

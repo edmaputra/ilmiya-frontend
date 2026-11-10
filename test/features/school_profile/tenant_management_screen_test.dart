@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ilmiya_app/core/models/iam.dart';
 import 'package:ilmiya_app/core/services/mock_storage_service.dart';
 import 'package:ilmiya_app/core/theme/app_theme.dart';
+import 'package:ilmiya_app/features/auth/presentation/login_dialog.dart';
 import 'package:ilmiya_app/features/school_profile/presentation/tenant_management_screen.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
 import 'package:kite_ui/shadcn.dart';
@@ -297,14 +298,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('SuperAdmin Access Required'), findsOneWidget);
-      expect(
-          find.text('Switch to Platform SuperAdmin Persona'), findsOneWidget);
+      expect(find.text('Sign In with SuperAdmin Account'), findsOneWidget);
 
-      // Tapping switch persona upgrades to SuperAdmin
-      await tester.tap(find.text('Switch to Platform SuperAdmin Persona'));
+      // Tapping switch button opens login dialog
+      await tester.tap(find.text('Sign In with SuperAdmin Account'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Tenant & School Profile Management'), findsOneWidget);
+      expect(find.byType(LoginDialog), findsOneWidget);
     });
 
     testWidgets(

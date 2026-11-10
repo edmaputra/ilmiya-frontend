@@ -26,6 +26,25 @@ void main() {
       client.baseUrl = 'http://localhost:8080';
     });
 
+    test('Request normalizes duplicate /api prefix when baseUrl contains /api',
+        () async {
+      final client = ApiClient();
+      client.baseUrl = 'https://ilmiya.localhost/api';
+
+      await http.runWithClient(() async {
+        final res = await client.request(endpoint: '/api/v1/users');
+        expect(res, equals({'normalized': true}));
+      },
+          () => http_testing.MockClient((request) async {
+                expect(request.url.toString(),
+                    equals('https://ilmiya.localhost/api/v1/users'));
+                return http.Response(jsonEncode({'normalized': true}), 200);
+              }));
+
+      // Reset
+      client.baseUrl = 'http://localhost:8080';
+    });
+
     test('triggerAuthExpired clears token and invokes registered listeners',
         () {
       final client = ApiClient();
