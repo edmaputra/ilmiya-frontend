@@ -251,5 +251,37 @@ void main() {
                 throw Exception('Socket timeout');
               }));
     });
+
+    test('triggerAccessDenied invokes listeners with message', () {
+      final client = ApiClient();
+      String? deniedMsg;
+      final unsub = client.onAccessDenied((msg) {
+        deniedMsg = msg.toString();
+      });
+
+      client.triggerAccessDenied('Permission denied to resource');
+      expect(deniedMsg, contains('Permission denied to resource'));
+
+      unsub();
+    });
+
+    test('toggleMockMode toggles flag and manages tenant ID defaults', () {
+      final client = ApiClient();
+      client.isMockMode = true;
+      expect(client.isMockMode, isTrue);
+
+      client.toggleMockMode();
+      expect(client.isMockMode, isFalse);
+      expect(client.tenantId, equals('01940000-0000-7000-8000-000000000001'));
+
+      client.toggleMockMode();
+      expect(client.isMockMode, isTrue);
+      expect(client.tenantId, equals('tenant-lincoln-high-001'));
+    });
+
+    test('loadRuntimeConfig gracefully executes', () async {
+      final client = ApiClient();
+      await expectLater(client.loadRuntimeConfig(), completes);
+    });
   });
 }

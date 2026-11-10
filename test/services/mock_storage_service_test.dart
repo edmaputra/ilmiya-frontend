@@ -180,6 +180,100 @@ void main() {
 
       final tree = storage.getScopeTree(DEFAULT_TENANT_ID);
       expect(tree.any((s) => s.id == createdScope.id), isTrue);
+
+      // Group update, delete, member and role management
+      final updatedGroup = storage.updateGroup(
+        createdGroup.id,
+        UpdateGroupRequest(name: 'Debate Club Elite', description: 'Honors'),
+      );
+      expect(updatedGroup.name, equals('Debate Club Elite'));
+      expect(
+          () => storage.updateGroup(
+              'invalid-id', UpdateGroupRequest(name: 'Fail')),
+          throwsException);
+
+      final testUser = storage.createUser(CreateUserRequest(
+        email: 'member@ilmiya.edu',
+        fullName: 'Member User',
+        password: 'Password123!',
+      ));
+
+      storage.addUserToGroup(testUser.id, createdGroup.id);
+      final members = storage.getGroupMembers(createdGroup.id);
+      expect(members.any((m) => m.id == testUser.id), isTrue);
+
+      storage.removeUserFromGroup(testUser.id, createdGroup.id);
+      final membersAfter = storage.getGroupMembers(createdGroup.id);
+      expect(membersAfter.any((m) => m.id == testUser.id), isFalse);
+
+      final groupRole = storage.assignGroupRole(
+        groupId: createdGroup.id,
+        roleId: createdRole.id,
+        tenantId: DEFAULT_TENANT_ID,
+        scopeNodeId: createdScope.id,
+      );
+      expect(groupRole.groupId, equals(createdGroup.id));
+
+      final groupRoles = storage.getGroupRoles(createdGroup.id);
+      expect(groupRoles.length, equals(1));
+
+      storage.revokeGroupRole(groupRole.id);
+      expect(storage.getGroupRoles(createdGroup.id), isEmpty);
+
+      storage.deleteGroup(createdGroup.id);
+      expect(
+          storage
+              .listGroups(DEFAULT_TENANT_ID)
+              .any((g) => g.id == createdGroup.id),
+          isFalse);
+    });
+
+    test('School listing, filtering, status update, and deletion', () {
+      final allSchools = storage.listSchools();
+      expect(allSchools, isNotEmpty);
+
+      final activeSchools = storage.listSchools(status: 'ACTIVE');
+      expect(activeSchools.every((s) => s.status == 'ACTIVE'), isTrue);
+
+      final queriedSchools = storage.listSchools(query: 'Lincoln');
+      expect(queriedSchools, isNotEmpty);
+
+      final notFoundQuery = storage.listSchools(query: 'NonexistentXYZ123');
+      expect(notFoundQuery, isEmpty);
+
+      final registered = storage.registerSchool(RegisterSchoolRequest(
+        tenantId: 'temp-tenant',
+        name: 'Temporary School',
+        institutionCode: 'TMP',
+        address: 'Temp Street 1',
+        contactEmail: 'temp@school.edu',
+        contactPhone: '+62811111111',
+      ));
+      expect(registered.tenantId, equals('temp-tenant'));
+
+      // Register again with same tenantId updates existing
+      final reregistered = storage.registerSchool(RegisterSchoolRequest(
+        tenantId: 'temp-tenant',
+        name: 'Temporary School Updated',
+        institutionCode: 'TMP-UPD',
+        address: 'Temp Street 2',
+        contactEmail: 'temp.updated@school.edu',
+        contactPhone: '+62822222222',
+      ));
+      expect(reregistered.name, equals('Temporary School Updated'));
+
+      final updatedStatus =
+          storage.updateSchoolStatus('temp-tenant', 'SUSPENDED');
+      expect(updatedStatus.status, equals('SUSPENDED'));
+
+      expect(() => storage.updateSchoolStatus('invalid-school', 'SUSPENDED'),
+          throwsException);
+
+      final deleted = storage.deleteSchool('temp-tenant');
+      expect(deleted, isTrue);
+
+      final deleteAgain = storage.deleteSchool('temp-tenant');
+      expect(deleteAgain, isFalse);
     });
   });
 }
