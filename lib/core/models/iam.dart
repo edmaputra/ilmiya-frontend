@@ -65,22 +65,22 @@ class UserResponse {
 class CreateUserRequest {
   final String email;
   final String fullName;
-  final String? password;
-  final bool? isPlatformSuperAdmin;
+  final String password;
+  final bool? platformSuperAdmin;
 
   CreateUserRequest({
     required this.email,
     required this.fullName,
-    this.password,
-    this.isPlatformSuperAdmin,
+    required this.password,
+    this.platformSuperAdmin,
   });
 
   Map<String, dynamic> toJson() => {
         'email': email,
         'fullName': fullName,
-        if (password != null) 'password': password,
-        if (isPlatformSuperAdmin != null)
-          'isPlatformSuperAdmin': isPlatformSuperAdmin,
+        'password': password,
+        if (platformSuperAdmin != null)
+          'platformSuperAdmin': platformSuperAdmin,
       };
 }
 
@@ -179,12 +179,14 @@ class RoleResponse {
 }
 
 class CreateRoleRequest {
+  final String tenantId;
   final String code;
   final String name;
   final String? description;
   final List<String> permissions;
 
   CreateRoleRequest({
+    required this.tenantId,
     required this.code,
     required this.name,
     this.description,
@@ -192,6 +194,7 @@ class CreateRoleRequest {
   });
 
   Map<String, dynamic> toJson() => {
+        'tenantId': tenantId,
         'code': code,
         'name': name,
         if (description != null) 'description': description,
@@ -249,12 +252,14 @@ class GroupResponse {
 }
 
 class CreateGroupRequest {
+  final String tenantId;
   final String code;
   final String name;
   final String? description;
   final String? externalIdpGroupName;
 
   CreateGroupRequest({
+    required this.tenantId,
     required this.code,
     required this.name,
     this.description,
@@ -262,11 +267,65 @@ class CreateGroupRequest {
   });
 
   Map<String, dynamic> toJson() => {
+        'tenantId': tenantId,
         'code': code,
         'name': name,
         if (description != null) 'description': description,
         if (externalIdpGroupName != null)
           'externalIdpGroupName': externalIdpGroupName,
+      };
+}
+
+class UpdateGroupRequest {
+  final String name;
+  final String? description;
+  final String? externalIdpGroupName;
+
+  UpdateGroupRequest({
+    required this.name,
+    this.description,
+    this.externalIdpGroupName,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        if (description != null) 'description': description,
+        if (externalIdpGroupName != null)
+          'externalIdpGroupName': externalIdpGroupName,
+      };
+}
+
+class GroupRoleAssignmentResponse {
+  final String id;
+  final String groupId;
+  final String roleId;
+  final String tenantId;
+  final String? scopeNodeId;
+
+  GroupRoleAssignmentResponse({
+    required this.id,
+    required this.groupId,
+    required this.roleId,
+    required this.tenantId,
+    this.scopeNodeId,
+  });
+
+  factory GroupRoleAssignmentResponse.fromJson(Map<String, dynamic> json) {
+    return GroupRoleAssignmentResponse(
+      id: json['id'] as String? ?? '',
+      groupId: json['groupId'] as String? ?? '',
+      roleId: json['roleId'] as String? ?? '',
+      tenantId: json['tenantId'] as String? ?? '',
+      scopeNodeId: json['scopeNodeId'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'groupId': groupId,
+        'roleId': roleId,
+        'tenantId': tenantId,
+        if (scopeNodeId != null) 'scopeNodeId': scopeNodeId,
       };
 }
 
@@ -295,7 +354,9 @@ class ScopeTreeNode {
       code: json['code'] as String? ?? '',
       name: json['name'] as String? ?? '',
       path: json['path'] as String? ?? '',
-      depth: (json['depth'] as num?)?.toInt() ?? 0,
+      depth: (json['depth'] as num?)?.toInt() ??
+          (json['level'] as num?)?.toInt() ??
+          0,
       parentId: json['parentId'] as String?,
       children: (json['children'] as List<dynamic>?)
               ?.map((c) => ScopeTreeNode.fromJson(c as Map<String, dynamic>))
@@ -316,17 +377,20 @@ class ScopeTreeNode {
 }
 
 class CreateScopeRequest {
+  final String tenantId;
   final String code;
   final String name;
   final String? parentId;
 
   CreateScopeRequest({
+    required this.tenantId,
     required this.code,
     required this.name,
     this.parentId,
   });
 
   Map<String, dynamic> toJson() => {
+        'tenantId': tenantId,
         'code': code,
         'name': name,
         if (parentId != null) 'parentId': parentId,
@@ -490,7 +554,7 @@ class LoginRequest {
   Map<String, dynamic> toJson() => {
         'email': email,
         'password': password,
-        if (tenantId != null) 'tenantId': tenantId,
+        if (tenantId != null && tenantId!.isNotEmpty) 'tenantId': tenantId,
       };
 }
 

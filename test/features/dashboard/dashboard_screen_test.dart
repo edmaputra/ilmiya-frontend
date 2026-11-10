@@ -42,7 +42,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(DashboardScreen), findsOneWidget);
-    expect(find.textContaining('Lincoln High School'), findsOneWidget);
+    expect(find.textContaining('SMA Negeri 1 Ilmiya'), findsOneWidget);
   });
 
   testWidgets(
@@ -58,7 +58,7 @@ void main() {
 
     expect(find.byType(DashboardScreen), findsOneWidget);
     expect(find.textContaining('Welcome back'), findsOneWidget);
-    expect(find.textContaining('Lincoln High School'), findsOneWidget);
+    expect(find.textContaining('SMA Negeri 1 Ilmiya'), findsOneWidget);
     expect(find.textContaining('Final Term Capstone'), findsOneWidget);
   });
 }

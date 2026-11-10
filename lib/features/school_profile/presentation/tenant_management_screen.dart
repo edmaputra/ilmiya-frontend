@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
 import '../../../core/services/school_service.dart';
+import '../../../core/utils/app_toast.dart';
 import '../../../state/auth_notifier.dart';
 import '../dialogs/edit_tenant_dialog.dart';
 import '../dialogs/register_tenant_dialog.dart';
@@ -103,18 +104,14 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
         await schoolService.updateSchoolStatus(school.tenantId, newStatus);
         await _loadSchools();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Tenant ${school.name} is now ${newStatus.toLowerCase()}.'),
-            ),
+          AppToast.showSuccess(
+            context,
+            'Tenant ${school.name} is now ${newStatus.toLowerCase()}.',
           );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update status: $e')),
-          );
+          AppToast.showError(context, 'Failed to update status: $e');
         }
       }
     }
@@ -125,18 +122,15 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     try {
       await auth.switchTenant(tenantId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Active session switched to tenant: $tenantId'),
-          ),
+        AppToast.showSuccess(
+          context,
+          'Active session switched to tenant: $tenantId',
         );
         await _loadSchools();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error switching tenant: $e')),
-        );
+        AppToast.showError(context, 'Error switching tenant: $e');
       }
     }
   }

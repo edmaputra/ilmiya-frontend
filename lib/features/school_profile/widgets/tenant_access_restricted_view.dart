@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/models/iam.dart';
-import '../../../state/auth_notifier.dart';
+import '../../../features/auth/presentation/login_dialog.dart';
 
 class TenantAccessRestrictedView extends StatelessWidget {
   const TenantAccessRestrictedView({super.key});
@@ -14,7 +12,6 @@ class TenantAccessRestrictedView extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
-    final auth = context.read<AuthNotifier>();
 
     return Center(
       child: Container(
@@ -57,9 +54,9 @@ class TenantAccessRestrictedView extends StatelessWidget {
                 backgroundColor: AppColors.forestSage,
                 foregroundColor: Colors.white,
               ),
-              onPressed: () => auth.loginAsPersona(DemoPersonaKey.superadmin),
-              icon: const Icon(LucideIcons.userCheck, size: 16),
-              label: const Text('Switch to Platform SuperAdmin Persona'),
+              onPressed: () => LoginDialog.show(context),
+              icon: const Icon(LucideIcons.logIn, size: 16),
+              label: const Text('Sign In with SuperAdmin Account'),
             ),
           ],
         ),

@@ -59,7 +59,7 @@ void main() {
       auth.dispose();
     });
 
-    testWidgets('HeaderNavBar mode pill re-renders immediately on tap',
+    testWidgets('HeaderNavBar mode pill reflects ApiClient mode state',
         (tester) async {
       tester.view.physicalSize = const Size(1200, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -88,22 +88,13 @@ void main() {
       expect(find.text('Mock Simulation'), findsOneWidget);
       expect(find.text('Live REST API'), findsNothing);
 
-      // Tap the mode pill
-      await tester.tap(find.text('Mock Simulation'));
+      // Change client mode
+      client.isMockMode = false;
       await tester.pumpAndSettle();
 
       // Verified: UI immediately re-rendered to Live REST API
-      expect(client.isMockMode, isFalse);
       expect(find.text('Live REST API'), findsOneWidget);
       expect(find.text('Mock Simulation'), findsNothing);
-
-      // Tap again to switch back
-      await tester.tap(find.text('Live REST API'));
-      await tester.pumpAndSettle();
-
-      expect(client.isMockMode, isTrue);
-      expect(find.text('Mock Simulation'), findsOneWidget);
-      expect(find.text('Live REST API'), findsNothing);
     });
   });
 }

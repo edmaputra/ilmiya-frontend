@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -19,17 +20,76 @@ class ApiClient extends ChangeNotifier {
   factory ApiClient() => _instance;
   ApiClient._internal();
 
-  String _baseUrl = const String.fromEnvironment(
-    'ILMIYA_API_BASE_URL',
-    defaultValue: 'http://localhost:8080',
+  static const String _envMode = String.fromEnvironment(
+    'PROFILE',
+    defaultValue: String.fromEnvironment(
+      'APP_PROFILE',
+      defaultValue: String.fromEnvironment(
+        'APP_MODE',
+        defaultValue: '',
+      ),
+    ),
   );
-  String _tenantId = const String.fromEnvironment(
-    'ILMIYA_DEFAULT_TENANT_ID',
-    defaultValue: 'tenant-lincoln-high-001',
+  static const bool _hasEnvMock = bool.hasEnvironment('ILMIYA_MOCK_MODE') ||
+      bool.hasEnvironment('MOCK_MODE') ||
+      bool.hasEnvironment('MOCK');
+  static const bool _envMock = bool.fromEnvironment(
+    'ILMIYA_MOCK_MODE',
+    defaultValue: bool.fromEnvironment(
+      'MOCK_MODE',
+      defaultValue: bool.fromEnvironment(
+        'MOCK',
+        defaultValue: false,
+      ),
+    ),
   );
+
+  static bool _resolveInitialMockMode() {
+    if (_envMode.toLowerCase() == 'mock') return true;
+    if (_envMode.toLowerCase() == 'live' || _envMode.toLowerCase() == 'prod') {
+      return false;
+    }
+    if (_hasEnvMock) return _envMock;
+
+    // Detect if running under automated test runner (flutter test)
+    try {
+      if (Zone.current[#test.declarer] != null) {
+        return true;
+      }
+      final binding = ServicesBinding.instance;
+      if (binding.runtimeType.toString().contains('Test')) {
+        return true;
+      }
+    } catch (_) {}
+
+    return false; // Default is Live REST API for the application
+  }
+
+  static String _resolveInitialTenantId(bool isMock) {
+    const envTenant = String.fromEnvironment(
+      'ILMIYA_DEFAULT_TENANT_ID',
+      defaultValue: '',
+    );
+    if (envTenant.isNotEmpty) return envTenant;
+    return isMock
+        ? 'tenant-lincoln-high-001'
+        : '01940000-0000-7000-8000-000000000001';
+  }
+
+  static String _resolveInitialBaseUrl() {
+    const envBaseUrl = String.fromEnvironment(
+      'ILMIYA_API_BASE_URL',
+      defaultValue: '',
+    );
+    if (envBaseUrl.isNotEmpty) return envBaseUrl;
+    return 'https://ilmiya.localhost';
+  }
+
+  String _baseUrl = _resolveInitialBaseUrl();
+  String _tenantId = _resolveInitialTenantId(_resolveInitialMockMode());
   String? token;
   String? refreshToken;
-  bool _isMockMode = true;
+  bool _isMockMode = _resolveInitialMockMode();
   bool _isRefreshing = false;
   final List<Function> _onAuthExpiredListeners = [];
   final List<Function> _onAccessDeniedListeners = [];
@@ -52,7 +112,7 @@ class ApiClient extends ChangeNotifier {
     isMockMode = !_isMockMode;
   }
 
-  /// Loads runtime configuration from assets/config.json if available (e.g. injected by Vault / Consul)
+  /// Loads startup profiling configuration from assets/config.json if available
   Future<void> loadRuntimeConfig() async {
     try {
       final content = await rootBundle.loadString('assets/config.json');
@@ -81,7 +141,9 @@ class ApiClient extends ChangeNotifier {
         tenantId = data['defaultTenantId'] as String;
       }
       if (data['mockMode'] is bool) {
-        isMockMode = data['mockMode'] as bool;
+        if (_envMode.isEmpty && !_hasEnvMock) {
+          isMockMode = data['mockMode'] as bool;
+        }
       }
     }
   }
@@ -145,13 +207,18 @@ class ApiClient extends ChangeNotifier {
     dynamic body,
   }) async {
     final cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/$endpoint';
-    final url = Uri.parse('$_baseUrl$cleanEndpoint');
+    final normalizedEndpoint =
+        (_baseUrl.endsWith('/api') && cleanEndpoint.startsWith('/api/'))
+            ? cleanEndpoint.substring(4)
+            : cleanEndpoint;
+    final url = Uri.parse('$_baseUrl$normalizedEndpoint');
 
+    final isLoginEndpoint = cleanEndpoint == '/api/v1/auth/login';
     final isUuid = RegExp(
             r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
         .hasMatch(tenantId);
     final shouldSendTenantHeader =
-        tenantId.isNotEmpty && (_isMockMode || isUuid);
+        !isLoginEndpoint && tenantId.isNotEmpty && (_isMockMode || isUuid);
 
     final requestHeaders = <String, String>{
       'Content-Type': 'application/json',

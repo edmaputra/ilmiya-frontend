@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
-import '../../../core/services/api_client.dart';
+import '../../../core/utils/app_toast.dart';
 import '../../../state/auth_notifier.dart';
 import '../widgets/credentials_form.dart';
-import '../widgets/demo_personas_section.dart';
 import '../widgets/login_dialog_header.dart';
 
 class LoginDialog extends StatefulWidget {
@@ -37,45 +36,14 @@ class _LoginDialogState extends State<LoginDialog> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _tenantController = TextEditingController(text: apiClient.tenantId);
 
-  DemoPersonaKey? _loadingPersona;
   String? _localError;
 
   @override
-  void initState() {
-    super.initState();
-    apiClient.addListener(_onApiClientChanged);
-    _syncTenantController();
-  }
-
-  @override
   void dispose() {
-    apiClient.removeListener(_onApiClientChanged);
     _emailController.dispose();
     _passwordController.dispose();
-    _tenantController.dispose();
     super.dispose();
-  }
-
-  void _onApiClientChanged() {
-    if (mounted) {
-      setState(() {
-        _syncTenantController();
-      });
-    }
-  }
-
-  void _syncTenantController() {
-    if (apiClient.isMockMode &&
-        (_tenantController.text.isEmpty ||
-            _tenantController.text == '01940000-0000-7000-8000-000000000001')) {
-      _tenantController.text = apiClient.tenantId;
-    } else if (!apiClient.isMockMode &&
-        (_tenantController.text.isEmpty ||
-            _tenantController.text == 'tenant-lincoln-high-001')) {
-      _tenantController.text = apiClient.tenantId;
-    }
   }
 
   Future<void> _handleManualLogin() async {
@@ -84,58 +52,31 @@ class _LoginDialogState extends State<LoginDialog> {
       _localError = null;
     });
 
-    final tenantTrimmed = _tenantController.text.trim();
     final emailTrimmed = _emailController.text.trim();
-    if (apiClient.isMockMode &&
-        (emailTrimmed.contains('@springfield.local') ||
-            RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}')
-                .hasMatch(tenantTrimmed))) {
-      apiClient.isMockMode = false;
-    }
-
     final auth = context.read<AuthNotifier>();
     try {
       await auth.login(LoginRequest(
         email: emailTrimmed,
         password: _passwordController.text,
-        tenantId: tenantTrimmed,
       ));
       if (mounted) {
+        AppToast.showSuccess(
+          context,
+          'Signed in successfully as ${auth.user?.fullName ?? emailTrimmed}',
+        );
         widget.onSuccess?.call();
         if (!widget.isStandalone) Navigator.of(context).pop();
       }
     } catch (e) {
+      final msg = e
+          .toString()
+          .replaceFirst('Exception: ', '')
+          .replaceFirst('ApiException(0): ', '');
       setState(() {
-        _localError = e
-            .toString()
-            .replaceFirst('Exception: ', '')
-            .replaceFirst('ApiException(0): ', '');
+        _localError = msg;
       });
-    }
-  }
-
-  Future<void> _handlePersonaLogin(DemoPersonaKey key) async {
-    setState(() {
-      _loadingPersona = key;
-      _localError = null;
-    });
-
-    final auth = context.read<AuthNotifier>();
-    try {
-      await auth.loginAsPersona(key);
       if (mounted) {
-        widget.onSuccess?.call();
-        if (!widget.isStandalone) Navigator.of(context).pop();
-      }
-    } catch (e) {
-      setState(() {
-        _localError = 'Failed to authenticate persona: $e';
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _loadingPersona = null;
-        });
+        AppToast.showError(context, 'Authentication failed: $msg');
       }
     }
   }
@@ -143,10 +84,9 @@ class _LoginDialogState extends State<LoginDialog> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthNotifier>();
-    final isMobile = MediaQuery.of(context).size.width < 800;
 
     final content = Container(
-      constraints: const BoxConstraints(maxWidth: 880),
+      constraints: const BoxConstraints(maxWidth: 440),
       decoration: BoxDecoration(
         color: AppColors.naturalParchment,
         borderRadius: BorderRadius.circular(24),
@@ -159,7 +99,7 @@ class _LoginDialogState extends State<LoginDialog> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -195,56 +135,13 @@ class _LoginDialogState extends State<LoginDialog> {
 
           const SizedBox(height: 20),
 
-          // Two-column layout on Desktop/Web, Column on mobile
-          if (isMobile)
-            Column(
-              children: [
-                DemoPersonasSection(
-                  auth: auth,
-                  loadingPersona: _loadingPersona,
-                  onSelectPersona: _handlePersonaLogin,
-                ),
-                const SizedBox(height: 20),
-                const Divider(),
-                const SizedBox(height: 16),
-                CredentialsForm(
-                  auth: auth,
-                  emailController: _emailController,
-                  passwordController: _passwordController,
-                  tenantController: _tenantController,
-                  formKey: _formKey,
-                  onSubmit: _handleManualLogin,
-                ),
-              ],
-            )
-          else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: DemoPersonasSection(
-                    auth: auth,
-                    loadingPersona: _loadingPersona,
-                    onSelectPersona: _handlePersonaLogin,
-                  ),
-                ),
-                const SizedBox(width: 24),
-                Container(width: 1, height: 380, color: AppColors.borderLight),
-                const SizedBox(width: 24),
-                Expanded(
-                  flex: 4,
-                  child: CredentialsForm(
-                    auth: auth,
-                    emailController: _emailController,
-                    passwordController: _passwordController,
-                    tenantController: _tenantController,
-                    formKey: _formKey,
-                    onSubmit: _handleManualLogin,
-                  ),
-                ),
-              ],
-            ),
+          CredentialsForm(
+            auth: auth,
+            emailController: _emailController,
+            passwordController: _passwordController,
+            formKey: _formKey,
+            onSubmit: _handleManualLogin,
+          ),
         ],
       ),
     );

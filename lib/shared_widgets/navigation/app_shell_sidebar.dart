@@ -21,14 +21,7 @@ class AppShellSidebar extends StatelessWidget {
     final state = context.watch<AppState>();
     final auth = context.watch<AuthNotifier>();
 
-    final tenantDisplayName = auth.tenantId == 'tenant-lincoln-high-001'
-        ? 'Lincoln High School'
-        : auth.tenantId == 'tenant-sma1-ilmiya-002'
-            ? 'SMAN 1 Ilmiya'
-            : auth.tenantId
-                .replaceAll('tenant-', '')
-                .replaceAll('-', ' ')
-                .toUpperCase();
+    final tenantDisplayName = auth.schoolName;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,7 +116,7 @@ class AppShellSidebar extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              auth.tenantId,
+                              'Active Institution',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -151,75 +144,133 @@ class AppShellSidebar extends StatelessWidget {
 
         // Navigation Sections
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            children: [
-              _buildSectionHeader('Institution & Control'),
-              AppShellNavTile(
-                title: 'School Profile',
-                icon: LucideIcons.school,
-                tabIndex: 0,
-                isActive: state.currentTab == 0,
-              ),
-              AppShellNavTile(
-                title: 'Executive Dashboard',
-                icon: LucideIcons.layoutDashboard,
-                tabIndex: 4,
-                isActive: state.currentTab == 4,
-              ),
-              const SizedBox(height: 12),
-              _buildSectionHeader('Academics'),
-              AppShellNavTile(
-                title: 'Academic Years',
-                icon: LucideIcons.calendarDays,
-                tabIndex: 1,
-                isActive: state.currentTab == 1,
-              ),
-              AppShellNavTile(
-                title: 'Courses & Grades',
-                icon: LucideIcons.graduationCap,
-                tabIndex: 5,
-                isActive: state.currentTab == 5,
-              ),
-              const SizedBox(height: 12),
-              _buildSectionHeader('Administration'),
-              AppShellNavTile(
-                title: 'IAM Console',
-                icon: LucideIcons.shieldCheck,
-                tabIndex: 2,
-                isActive: state.currentTab == 2,
-              ),
-              AppShellNavTile(
-                title: 'Tenant Console',
-                icon: LucideIcons.building2,
-                tabIndex: 8,
-                isActive: state.currentTab == 8,
-                badgeText: 'Admin',
-              ),
-              const SizedBox(height: 12),
-              _buildSectionHeader('Communications & Labs'),
-              AppShellNavTile(
-                title: 'Feature Previews',
-                icon: LucideIcons.flaskConical,
-                tabIndex: 3,
-                isActive: state.currentTab == 3,
-                badgeText: 'Labs',
-              ),
-              AppShellNavTile(
-                title: 'Messages',
-                icon: LucideIcons.messageSquare,
-                tabIndex: 6,
-                isActive: state.currentTab == 6,
-                unreadCount: state.unreadMessagesCount,
-              ),
-              AppShellNavTile(
-                title: 'Notifications',
-                icon: LucideIcons.bell,
-                tabIndex: 7,
-                isActive: state.currentTab == 7,
-                unreadCount: state.unreadNotifsCount,
-              ),
-            ],
+          child: Builder(
+            builder: (context) {
+              final canViewSchoolProfile =
+                  auth.hasPermission('school:profile:read') ||
+                      auth.hasRole('SUPERADMIN') ||
+                      auth.hasRole('SCHOOL_ADMIN');
+              const canViewDashboard = true;
+              final canViewAcademicYears =
+                  auth.hasPermission('academic:year:read') ||
+                      auth.hasRole('SUPERADMIN') ||
+                      auth.hasRole('SCHOOL_ADMIN');
+              final canViewGrades =
+                  auth.hasPermission('academic:course:read') ||
+                      auth.hasPermission('attendance:record:read') ||
+                      auth.hasPermission('student:profile:read') ||
+                      auth.roles.any((r) => [
+                            'TEACHER',
+                            'STUDENT',
+                            'PARENT',
+                            'SUPERADMIN',
+                            'SCHOOL_ADMIN'
+                          ].contains(r.toUpperCase()));
+              final canViewIam = auth.hasPermission('iam:user:read') ||
+                  auth.hasPermission('iam:role:read') ||
+                  auth.hasPermission('iam:group:read') ||
+                  auth.hasPermission('iam:scope:read') ||
+                  auth.hasRole('SUPERADMIN');
+              final canViewTenants =
+                  auth.hasRole('SUPERADMIN') || auth.hasPermission('*');
+              final canViewPreviews = auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('SCHOOL_ADMIN') ||
+                  !auth.isAuthenticated;
+
+              final showInstitutionSection =
+                  canViewSchoolProfile || canViewDashboard;
+              final showAcademicsSection =
+                  canViewAcademicYears || canViewGrades;
+              final showAdminSection = canViewIam || canViewTenants;
+              const showCommSection = true;
+
+              return ListView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                children: [
+                  if (showInstitutionSection) ...[
+                    _buildSectionHeader('Institution & Control'),
+                    if (canViewSchoolProfile)
+                      AppShellNavTile(
+                        title: 'School Profile',
+                        icon: LucideIcons.school,
+                        tabIndex: 0,
+                        isActive: state.currentTab == 0,
+                      ),
+                    if (canViewDashboard)
+                      AppShellNavTile(
+                        title: 'Executive Dashboard',
+                        icon: LucideIcons.layoutDashboard,
+                        tabIndex: 4,
+                        isActive: state.currentTab == 4,
+                      ),
+                  ],
+                  if (showAcademicsSection) ...[
+                    const SizedBox(height: 12),
+                    _buildSectionHeader('Academics'),
+                    if (canViewAcademicYears)
+                      AppShellNavTile(
+                        title: 'Academic Years',
+                        icon: LucideIcons.calendarDays,
+                        tabIndex: 1,
+                        isActive: state.currentTab == 1,
+                      ),
+                    if (canViewGrades)
+                      AppShellNavTile(
+                        title: 'Courses & Grades',
+                        icon: LucideIcons.graduationCap,
+                        tabIndex: 5,
+                        isActive: state.currentTab == 5,
+                      ),
+                  ],
+                  if (showAdminSection) ...[
+                    const SizedBox(height: 12),
+                    _buildSectionHeader('Administration'),
+                    if (canViewIam)
+                      AppShellNavTile(
+                        title: 'IAM Console',
+                        icon: LucideIcons.shieldCheck,
+                        tabIndex: 2,
+                        isActive: state.currentTab == 2,
+                      ),
+                    if (canViewTenants)
+                      AppShellNavTile(
+                        title: 'Tenant Console',
+                        icon: LucideIcons.building2,
+                        tabIndex: 8,
+                        isActive: state.currentTab == 8,
+                        badgeText: 'Admin',
+                      ),
+                  ],
+                  if (showCommSection) ...[
+                    const SizedBox(height: 12),
+                    _buildSectionHeader('Communications & Labs'),
+                    if (canViewPreviews)
+                      AppShellNavTile(
+                        title: 'Feature Previews',
+                        icon: LucideIcons.flaskConical,
+                        tabIndex: 3,
+                        isActive: state.currentTab == 3,
+                        badgeText: 'Labs',
+                      ),
+                    AppShellNavTile(
+                      title: 'Messages',
+                      icon: LucideIcons.messageSquare,
+                      tabIndex: 6,
+                      isActive: state.currentTab == 6,
+                      unreadCount: state.unreadMessagesCount,
+                    ),
+                    AppShellNavTile(
+                      title: 'Notifications',
+                      icon: LucideIcons.bell,
+                      tabIndex: 7,
+                      isActive: state.currentTab == 7,
+                      unreadCount: state.unreadNotifsCount,
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
         ),
 

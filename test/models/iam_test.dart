@@ -43,18 +43,19 @@ void main() {
         email: 'new@ilmiya.edu',
         fullName: 'New User',
         password: 'secretPassword',
-        isPlatformSuperAdmin: false,
+        platformSuperAdmin: false,
       );
       final json = req.toJson();
       expect(json['email'], 'new@ilmiya.edu');
       expect(json['password'], 'secretPassword');
-      expect(json['isPlatformSuperAdmin'], isFalse);
+      expect(json['platformSuperAdmin'], isFalse);
 
-      final minimalReq = CreateUserRequest(
+      final req2 = CreateUserRequest(
         email: 'min@ilmiya.edu',
         fullName: 'Min User',
+        password: 'password123',
       );
-      expect(minimalReq.toJson().containsKey('password'), isFalse);
+      expect(req2.toJson()['password'], 'password123');
     });
 
     test('UserRoleAssignmentResponse serialization', () {
@@ -99,12 +100,14 @@ void main() {
       expect(roleMap['description'], 'Admin role description');
 
       final createRoleReq = CreateRoleRequest(
+        tenantId: 'tenant-main',
         code: 'TEACHER',
         name: 'Teacher Role',
         description: 'For teachers',
         permissions: ['grades:write'],
       );
       final createMap = createRoleReq.toJson();
+      expect(createMap['tenantId'], 'tenant-main');
       expect(createMap['code'], 'TEACHER');
       expect(createMap['permissions'], ['grades:write']);
 
@@ -132,12 +135,14 @@ void main() {
       expect(groupMap['externalIdpGroupName'], 'idp-faculty');
 
       final createReq = CreateGroupRequest(
+        tenantId: 'tenant-main',
         code: 'STUDENTS',
         name: 'Students Group',
         description: 'Enrolled students',
         externalIdpGroupName: 'idp-students',
       );
       final createMap = createReq.toJson();
+      expect(createMap['tenantId'], 'tenant-main');
       expect(createMap['code'], 'STUDENTS');
       expect(createMap['externalIdpGroupName'], 'idp-students');
     });
@@ -171,11 +176,13 @@ void main() {
       expect(treeMap['children'], isA<List>());
 
       final createScopeReq = CreateScopeRequest(
+        tenantId: 'tenant-main',
         code: 'MIDDLE_SCHOOL',
         name: 'Middle School',
         parentId: 'node-1',
       );
       final createScopeMap = createScopeReq.toJson();
+      expect(createScopeMap['tenantId'], 'tenant-main');
       expect(createScopeMap['parentId'], 'node-1');
     });
 

@@ -177,7 +177,7 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Tenant ID: ${p.tenantId} • Code: ${p.institutionCode}',
+                    'Code: ${p.institutionCode}',
                     style: t.muted,
                   ),
                 ],

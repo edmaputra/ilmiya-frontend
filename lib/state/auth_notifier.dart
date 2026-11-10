@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../core/models/iam.dart';
 import '../core/services/api_client.dart';
 import '../core/services/iam_service.dart';
+import '../core/services/school_service.dart';
 
 bool checkPermission(List<String> userPermissions, List<String> userRoles,
     String targetPermission) {
@@ -31,9 +32,11 @@ bool checkPermission(List<String> userPermissions, List<String> userRoles,
 class AuthNotifier extends ChangeNotifier {
   final ApiClient _apiClient;
   final IamService _iamService;
+  final SchoolService _schoolService;
 
   UserProfileResponse? _user;
   String _tenantId = 'tenant-lincoln-high-001';
+  String? _schoolName;
   String? _token;
   List<String> _roles = [];
   List<String> _permissions = [];
@@ -42,9 +45,13 @@ class AuthNotifier extends ChangeNotifier {
   void Function()? _unsubscribeAuthExpired;
   bool _lastMockMode = true;
 
-  AuthNotifier({ApiClient? apiClient, IamService? iamService})
-      : _apiClient = apiClient ?? ApiClient(),
-        _iamService = iamService ?? IamService() {
+  AuthNotifier({
+    ApiClient? apiClient,
+    IamService? iamService,
+    SchoolService? schoolService,
+  })  : _apiClient = apiClient ?? ApiClient(),
+        _iamService = iamService ?? IamService(),
+        _schoolService = schoolService ?? SchoolService() {
     _tenantId = _apiClient.tenantId;
     _token = _apiClient.token;
     _lastMockMode = _apiClient.isMockMode;
@@ -86,6 +93,26 @@ class AuthNotifier extends ChangeNotifier {
       _user != null && (_token != null || _apiClient.isMockMode);
   UserProfileResponse? get user => _user;
   String get tenantId => _tenantId;
+  String get schoolName {
+    if (_schoolName != null && _schoolName!.isNotEmpty) {
+      return _schoolName!;
+    }
+    if (_tenantId == 'tenant-lincoln-high-001') {
+      return 'Lincoln High School';
+    }
+    if (_tenantId == 'tenant-sma1-ilmiya-002') {
+      return 'SMA Negeri 1 Ilmiya';
+    }
+    return 'Ilmiya Academy';
+  }
+
+  void setSchoolName(String name) {
+    if (_schoolName != name) {
+      _schoolName = name;
+      notifyListeners();
+    }
+  }
+
   String? get token => _token;
   List<String> get roles => List.unmodifiable(_roles);
   List<String> get permissions => List.unmodifiable(_permissions);
@@ -118,6 +145,11 @@ class AuthNotifier extends ChangeNotifier {
       _permissions = profile.permissions;
       _token = _apiClient.token;
       _error = null;
+
+      try {
+        final school = await _schoolService.getProfile(tenantId: _tenantId);
+        _schoolName = school.name;
+      } catch (_) {}
     } catch (e) {
       if (_apiClient.token == null && !_apiClient.isMockMode) {
         _user = null;
@@ -185,6 +217,10 @@ class AuthNotifier extends ChangeNotifier {
       _tenantId = resp.tenantId.isNotEmpty ? resp.tenantId : newTenantId;
       _roles = resp.roles;
       _permissions = resp.permissions;
+      try {
+        final school = await _schoolService.getProfile(tenantId: _tenantId);
+        _schoolName = school.name;
+      } catch (_) {}
       await refreshProfile();
     } catch (e) {
       _error = 'Failed to switch tenant: $e';

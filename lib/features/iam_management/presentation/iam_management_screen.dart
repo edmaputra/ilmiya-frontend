@@ -68,16 +68,30 @@ class _IamManagementScreenState extends State<IamManagementScreen>
 
     setState(() => _isLoading = true);
     try {
-      final u = await iamService.listUsers();
-      final r = await iamService.listRoles();
-      final g = await iamService.listGroups();
-      final s = await iamService.getScopeTree();
+      final results = await Future.wait([
+        iamService.listUsers().catchError((e) {
+          debugPrint('Error loading users: $e');
+          return <UserResponse>[];
+        }),
+        iamService.listRoles().catchError((e) {
+          debugPrint('Error loading roles: $e');
+          return <RoleResponse>[];
+        }),
+        iamService.listGroups().catchError((e) {
+          debugPrint('Error loading groups: $e');
+          return <GroupResponse>[];
+        }),
+        iamService.getScopeTree().catchError((e) {
+          debugPrint('Error loading scopes: $e');
+          return <ScopeTreeNode>[];
+        }),
+      ]);
       if (mounted) {
         setState(() {
-          _users = u;
-          _roles = r;
-          _groups = g;
-          _scopes = s;
+          _users = results[0] as List<UserResponse>;
+          _roles = results[1] as List<RoleResponse>;
+          _groups = results[2] as List<GroupResponse>;
+          _scopes = results[3] as List<ScopeTreeNode>;
           _isLoading = false;
         });
       }
@@ -98,6 +112,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       context,
       user: user,
       roles: _roles,
+      scopes: _scopes,
       onRoleAssigned: _loadAllIamData,
     );
   }
@@ -250,8 +265,12 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                 ),
                 IamGroupsTab(
                   groups: _groups,
+                  users: _users,
+                  roles: _roles,
+                  scopes: _scopes,
                   canCreateGroup: canCreateGroup,
                   onCreateGroup: _showCreateGroupDialog,
+                  onGroupChanged: _loadAllIamData,
                 ),
                 IamScopesTab(
                   scopes: _scopes,

@@ -14,6 +14,7 @@ void main() {
       final newUser = await iamService.createUser(CreateUserRequest(
         email: 'new.staff@ilmiya.edu',
         fullName: 'New Staff Member',
+        password: 'Password123!',
       ));
 
       expect(newUser.email, equals('new.staff@ilmiya.edu'));

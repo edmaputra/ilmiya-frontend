@@ -16,12 +16,16 @@ class MockStorageService {
   late List<GroupResponse> _groups;
   late List<ScopeTreeNode> _scopes;
   late List<UserRoleAssignmentResponse> _userRoleAssignments;
+  late Map<String, Set<String>> _groupMembers;
+  late List<GroupRoleAssignmentResponse> _groupRoleAssignments;
 
   MockStorageService._internal() {
     reset();
   }
 
   void reset() {
+    _groupMembers = {};
+    _groupRoleAssignments = [];
     _schools = [
       SchoolResponse(
         id: 'sch-001',
@@ -700,7 +704,7 @@ class MockStorageService {
       email: req.email,
       fullName: req.fullName,
       status: 'ACTIVE',
-      isPlatformSuperAdmin: req.isPlatformSuperAdmin ?? false,
+      isPlatformSuperAdmin: req.platformSuperAdmin ?? false,
       createdAt: DateTime.now().toIso8601String(),
       updatedAt: DateTime.now().toIso8601String(),
     );
@@ -794,6 +798,67 @@ class MockStorageService {
     );
     _groups.add(newGroup);
     return newGroup;
+  }
+
+  GroupResponse updateGroup(String id, UpdateGroupRequest req) {
+    final idx = _groups.indexWhere((g) => g.id == id);
+    if (idx == -1) throw Exception('Group $id not found');
+    final updated = GroupResponse(
+      id: _groups[idx].id,
+      tenantId: _groups[idx].tenantId,
+      code: _groups[idx].code,
+      name: req.name,
+      description: req.description,
+      externalIdpGroupName: req.externalIdpGroupName,
+      createdAt: _groups[idx].createdAt,
+      updatedAt: DateTime.now().toIso8601String(),
+    );
+    _groups[idx] = updated;
+    return updated;
+  }
+
+  void deleteGroup(String id) {
+    _groups.removeWhere((g) => g.id == id);
+    _groupMembers.remove(id);
+    _groupRoleAssignments.removeWhere((a) => a.groupId == id);
+  }
+
+  List<UserResponse> getGroupMembers(String groupId) {
+    final memberIds = _groupMembers[groupId] ?? {};
+    return _users.where((u) => memberIds.contains(u.id)).toList();
+  }
+
+  void addUserToGroup(String userId, String groupId) {
+    _groupMembers.putIfAbsent(groupId, () => <String>{}).add(userId);
+  }
+
+  void removeUserFromGroup(String userId, String groupId) {
+    _groupMembers[groupId]?.remove(userId);
+  }
+
+  List<GroupRoleAssignmentResponse> getGroupRoles(String groupId) {
+    return _groupRoleAssignments.where((a) => a.groupId == groupId).toList();
+  }
+
+  GroupRoleAssignmentResponse assignGroupRole({
+    required String groupId,
+    required String roleId,
+    required String tenantId,
+    String? scopeNodeId,
+  }) {
+    final assignment = GroupRoleAssignmentResponse(
+      id: 'gra-${DateTime.now().millisecondsSinceEpoch}',
+      groupId: groupId,
+      roleId: roleId,
+      tenantId: tenantId,
+      scopeNodeId: scopeNodeId,
+    );
+    _groupRoleAssignments.add(assignment);
+    return assignment;
+  }
+
+  void revokeGroupRole(String assignmentId) {
+    _groupRoleAssignments.removeWhere((a) => a.id == assignmentId);
   }
 
   // --- IAM Scopes ---

@@ -175,7 +175,7 @@ void main() {
     });
 
     testWidgets(
-        'LoginScreen hides app bar subtitle on mobile and toggles mock mode',
+        'LoginScreen hides app bar subtitle on mobile and displays startup mode status',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(500, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -195,27 +195,8 @@ void main() {
       // On mobile (< 768), subtitle should be hidden
       expect(find.text('School Information System & IAM Portal'), findsNothing);
 
-      // Tap Mode Toggle Pill in app bar
-      final mockModePill = find.text('Mock Simulation').first;
-      await tester.tap(mockModePill);
-      await tester.pumpAndSettle();
-
-      expect(client.isMockMode, isFalse);
-      expect(find.textContaining('Switched to Live REST Backend Mode'),
-          findsOneWidget);
-
-      // Wait for the first SnackBar to dismiss before triggering the second
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle();
-
-      // Tap again to switch back
-      final liveModePill = find.text('Live REST API').first;
-      await tester.tap(liveModePill);
-      await tester.pumpAndSettle();
-
-      expect(client.isMockMode, isTrue);
-      expect(find.textContaining('Switched to Mock In-Memory Simulation'),
-          findsOneWidget);
+      // Mode Status Pill in app bar is displayed as read-only status
+      expect(find.text('Mock Simulation'), findsWidgets);
     });
   });
 }

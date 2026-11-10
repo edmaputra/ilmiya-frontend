@@ -168,7 +168,8 @@ void main() {
     expect(appState.currentTab, equals(1));
   });
 
-  testWidgets('IlmiyaAppShell sidebar toggles mock mode and switches tenant',
+  testWidgets(
+      'IlmiyaAppShell sidebar displays startup mode badge and switches tenant',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1280, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -181,16 +182,12 @@ void main() {
     await tester.pumpWidget(_buildShellHost(appState: appState, auth: auth));
     await tester.pumpAndSettle();
 
-    // Toggle mock mode button in sidebar
-    final mockBtn = find.text('Mock Simulation');
-    expect(mockBtn, findsOneWidget);
-
-    await tester.tap(mockBtn);
-    await tester.pumpAndSettle();
-    expect(find.text('Live REST API'), findsOneWidget);
+    // Mode status badge in sidebar footer
+    final mockBadge = find.text('Mock Simulation');
+    expect(mockBadge, findsOneWidget);
 
     // Open tenant dialog in sidebar
-    final tenantSelector = find.text(auth.tenantId);
+    final tenantSelector = find.text(auth.schoolName);
     expect(tenantSelector, findsWidgets);
 
     await tester.tap(tenantSelector.first);
