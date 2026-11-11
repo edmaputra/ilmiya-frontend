@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for Ilmiya Frontend (Flutter Web)
 # Stage 1: Build Flutter Web application
-FROM ghcr.io/cirruslabs/flutter:3.27.3 AS builder
+FROM ghcr.io/cirruslabs/flutter:stable AS builder
 WORKDIR /app
 
 # Disable analytics and enable web

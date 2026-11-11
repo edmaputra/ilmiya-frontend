@@ -37,7 +37,7 @@ class KiteCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(child: Text(title!, style: t.large)),
-                    ?trailing,
+                    if (trailing != null) trailing!,
                   ],
                 ),
                 const SizedBox(height: KiteSpace.lg),

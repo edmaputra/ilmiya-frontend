@@ -75,15 +75,15 @@ class KiteInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ShadInput(
-    controller: controller,
-    placeholder: placeholder == null ? null : Text(placeholder!),
-    leading: leading,
-    trailing: trailing,
-    obscureText: obscure,
-    keyboardType: keyboardType,
-    onChanged: onChanged,
-    onSubmitted: onSubmitted,
-  );
+        controller: controller,
+        placeholder: placeholder == null ? null : Text(placeholder!),
+        leading: leading,
+        trailing: trailing,
+        obscureText: obscure,
+        keyboardType: keyboardType,
+        onChanged: onChanged,
+        onSubmitted: onSubmitted,
+      );
 }
 
 class KiteTextarea extends StatelessWidget {
@@ -100,10 +100,10 @@ class KiteTextarea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ShadTextarea(
-    controller: controller,
-    placeholder: placeholder == null ? null : Text(placeholder!),
-    onChanged: onChanged,
-  );
+        controller: controller,
+        placeholder: placeholder == null ? null : Text(placeholder!),
+        onChanged: onChanged,
+      );
 }
 
 class KiteSelect<T extends Object> extends StatelessWidget {
@@ -124,14 +124,15 @@ class KiteSelect<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ShadSelect<T>(
-    initialValue: value,
-    placeholder: Text(placeholder ?? 'Select…'),
-    options: [
-      for (final o in options) ShadOption(value: o, child: Text(labelOf(o))),
-    ],
-    selectedOptionBuilder: (context, v) => Text(labelOf(v)),
-    onChanged: onChanged,
-  );
+        initialValue: value,
+        placeholder: Text(placeholder ?? 'Select…'),
+        options: [
+          for (final o in options)
+            ShadOption(value: o, child: Text(labelOf(o))),
+        ],
+        selectedOptionBuilder: (context, v) => Text(labelOf(v)),
+        onChanged: onChanged,
+      );
 }
 
 class KiteCheckbox extends StatelessWidget {
@@ -219,8 +220,8 @@ class KiteDatePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ShadDatePicker(
-    selected: selected,
-    placeholder: Text(placeholder ?? 'Pick a date'),
-    onChanged: onChanged,
-  );
+        selected: selected,
+        placeholder: Text(placeholder ?? 'Pick a date'),
+        onChanged: onChanged,
+      );
 }
