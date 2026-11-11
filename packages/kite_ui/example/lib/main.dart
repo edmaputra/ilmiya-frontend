@@ -11,17 +11,17 @@ class ExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ShadApp(
-    title: 'kite_ui example',
-    theme: ShadThemeData(
-      colorScheme: const ShadSlateColorScheme.light(),
-      brightness: Brightness.light,
-    ),
-    darkTheme: ShadThemeData(
-      colorScheme: const ShadSlateColorScheme.dark(),
-      brightness: Brightness.dark,
-    ),
-    home: const DashboardScreen(),
-  );
+        title: 'kite_ui example',
+        theme: ShadThemeData(
+          colorScheme: const ShadSlateColorScheme.light(),
+          brightness: Brightness.light,
+        ),
+        darkTheme: ShadThemeData(
+          colorScheme: const ShadSlateColorScheme.dark(),
+          brightness: Brightness.dark,
+        ),
+        home: const DashboardScreen(),
+      );
 }
 
 class DashboardScreen extends StatelessWidget {

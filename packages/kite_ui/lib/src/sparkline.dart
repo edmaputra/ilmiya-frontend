@@ -50,7 +50,7 @@ class KiteSparkline extends StatelessWidget {
               // Only the last point gets a dot — where the series ends is
               // the part a reader actually looks for.
               checkToShowDot: (spot, _) => spot.x == values.length - 1,
-              getDotPainter: (_, _, _, _) =>
+              getDotPainter: (spot, percent, barData, index) =>
                   FlDotCirclePainter(radius: 2.5, color: line, strokeWidth: 0),
             ),
             belowBarData: BarAreaData(
