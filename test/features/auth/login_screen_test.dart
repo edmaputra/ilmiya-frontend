@@ -8,7 +8,9 @@ import 'package:ilmiya_app/core/services/api_client.dart';
 import 'package:ilmiya_app/core/services/iam_service.dart';
 import 'package:ilmiya_app/core/services/mock_storage_service.dart';
 import 'package:ilmiya_app/features/auth/presentation/login_screen.dart';
+import 'package:ilmiya_app/state/app_state.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 final Uint8List _transparentImage = Uint8List.fromList([
   0x89,
@@ -197,6 +199,77 @@ void main() {
 
       // Mode Status Pill in app bar is displayed as read-only status
       expect(find.text('Mock Simulation'), findsWidgets);
+    });
+
+    testWidgets('LoginScreen can toggle dark and light theme',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final appState = AppState();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AppState>.value(value: appState),
+            ChangeNotifierProvider<AuthNotifier>.value(value: authNotifier),
+          ],
+          child: const MaterialApp(
+            home: LoginScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Initially in light mode
+      expect(appState.themeMode, equals(ThemeMode.light));
+      final themeBtn = find.byTooltip('Dark Mode');
+      expect(themeBtn, findsOneWidget);
+      expect(find.byIcon(LucideIcons.moon), findsOneWidget);
+
+      // Tap theme toggle -> switch to dark mode
+      await tester.tap(themeBtn);
+      await tester.pumpAndSettle();
+
+      expect(appState.themeMode, equals(ThemeMode.dark));
+      expect(find.byTooltip('Light Mode'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.sun), findsOneWidget);
+
+      // Tap again -> switch back to light mode
+      await tester.tap(find.byTooltip('Light Mode'));
+      await tester.pumpAndSettle();
+
+      expect(appState.themeMode, equals(ThemeMode.light));
+      expect(find.byTooltip('Dark Mode'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.moon), findsOneWidget);
+    });
+
+    testWidgets(
+        'After logout, LoginScreen displays Sign In to Portal and is not loading',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      // Perform logout on authNotifier
+      authNotifier.logout();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<AuthNotifier>.value(
+            value: authNotifier,
+            child: const LoginScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sign In to Portal'), findsOneWidget);
+      expect(find.text('Signing In...'), findsNothing);
+      expect(authNotifier.isLoading, isFalse);
     });
   });
 }

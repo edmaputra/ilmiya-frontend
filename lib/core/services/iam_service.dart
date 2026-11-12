@@ -1,16 +1,22 @@
 import '../models/iam.dart';
 import 'api_client.dart';
 import 'mock_storage_service.dart';
+import 'session_storage_service.dart';
 
 class IamService {
   final ApiClient _apiClient;
   final MockStorageService _mockStorage;
+  final SessionStorageService _sessionStorage;
 
   UserProfileResponse? _cachedProfile;
 
-  IamService({ApiClient? apiClient, MockStorageService? mockStorage})
-      : _apiClient = apiClient ?? ApiClient(),
-        _mockStorage = mockStorage ?? MockStorageService();
+  IamService({
+    ApiClient? apiClient,
+    MockStorageService? mockStorage,
+    SessionStorageService? sessionStorage,
+  })  : _apiClient = apiClient ?? ApiClient(),
+        _mockStorage = mockStorage ?? MockStorageService(),
+        _sessionStorage = sessionStorage ?? SessionStorageService();
 
   UserProfileResponse? get cachedProfile => _cachedProfile;
 
@@ -121,6 +127,8 @@ class IamService {
     }
     if (resp.tenantId.isNotEmpty) {
       _apiClient.tenantId = resp.tenantId;
+    } else {
+      _apiClient.resetTenantId();
     }
     if (resp.user != null) {
       _cachedProfile = resp.user;
@@ -128,6 +136,12 @@ class IamService {
     try {
       await getMe();
     } catch (_) {}
+    await _sessionStorage.saveAuthSession(
+      accessToken: resp.accessToken,
+      refreshToken: resp.refreshToken,
+      tenantId: _apiClient.tenantId,
+      user: _cachedProfile,
+    );
     return resp;
   }
 
@@ -168,6 +182,8 @@ class IamService {
     _apiClient.token = null;
     _apiClient.refreshToken = null;
     _cachedProfile = null;
+    _apiClient.resetTenantId();
+    _sessionStorage.clearAuthSession();
   }
 
   Future<TokenResponse> switchTenant(String targetTenantId) async {
@@ -204,6 +220,14 @@ class IamService {
     _apiClient.token = resp.accessToken;
     if (resp.refreshToken.isNotEmpty) {
       _apiClient.refreshToken = resp.refreshToken;
+    }
+    await _sessionStorage.saveTenantId(targetTenantId);
+    await _sessionStorage.saveTokens(
+      accessToken: resp.accessToken,
+      refreshToken: resp.refreshToken,
+    );
+    if (_cachedProfile != null) {
+      await _sessionStorage.saveUserProfile(_cachedProfile);
     }
     return resp;
   }

@@ -72,7 +72,7 @@ void main() {
       expect(auth.tenantId, equals('tenant-lincoln-high-001'));
     });
 
-    test('Logout clears authenticated session', () {
+    test('Logout clears authenticated session and resets isLoading', () {
       final auth = AuthNotifier();
       auth.logout();
 
@@ -80,6 +80,7 @@ void main() {
       expect(auth.token, isNull);
       expect(auth.roles, isEmpty);
       expect(auth.permissions, isEmpty);
+      expect(auth.isLoading, isFalse);
     });
   });
 }

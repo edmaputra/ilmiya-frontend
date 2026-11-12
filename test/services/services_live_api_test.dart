@@ -75,6 +75,22 @@ void main() {
       },
           () => http_testing.MockClient((request) async {
                 if (request.url.path == '/api/v1/schools/profile') {
+                  final tenantHeader = request.headers['x-tenant-id'] ??
+                      request.headers['X-Tenant-ID'];
+                  if (tenantHeader == 'custom-tenant') {
+                    return http.Response(
+                      jsonEncode({
+                        'id': '2',
+                        'tenantId': 'custom-tenant',
+                        'name': 'Custom School',
+                        'status': 'ACTIVE',
+                        'institutionCode': 'CS',
+                        'createdAt': '2026-01-01T00:00:00Z',
+                        'updatedAt': '2026-01-01T00:00:00Z',
+                      }),
+                      200,
+                    );
+                  }
                   return http.Response(
                     jsonEncode({
                       'id': '1',
@@ -82,20 +98,6 @@ void main() {
                       'name': 'Lincoln',
                       'status': 'ACTIVE',
                       'institutionCode': 'LHS',
-                      'createdAt': '2026-01-01T00:00:00Z',
-                      'updatedAt': '2026-01-01T00:00:00Z',
-                    }),
-                    200,
-                  );
-                }
-                if (request.url.path == '/api/v1/schools/custom-tenant') {
-                  return http.Response(
-                    jsonEncode({
-                      'id': '2',
-                      'tenantId': 'custom-tenant',
-                      'name': 'Custom School',
-                      'status': 'ACTIVE',
-                      'institutionCode': 'CS',
                       'createdAt': '2026-01-01T00:00:00Z',
                       'updatedAt': '2026-01-01T00:00:00Z',
                     }),
@@ -130,7 +132,7 @@ void main() {
         expect(configured.name, equals('Configured School'));
       },
           () => http_testing.MockClient((request) async {
-                if (request.url.path == '/api/v1/schools/custom-tenant' &&
+                if (request.url.path == '/api/v1/schools/profile' &&
                     request.method == 'PUT') {
                   return http.Response(
                     jsonEncode({
@@ -184,7 +186,8 @@ void main() {
         expect(deleted, isTrue);
       },
           () => http_testing.MockClient((request) async {
-                if (request.url.path == '/api/v1/schools/register') {
+                if (request.url.path == '/api/v1/schools' &&
+                    request.method == 'POST') {
                   return http.Response(
                     jsonEncode({
                       'id': '3',
