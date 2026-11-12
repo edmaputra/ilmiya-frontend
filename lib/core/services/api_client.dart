@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'session_storage_service.dart';
 
 class ApiException implements Exception {
   final int statusCode;
@@ -90,7 +91,7 @@ class ApiClient extends ChangeNotifier {
   String? token;
   String? refreshToken;
   bool _isMockMode = _resolveInitialMockMode();
-  bool _isRefreshing = false;
+  Completer<bool>? _refreshCompleter;
   final List<Function> _onAuthExpiredListeners = [];
   final List<Function> _onAccessDeniedListeners = [];
 
@@ -106,6 +107,12 @@ class ApiClient extends ChangeNotifier {
       }
       notifyListeners();
     }
+  }
+
+  void resetTenantId() {
+    _tenantId = _resolveInitialTenantId(_isMockMode);
+    sessionStorageService.saveTenantId(_tenantId);
+    notifyListeners();
   }
 
   void toggleMockMode() {
@@ -126,6 +133,20 @@ class ApiClient extends ChangeNotifier {
       } catch (_) {
         // Gracefully fall back to compile-time --dart-define or defaults
       }
+    }
+
+    // Restore persisted session from storage if available
+    final savedToken = sessionStorageService.accessToken;
+    final savedRefreshToken = sessionStorageService.refreshToken;
+    final savedTenantId = sessionStorageService.tenantId;
+    if (savedToken != null && savedToken.isNotEmpty) {
+      token = savedToken;
+    }
+    if (savedRefreshToken != null && savedRefreshToken.isNotEmpty) {
+      refreshToken = savedRefreshToken;
+    }
+    if (savedTenantId != null && savedTenantId.isNotEmpty) {
+      _tenantId = savedTenantId;
     }
   }
 
@@ -152,6 +173,7 @@ class ApiClient extends ChangeNotifier {
   set tenantId(String value) {
     if (_tenantId != value) {
       _tenantId = value;
+      sessionStorageService.saveTenantId(_tenantId);
       notifyListeners();
     }
   }
@@ -173,6 +195,7 @@ class ApiClient extends ChangeNotifier {
   void triggerAuthExpired([String? reason]) {
     token = null;
     refreshToken = null;
+    sessionStorageService.clearAuthSession();
     for (final listener in List.of(_onAuthExpiredListeners)) {
       try {
         (listener as dynamic)(reason);
@@ -205,6 +228,7 @@ class ApiClient extends ChangeNotifier {
     String method = 'GET',
     Map<String, String>? headers,
     dynamic body,
+    bool isRetry = false,
   }) async {
     final cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/$endpoint';
     final normalizedEndpoint =
@@ -255,42 +279,59 @@ class ApiClient extends ChangeNotifier {
           break;
       }
 
-      // Automatic 401 Session Refresh
+      // Automatic 401 Session Refresh with concurrency guard and single retry
       if (response.statusCode == 401 &&
           refreshToken != null &&
           !endpoint.contains('/api/v1/auth/') &&
-          !_isRefreshing) {
-        _isRefreshing = true;
-        try {
-          final refreshUrl = Uri.parse('$_baseUrl/api/v1/auth/refresh');
-          final refreshResp = await http.post(
-            refreshUrl,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'refreshToken': refreshToken}),
-          );
-
-          if (refreshResp.statusCode >= 200 && refreshResp.statusCode < 300) {
-            final data = jsonDecode(refreshResp.body) as Map<String, dynamic>;
-            token = data['accessToken'] as String?;
-            if (data['refreshToken'] != null) {
-              refreshToken = data['refreshToken'] as String?;
-            }
-            _isRefreshing = false;
-            // Retry request with new token
-            return await request(
-              endpoint: endpoint,
-              method: method,
-              headers: headers,
-              body: body,
+          !isRetry) {
+        bool refreshSucceeded = false;
+        if (_refreshCompleter == null) {
+          _refreshCompleter = Completer<bool>();
+          try {
+            final refreshUrl = Uri.parse('$_baseUrl/api/v1/auth/refresh');
+            final refreshResp = await http.post(
+              refreshUrl,
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({'refreshToken': refreshToken}),
             );
-          } else {
-            triggerAuthExpired(
-                'Session refresh token expired (401). Please sign in again.');
+
+            if (refreshResp.statusCode >= 200 && refreshResp.statusCode < 300) {
+              final data = jsonDecode(refreshResp.body) as Map<String, dynamic>;
+              token = data['accessToken'] as String?;
+              if (data['refreshToken'] != null) {
+                refreshToken = data['refreshToken'] as String?;
+              }
+              await sessionStorageService.saveTokens(
+                accessToken: token,
+                refreshToken: refreshToken,
+              );
+              refreshSucceeded = true;
+              _refreshCompleter!.complete(true);
+            } else {
+              _refreshCompleter!.complete(false);
+              triggerAuthExpired(
+                  'Session refresh token expired (401). Please sign in again.');
+            }
+          } catch (_) {
+            _refreshCompleter!.complete(false);
+            triggerAuthExpired('Session refresh failed. Please sign in again.');
+          } finally {
+            _refreshCompleter = null;
           }
-        } catch (_) {
-          triggerAuthExpired('Session refresh failed. Please sign in again.');
-        } finally {
-          _isRefreshing = false;
+        } else {
+          // A concurrent request is already refreshing the session, await its outcome
+          refreshSucceeded = await _refreshCompleter!.future;
+        }
+
+        if (refreshSucceeded && token != null) {
+          // Retry request with new token exactly once
+          return await request(
+            endpoint: endpoint,
+            method: method,
+            headers: headers,
+            body: body,
+            isRetry: true,
+          );
         }
       }
 

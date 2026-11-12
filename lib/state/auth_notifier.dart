@@ -3,6 +3,7 @@ import '../core/models/iam.dart';
 import '../core/services/api_client.dart';
 import '../core/services/iam_service.dart';
 import '../core/services/school_service.dart';
+import '../core/services/session_storage_service.dart';
 
 bool checkPermission(List<String> userPermissions, List<String> userRoles,
     String targetPermission) {
@@ -33,6 +34,7 @@ class AuthNotifier extends ChangeNotifier {
   final ApiClient _apiClient;
   final IamService _iamService;
   final SchoolService _schoolService;
+  final SessionStorageService _sessionStorage;
 
   UserProfileResponse? _user;
   String _tenantId = 'tenant-lincoln-high-001';
@@ -49,17 +51,50 @@ class AuthNotifier extends ChangeNotifier {
     ApiClient? apiClient,
     IamService? iamService,
     SchoolService? schoolService,
+    SessionStorageService? sessionStorage,
   })  : _apiClient = apiClient ?? ApiClient(),
         _iamService = iamService ?? IamService(),
-        _schoolService = schoolService ?? SchoolService() {
-    _tenantId = _apiClient.tenantId;
-    _token = _apiClient.token;
+        _schoolService = schoolService ?? SchoolService(),
+        _sessionStorage = sessionStorage ?? SessionStorageService() {
+    // Restore session credentials from local storage
+    final savedToken = _sessionStorage.accessToken;
+    final savedRefreshToken = _sessionStorage.refreshToken;
+    final savedTenant = _sessionStorage.tenantId;
+    final savedUser = _sessionStorage.userProfile;
+    final savedSchool = _sessionStorage.schoolName;
+
+    if (savedToken != null && savedToken.isNotEmpty) {
+      _apiClient.token = savedToken;
+      _token = savedToken;
+    } else {
+      _token = _apiClient.token;
+    }
+    if (savedRefreshToken != null && savedRefreshToken.isNotEmpty) {
+      _apiClient.refreshToken = savedRefreshToken;
+    }
+    if (savedTenant != null && savedTenant.isNotEmpty) {
+      _apiClient.tenantId = savedTenant;
+      _tenantId = savedTenant;
+    } else {
+      _tenantId = _apiClient.tenantId;
+    }
+    if (savedUser != null) {
+      _user = savedUser;
+      _roles = List.from(savedUser.roles);
+      _permissions = List.from(savedUser.permissions);
+    }
+    if (savedSchool != null && savedSchool.isNotEmpty) {
+      _schoolName = savedSchool;
+    }
+
     _lastMockMode = _apiClient.isMockMode;
     _unsubscribeAuthExpired = _apiClient.onAuthExpired(([reason]) {
       _user = null;
       _token = null;
       _roles = [];
       _permissions = [];
+      _isLoading = false;
+      _sessionStorage.clearAuthSession();
       _error = reason ?? 'Your session has expired. Please sign in again.';
       notifyListeners();
     });
@@ -133,10 +168,12 @@ class AuthNotifier extends ChangeNotifier {
     return _roles.any((r) => r.toUpperCase() == normalized);
   }
 
-  Future<void> refreshProfile() async {
+  Future<void> refreshProfile({bool showLoading = false}) async {
     try {
-      _isLoading = true;
-      notifyListeners();
+      if (showLoading) {
+        _isLoading = true;
+        notifyListeners();
+      }
       final profile = await _iamService.getMe();
       _user = profile;
       _tenantId =
@@ -150,14 +187,20 @@ class AuthNotifier extends ChangeNotifier {
         final school = await _schoolService.getProfile(tenantId: _tenantId);
         _schoolName = school.name;
       } catch (_) {}
+      if (_user != null) {
+        await _sessionStorage.saveUserProfile(_user, _schoolName);
+      }
     } catch (e) {
       if (_apiClient.token == null && !_apiClient.isMockMode) {
         _user = null;
         _roles = [];
         _permissions = [];
+        await _sessionStorage.clearAuthSession();
       }
     } finally {
-      _isLoading = false;
+      if (showLoading) {
+        _isLoading = false;
+      }
       notifyListeners();
     }
   }
@@ -177,6 +220,13 @@ class AuthNotifier extends ChangeNotifier {
         _user = resp.user;
       }
       await refreshProfile();
+      await _sessionStorage.saveAuthSession(
+        accessToken: _token,
+        refreshToken: _apiClient.refreshToken,
+        tenantId: _tenantId,
+        user: _user,
+        schoolName: _schoolName,
+      );
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -198,13 +248,23 @@ class AuthNotifier extends ChangeNotifier {
     ));
   }
 
+  void resetLoading() {
+    if (_isLoading) {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void logout() {
     _iamService.logout();
+    _sessionStorage.clearAuthSession();
     _user = null;
     _token = null;
     _roles = [];
     _permissions = [];
     _error = null;
+    _isLoading = false;
+    _tenantId = _apiClient.tenantId;
     notifyListeners();
   }
 
@@ -222,6 +282,13 @@ class AuthNotifier extends ChangeNotifier {
         _schoolName = school.name;
       } catch (_) {}
       await refreshProfile();
+      await _sessionStorage.saveAuthSession(
+        accessToken: _token,
+        refreshToken: _apiClient.refreshToken,
+        tenantId: _tenantId,
+        user: _user,
+        schoolName: _schoolName,
+      );
     } catch (e) {
       _error = 'Failed to switch tenant: $e';
       notifyListeners();

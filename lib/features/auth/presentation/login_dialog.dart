@@ -40,6 +40,16 @@ class _LoginDialogState extends State<LoginDialog> {
   String? _localError;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthNotifier>().resetLoading();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -64,6 +74,7 @@ class _LoginDialogState extends State<LoginDialog> {
           context,
           'Signed in successfully as ${auth.user?.fullName ?? emailTrimmed}',
         );
+        _passwordController.clear();
         widget.onSuccess?.call();
         if (!widget.isStandalone) Navigator.of(context).pop();
       }
@@ -84,13 +95,16 @@ class _LoginDialogState extends State<LoginDialog> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthNotifier>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final content = Container(
       constraints: const BoxConstraints(maxWidth: 440),
       decoration: BoxDecoration(
-        color: AppColors.naturalParchment,
+        color: isDark ? AppColors.darkCard : AppColors.surfaceWhite,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.borderMedium),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.borderMedium,
+        ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x1A000000),

@@ -46,29 +46,34 @@ class SchoolService {
       return _mockStorage.getSchoolProfile(effectiveTenant);
     }
 
-    final endpoint = tenantId != null
-        ? '/api/v1/schools/$tenantId'
-        : '/api/v1/schools/profile';
+    final headers = <String, String>{
+      if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
+    };
+
     final json = await _apiClient.request(
-      endpoint: endpoint,
+      endpoint: '/api/v1/schools/profile',
       method: 'GET',
+      headers: headers.isNotEmpty ? headers : null,
     );
     return SchoolResponse.fromJson(json as Map<String, dynamic>);
   }
 
   Future<SchoolResponse> updateProfile(UpdateSchoolRequest req,
       {String? tenantId}) async {
+    final effectiveTenant = tenantId ?? _apiClient.tenantId;
     if (_apiClient.isMockMode) {
       return _mockStorage.updateSchoolProfile(req,
-          targetTenantId: tenantId ?? _apiClient.tenantId);
+          targetTenantId: effectiveTenant);
     }
 
-    final endpoint = tenantId != null
-        ? '/api/v1/schools/$tenantId'
-        : '/api/v1/schools/profile';
+    final headers = <String, String>{
+      if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
+    };
+
     final json = await _apiClient.request(
-      endpoint: endpoint,
+      endpoint: '/api/v1/schools/profile',
       method: 'PUT',
+      headers: headers.isNotEmpty ? headers : null,
       body: req.toJson(),
     );
     return SchoolResponse.fromJson(json as Map<String, dynamic>);
@@ -76,17 +81,20 @@ class SchoolService {
 
   Future<SchoolResponse> configureSettings(ConfigureSchoolSettingsRequest req,
       {String? tenantId}) async {
+    final effectiveTenant = tenantId ?? _apiClient.tenantId;
     if (_apiClient.isMockMode) {
       return _mockStorage.configureSchoolSettings(req,
-          targetTenantId: tenantId ?? _apiClient.tenantId);
+          targetTenantId: effectiveTenant);
     }
 
-    final endpoint = tenantId != null
-        ? '/api/v1/schools/$tenantId/settings'
-        : '/api/v1/schools/settings';
+    final headers = <String, String>{
+      if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
+    };
+
     final json = await _apiClient.request(
-      endpoint: endpoint,
+      endpoint: '/api/v1/schools/settings',
       method: 'PUT',
+      headers: headers.isNotEmpty ? headers : null,
       body: req.toJson(),
     );
     return SchoolResponse.fromJson(json as Map<String, dynamic>);
@@ -98,7 +106,7 @@ class SchoolService {
     }
 
     final json = await _apiClient.request(
-      endpoint: '/api/v1/schools/register',
+      endpoint: '/api/v1/schools',
       method: 'POST',
       body: req.toJson(),
     );

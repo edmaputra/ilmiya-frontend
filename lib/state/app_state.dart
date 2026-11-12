@@ -7,6 +7,7 @@ import '../core/models/chat_message.dart';
 import '../core/models/schedule_period.dart';
 import '../core/data/mock_data.dart';
 import '../core/services/notification_service.dart';
+import '../core/services/session_storage_service.dart';
 import '../core/theme/app_theme.dart';
 
 class AppState extends ChangeNotifier {
@@ -30,6 +31,15 @@ class AppState extends ChangeNotifier {
   Timer? _toastTimer;
   ThemeMode _themeMode = ThemeMode.light;
   KiteAccent _accent = KiteAccent.slate;
+  final SessionStorageService _sessionStorage;
+
+  AppState({SessionStorageService? sessionStorage})
+      : _sessionStorage = sessionStorage ?? SessionStorageService() {
+    final savedTheme = _sessionStorage.themeMode;
+    if (savedTheme != null) {
+      _themeMode = savedTheme;
+    }
+  }
 
   // Getters
   UserRole get currentRole => _currentRole;
@@ -112,12 +122,14 @@ class AppState extends ChangeNotifier {
 
   void setThemeMode(ThemeMode mode) {
     _themeMode = mode;
+    _sessionStorage.saveThemeMode(mode);
     notifyListeners();
   }
 
   void toggleThemeMode() {
     _themeMode =
         _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    _sessionStorage.saveThemeMode(_themeMode);
     notifyListeners();
   }
 

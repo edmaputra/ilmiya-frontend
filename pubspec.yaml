@@ -30,6 +30,7 @@ dependencies:
   shadcn_ui: ^0.55.1
   kite_ui:
     path: packages/kite_ui
+  shared_preferences: ^2.5.6
 
 dev_dependencies:
   flutter_test:

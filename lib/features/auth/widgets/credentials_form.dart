@@ -27,22 +27,25 @@ class _CredentialsFormState extends State<CredentialsForm> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Form(
       key: widget.formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.lock_outline, size: 16, color: AppColors.forestSage),
-              SizedBox(width: 6),
+              const Icon(Icons.lock_outline,
+                  size: 16, color: AppColors.forestSage),
+              const SizedBox(width: 6),
               Text(
                 'Institutional Credentials',
                 style: TextStyle(
                   fontFamily: 'serif',
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: isDark ? Colors.white : AppColors.textPrimary,
                 ),
               ),
             ],
