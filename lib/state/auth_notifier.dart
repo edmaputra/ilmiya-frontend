@@ -4,6 +4,7 @@ import '../core/services/api_client.dart';
 import '../core/services/iam_service.dart';
 import '../core/services/school_service.dart';
 import '../core/services/session_storage_service.dart';
+import '../core/services/tenant_service.dart';
 
 bool checkPermission(List<String> userPermissions, List<String> userRoles,
     String targetPermission) {
@@ -35,9 +36,12 @@ class AuthNotifier extends ChangeNotifier {
   final IamService _iamService;
   final SchoolService _schoolService;
   final SessionStorageService _sessionStorage;
+  final TenantService _tenantService;
 
   UserProfileResponse? _user;
   String _tenantId = 'tenant-lincoln-high-001';
+  String? _tenantName;
+  String? _schoolId;
   String? _schoolName;
   String? _token;
   List<String> _roles = [];
@@ -52,10 +56,12 @@ class AuthNotifier extends ChangeNotifier {
     IamService? iamService,
     SchoolService? schoolService,
     SessionStorageService? sessionStorage,
+    TenantService? tenantService,
   })  : _apiClient = apiClient ?? ApiClient(),
         _iamService = iamService ?? IamService(),
         _schoolService = schoolService ?? SchoolService(),
-        _sessionStorage = sessionStorage ?? SessionStorageService() {
+        _sessionStorage = sessionStorage ?? SessionStorageService(),
+        _tenantService = tenantService ?? TenantService() {
     // Restore session credentials from local storage
     final savedToken = _sessionStorage.accessToken;
     final savedRefreshToken = _sessionStorage.refreshToken;
@@ -86,7 +92,6 @@ class AuthNotifier extends ChangeNotifier {
     if (savedSchool != null && savedSchool.isNotEmpty) {
       _schoolName = savedSchool;
     }
-
     _lastMockMode = _apiClient.isMockMode;
     _unsubscribeAuthExpired = _apiClient.onAuthExpired(([reason]) {
       _user = null;
@@ -128,6 +133,24 @@ class AuthNotifier extends ChangeNotifier {
       _user != null && (_token != null || _apiClient.isMockMode);
   UserProfileResponse? get user => _user;
   String get tenantId => _tenantId;
+  String get tenantName {
+    if (_tenantName != null && _tenantName!.isNotEmpty) {
+      return _tenantName!;
+    }
+    if (_tenantId == 'tenant-lincoln-high-001') {
+      return 'Yayasan Pendidikan Lincoln Ilmiya';
+    }
+    if (_tenantId == 'tenant-sma1-ilmiya-002') {
+      return 'Yayasan Pembina Generasi Ilmiya';
+    }
+    if (_tenantId == 'tenant-alazhar-003') {
+      return 'Yayasan Pesantren Islam Al-Azhar';
+    }
+    return 'Yayasan Pendidikan Ilmiya';
+  }
+
+  String? get schoolId => _schoolId;
+
   String get schoolName {
     if (_schoolName != null && _schoolName!.isNotEmpty) {
       return _schoolName!;
@@ -146,6 +169,21 @@ class AuthNotifier extends ChangeNotifier {
       _schoolName = name;
       notifyListeners();
     }
+  }
+
+  void setSchoolContext(String id, String name) {
+    _schoolId = id;
+    _schoolName = name;
+    notifyListeners();
+  }
+
+  Future<void> switchSchool(String newSchoolId) async {
+    try {
+      final school = await _schoolService.getProfile(tenantId: newSchoolId);
+      _schoolId = school.id;
+      _schoolName = school.name;
+      notifyListeners();
+    } catch (_) {}
   }
 
   String? get token => _token;
@@ -185,6 +223,7 @@ class AuthNotifier extends ChangeNotifier {
 
       try {
         final school = await _schoolService.getProfile(tenantId: _tenantId);
+        _schoolId = school.id;
         _schoolName = school.name;
       } catch (_) {}
       if (_user != null) {
@@ -268,7 +307,8 @@ class AuthNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> switchTenant(String newTenantId) async {
+  Future<void> switchTenant(String newTenantId,
+      {String? targetSchoolId}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -278,8 +318,23 @@ class AuthNotifier extends ChangeNotifier {
       _roles = resp.roles;
       _permissions = resp.permissions;
       try {
-        final school = await _schoolService.getProfile(tenantId: _tenantId);
-        _schoolName = school.name;
+        final tenant = await _tenantService.getTenant(_tenantId);
+        _tenantName = tenant.name;
+      } catch (_) {}
+      try {
+        final schools = await _schoolService.listSchools(tenantId: _tenantId);
+        if (schools.isNotEmpty) {
+          final matched = targetSchoolId != null
+              ? schools.firstWhere((s) => s.id == targetSchoolId,
+                  orElse: () => schools.first)
+              : schools.first;
+          _schoolId = matched.id;
+          _schoolName = matched.name;
+        } else {
+          final school = await _schoolService.getProfile(tenantId: _tenantId);
+          _schoolId = school.id;
+          _schoolName = school.name;
+        }
       } catch (_) {}
       await refreshProfile();
       await _sessionStorage.saveAuthSession(

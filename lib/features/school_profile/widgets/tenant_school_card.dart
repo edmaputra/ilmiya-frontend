@@ -4,23 +4,28 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
+import '../../../core/models/tenant.dart';
 
 class TenantSchoolCard extends StatelessWidget {
   final SchoolResponse school;
+  final TenantResponse? parentTenant;
   final bool isCurrentTenant;
   final ValueChanged<String> onSwitchTenant;
   final ValueChanged<SchoolResponse> onEditProfile;
   final ValueChanged<SchoolResponse> onSettings;
   final ValueChanged<SchoolResponse> onToggleStatus;
+  final ValueChanged<String>? onAddCampus;
 
   const TenantSchoolCard({
     super.key,
     required this.school,
+    this.parentTenant,
     required this.isCurrentTenant,
     required this.onSwitchTenant,
     required this.onEditProfile,
     required this.onSettings,
     required this.onToggleStatus,
+    this.onAddCampus,
   });
 
   @override
@@ -86,6 +91,22 @@ class TenantSchoolCard extends StatelessWidget {
           children: [
             Text('Tenant: ${school.tenantId}',
                 style: t.muted.copyWith(fontSize: 11)),
+            if (parentTenant != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppColors.forestSage.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Yayasan: ${parentTenant!.name}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.forestSage,
+                  ),
+                ),
+              ),
             Text('Code: ${school.institutionCode}',
                 style: t.muted.copyWith(fontSize: 11)),
             if (school.governmentRegistrationNumber != null)
@@ -116,6 +137,13 @@ class TenantSchoolCard extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   foregroundColor: AppColors.forestSage,
                 ),
+              ),
+            if (onAddCampus != null)
+              IconButton(
+                iconSize: 16,
+                tooltip: 'Add School Campus',
+                icon: const Icon(LucideIcons.school),
+                onPressed: () => onAddCampus!(school.tenantId),
               ),
             IconButton(
               iconSize: 16,

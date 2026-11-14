@@ -11,13 +11,17 @@ class SchoolService {
         _mockStorage = mockStorage ?? MockStorageService();
 
   Future<List<SchoolResponse>> listSchools(
-      {String? query, String? status}) async {
+      {String? tenantId, String? query, String? status}) async {
     if (_apiClient.isMockMode) {
-      return _mockStorage.listSchools(query: query, status: status);
+      return _mockStorage.listSchools(
+          tenantId: tenantId, query: query, status: status);
     }
 
     String endpoint = '/api/v1/schools';
     final qParams = <String>[];
+    if (tenantId != null && tenantId.isNotEmpty) {
+      qParams.add('tenantId=${Uri.encodeComponent(tenantId)}');
+    }
     if (query != null && query.isNotEmpty) {
       qParams.add('query=${Uri.encodeComponent(query)}');
     }
@@ -32,6 +36,11 @@ class SchoolService {
       endpoint: endpoint,
       method: 'GET',
     );
+    if (json is Map && json.containsKey('content') && json['content'] is List) {
+      return (json['content'] as List)
+          .map((e) => SchoolResponse.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
     if (json is List) {
       return json
           .map((e) => SchoolResponse.fromJson(e as Map<String, dynamic>))
