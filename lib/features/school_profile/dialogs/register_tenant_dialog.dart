@@ -3,7 +3,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
+import '../../../core/models/tenant.dart';
 import '../../../core/services/school_service.dart';
+import '../../../core/services/tenant_service.dart';
 import '../../../core/utils/app_toast.dart';
 
 class RegisterTenantDialog extends StatefulWidget {
@@ -70,6 +72,18 @@ class _RegisterTenantDialogState extends State<RegisterTenantDialog> {
     }
 
     try {
+      try {
+        await tenantService.createTenant(CreateTenantRequest(
+          tenantId: tId,
+          name: name,
+          address: addr.isNotEmpty ? addr : 'Campus Address',
+          contactEmail: email.isNotEmpty ? email : 'admin@$tId.edu',
+          contactPhone: _phoneCtrl.text.trim().isNotEmpty
+              ? _phoneCtrl.text.trim()
+              : '+1 555 0100',
+        ));
+      } catch (_) {}
+
       await schoolService.registerSchool(RegisterSchoolRequest(
         tenantId: tId,
         name: name,

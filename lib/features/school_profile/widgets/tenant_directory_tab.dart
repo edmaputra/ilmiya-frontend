@@ -4,12 +4,14 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
+import '../../../core/models/tenant.dart';
 import 'tenant_metric_pill.dart';
 import 'tenant_school_card.dart';
 
 class TenantDirectoryTab extends StatelessWidget {
   final List<SchoolResponse> allSchools;
   final List<SchoolResponse> filteredSchools;
+  final List<TenantResponse>? allTenants;
   final String searchQuery;
   final String selectedStatusFilter;
   final String currentTenantId;
@@ -20,11 +22,13 @@ class TenantDirectoryTab extends StatelessWidget {
   final ValueChanged<SchoolResponse> onEditProfile;
   final ValueChanged<SchoolResponse> onSettings;
   final ValueChanged<SchoolResponse> onToggleStatus;
+  final ValueChanged<String>? onAddCampus;
 
   const TenantDirectoryTab({
     super.key,
     required this.allSchools,
     required this.filteredSchools,
+    this.allTenants,
     required this.searchQuery,
     required this.selectedStatusFilter,
     required this.currentTenantId,
@@ -35,6 +39,7 @@ class TenantDirectoryTab extends StatelessWidget {
     required this.onEditProfile,
     required this.onSettings,
     required this.onToggleStatus,
+    this.onAddCampus,
   });
 
   @override
@@ -233,15 +238,23 @@ class TenantDirectoryTab extends StatelessWidget {
             )
           else
             ...filteredSchools.map((s) {
+              TenantResponse? parent;
+              if (allTenants != null) {
+                try {
+                  parent = allTenants!.firstWhere((t) => t.id == s.tenantId);
+                } catch (_) {}
+              }
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: TenantSchoolCard(
                   school: s,
+                  parentTenant: parent,
                   isCurrentTenant: s.tenantId == currentTenantId,
                   onSwitchTenant: onSwitchTenant,
                   onEditProfile: onEditProfile,
                   onSettings: onSettings,
                   onToggleStatus: onToggleStatus,
+                  onAddCampus: onAddCampus,
                 ),
               );
             }),

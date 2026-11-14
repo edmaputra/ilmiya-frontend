@@ -1,4 +1,5 @@
 import '../models/school.dart';
+import '../models/tenant.dart';
 import '../models/academic_year.dart';
 import '../models/iam.dart';
 
@@ -9,6 +10,7 @@ class MockStorageService {
   factory MockStorageService() => _instance;
 
   late SchoolResponse _school;
+  late List<TenantResponse> _tenants;
   late List<SchoolResponse> _schools;
   late List<AcademicYearResponse> _academicYears;
   late List<UserResponse> _users;
@@ -26,6 +28,70 @@ class MockStorageService {
   void reset() {
     _groupMembers = {};
     _groupRoleAssignments = [];
+
+    _tenants = [
+      TenantResponse(
+        id: DEFAULT_TENANT_ID,
+        name: 'Yayasan Pendidikan Lincoln Ilmiya',
+        legalEntityNumber: 'AHU-0012345.AH.01.04.2020',
+        registrationType: 'FOUNDATION',
+        address: '1240 Oakcrest Ave, Portland, OR 97201',
+        contactEmail: 'foundation@lincolnhigh.edu',
+        contactPhone: '+1 503 555 0192',
+        status: 'ACTIVE',
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      ),
+      TenantResponse(
+        id: 'tenant-sma1-ilmiya-002',
+        name: 'Yayasan Pembina Generasi Ilmiya',
+        legalEntityNumber: 'AHU-0098765.AH.01.04.2021',
+        registrationType: 'FOUNDATION',
+        address: 'Jl. Pendidikan No. 42, Kebayoran Baru, Jakarta Selatan',
+        contactEmail: 'sekretariat@ilmiya-foundation.id',
+        contactPhone: '+62 21 7890 1234',
+        status: 'ACTIVE',
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      ),
+      TenantResponse(
+        id: 'tenant-alazhar-003',
+        name: 'Yayasan Pesantren Islam Al-Azhar',
+        legalEntityNumber: 'AHU-0034567.AH.01.04.2018',
+        registrationType: 'FOUNDATION',
+        address: 'Jl. Sisingamangaraja No. 1, Kebayoran Baru, Jakarta Selatan',
+        contactEmail: 'info@alazhar-foundation.sch.id',
+        contactPhone: '+62 21 7278 8900',
+        status: 'ACTIVE',
+        createdAt: '2026-02-10T00:00:00Z',
+        updatedAt: '2026-02-10T00:00:00Z',
+      ),
+      TenantResponse(
+        id: 'tenant-horizon-004',
+        name: 'Horizon STEM Education Trust',
+        legalEntityNumber: 'WA-CORP-98721',
+        registrationType: 'NON_PROFIT_ORGANIZATION',
+        address: '770 Innovation Blvd, Silicon Forest, WA 98052',
+        contactEmail: 'contact@horizon-trust.org',
+        contactPhone: '+1 206 555 0148',
+        status: 'PENDING',
+        createdAt: '2026-03-01T00:00:00Z',
+        updatedAt: '2026-03-01T00:00:00Z',
+      ),
+      TenantResponse(
+        id: 'tenant-stjude-005',
+        name: 'St. Jude Educational Association',
+        legalEntityNumber: 'MA-NONPROFIT-4412',
+        registrationType: 'RELIGIOUS_BODY',
+        address: '500 Cathedral St, Boston, MA 02118',
+        contactEmail: 'office@stjude-edu.org',
+        contactPhone: '+1 617 555 0184',
+        status: 'SUSPENDED',
+        createdAt: '2026-01-15T00:00:00Z',
+        updatedAt: '2026-01-15T00:00:00Z',
+      ),
+    ];
+
     _schools = [
       SchoolResponse(
         id: 'sch-001',
@@ -53,7 +119,7 @@ class MockStorageService {
         id: 'sch-002',
         tenantId: 'tenant-sma1-ilmiya-002',
         name: 'SMA Negeri 1 Ilmiya',
-        institutionCode: 'SMAN1-ILM',
+        institutionCode: 'SMAN1-JKT',
         address: 'Jl. Pendidikan No. 42, Kebayoran Baru, Jakarta Selatan',
         contactEmail: 'admin@ilmiya-school.edu',
         contactPhone: '+62 21 7890 1234',
@@ -75,9 +141,9 @@ class MockStorageService {
         id: 'sch-003',
         tenantId: 'tenant-alazhar-003',
         name: 'Al-Azhar Islamic Academy',
-        institutionCode: 'AZHAR-003',
+        institutionCode: 'AZHAR-SMA-01',
         address: 'Jl. Sisingamangaraja No. 1, Kebayoran Baru, Jakarta Selatan',
-        contactEmail: 'info@alazhar-academy.sch.id',
+        contactEmail: 'sma@alazhar.sch.id',
         contactPhone: '+62 21 7278 8900',
         status: 'ACTIVE',
         governmentRegistrationNumber: 'NPSN-20104432',
@@ -445,9 +511,124 @@ class MockStorageService {
     ];
   }
 
+  // --- Tenant (Yayasan / Foundation) Management ---
+  List<TenantResponse> listTenants({String? query, String? status}) {
+    return _tenants.where((t) {
+      if (status != null &&
+          status.isNotEmpty &&
+          status.toUpperCase() != 'ALL') {
+        if (t.status.toUpperCase() != status.toUpperCase()) return false;
+      }
+      if (query != null && query.trim().isNotEmpty) {
+        final q = query.trim().toLowerCase();
+        final matches = t.name.toLowerCase().contains(q) ||
+            t.id.toLowerCase().contains(q) ||
+            (t.legalEntityNumber?.toLowerCase().contains(q) ?? false) ||
+            t.contactEmail.toLowerCase().contains(q) ||
+            t.address.toLowerCase().contains(q);
+        if (!matches) return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  TenantResponse getTenant(String tenantId) {
+    return _tenants.firstWhere(
+      (t) => t.id == tenantId,
+      orElse: () => TenantResponse(
+        id: tenantId,
+        name: 'Yayasan $tenantId',
+        address: 'Foundation Campus, District HQ',
+        contactEmail: 'yayasan@ilmiya.edu',
+        contactPhone: '+62 21 5555 0199',
+        status: 'ACTIVE',
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      ),
+    );
+  }
+
+  TenantResponse createTenant(CreateTenantRequest req) {
+    final newTenant = TenantResponse(
+      id: req.tenantId.isNotEmpty
+          ? req.tenantId
+          : 'tenant-${DateTime.now().millisecondsSinceEpoch}',
+      name: req.name,
+      legalEntityNumber: req.legalEntityNumber,
+      registrationType: req.registrationType ?? 'FOUNDATION',
+      address: req.address,
+      contactEmail: req.contactEmail,
+      contactPhone: req.contactPhone,
+      logoUrl: req.logoUrl,
+      status: 'ACTIVE',
+      createdAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
+    );
+    _tenants.add(newTenant);
+    return newTenant;
+  }
+
+  TenantResponse updateTenant(String tenantId, UpdateTenantRequest req) {
+    final index = _tenants.indexWhere((t) => t.id == tenantId);
+    final target = index != -1
+        ? _tenants[index]
+        : TenantResponse(
+            id: tenantId,
+            name: req.name,
+            address: req.address,
+            contactEmail: req.contactEmail,
+            contactPhone: req.contactPhone,
+            status: req.status,
+            createdAt: DateTime.now().toIso8601String(),
+            updatedAt: DateTime.now().toIso8601String(),
+          );
+
+    final updated = target.copyWith(
+      name: req.name,
+      address: req.address,
+      contactEmail: req.contactEmail,
+      contactPhone: req.contactPhone,
+      logoUrl: req.logoUrl,
+      legalEntityNumber: req.legalEntityNumber,
+      registrationType: req.registrationType,
+      status: req.status,
+      updatedAt: DateTime.now().toIso8601String(),
+    );
+
+    if (index != -1) {
+      _tenants[index] = updated;
+    } else {
+      _tenants.add(updated);
+    }
+    return updated;
+  }
+
+  TenantResponse updateTenantStatus(String tenantId, String newStatus) {
+    final index = _tenants.indexWhere((t) => t.id == tenantId);
+    if (index != -1) {
+      final updated = _tenants[index].copyWith(
+        status: newStatus.toUpperCase(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+      _tenants[index] = updated;
+      return updated;
+    }
+    throw Exception('Tenant not found: $tenantId');
+  }
+
+  bool deleteTenant(String tenantId) {
+    final countBefore = _tenants.length;
+    _tenants.removeWhere((t) => t.id == tenantId);
+    return _tenants.length < countBefore;
+  }
+
   // --- School Profile & Multi-Tenant Schools ---
-  List<SchoolResponse> listSchools({String? query, String? status}) {
+  List<SchoolResponse> listSchools(
+      {String? tenantId, String? query, String? status}) {
     return _schools.where((s) {
+      if (tenantId != null && tenantId.isNotEmpty) {
+        if (s.tenantId != tenantId) return false;
+      }
       if (status != null &&
           status.isNotEmpty &&
           status.toUpperCase() != 'ALL') {
@@ -467,16 +648,20 @@ class MockStorageService {
     }).toList();
   }
 
-  SchoolResponse getSchoolProfile(String tenantId) {
-    final existing = _schools.where((s) => s.tenantId == tenantId);
-    if (existing.isNotEmpty) {
-      return existing.first;
+  SchoolResponse getSchoolProfile(String targetId) {
+    final byId = _schools.where((s) => s.id == targetId);
+    if (byId.isNotEmpty) {
+      return byId.first;
+    }
+    final byTenant = _schools.where((s) => s.tenantId == targetId);
+    if (byTenant.isNotEmpty) {
+      return byTenant.first;
     }
     final branch = SchoolResponse(
-      id: 'sch-$tenantId',
-      tenantId: tenantId,
-      name: 'Branch Campus ($tenantId)',
-      institutionCode: 'BRANCH-$tenantId',
+      id: 'sch-$targetId',
+      tenantId: targetId,
+      name: 'Branch Campus ($targetId)',
+      institutionCode: 'BRANCH-$targetId',
       address: 'Main Avenue, District Branch',
       contactEmail: 'branch@ilmiya-school.edu',
       contactPhone: '+62 21 5555 0100',
@@ -494,7 +679,7 @@ class MockStorageService {
   SchoolResponse updateSchoolProfile(UpdateSchoolRequest req,
       {String? targetTenantId}) {
     final tId = targetTenantId ?? _school.tenantId;
-    final index = _schools.indexWhere((s) => s.tenantId == tId);
+    final index = _schools.indexWhere((s) => s.tenantId == tId || s.id == tId);
     final target = index != -1 ? _schools[index] : _school;
 
     final updated = target.copyWith(
@@ -516,7 +701,7 @@ class MockStorageService {
     } else {
       _schools.add(updated);
     }
-    if (tId == _school.tenantId) {
+    if (tId == _school.tenantId || tId == _school.id) {
       _school = updated;
     }
     return updated;
@@ -525,7 +710,7 @@ class MockStorageService {
   SchoolResponse configureSchoolSettings(ConfigureSchoolSettingsRequest req,
       {String? targetTenantId}) {
     final tId = targetTenantId ?? _school.tenantId;
-    final index = _schools.indexWhere((s) => s.tenantId == tId);
+    final index = _schools.indexWhere((s) => s.tenantId == tId || s.id == tId);
     final target = index != -1 ? _schools[index] : _school;
 
     final updated = target.copyWith(
@@ -540,7 +725,7 @@ class MockStorageService {
     } else {
       _schools.add(updated);
     }
-    if (tId == _school.tenantId) {
+    if (tId == _school.tenantId || tId == _school.id) {
       _school = updated;
     }
     return updated;
@@ -562,7 +747,8 @@ class MockStorageService {
       createdAt: DateTime.now().toIso8601String(),
       updatedAt: DateTime.now().toIso8601String(),
     );
-    final existingIdx = _schools.indexWhere((s) => s.tenantId == req.tenantId);
+    final existingIdx = _schools.indexWhere((s) =>
+        s.tenantId == req.tenantId && s.institutionCode == req.institutionCode);
     if (existingIdx != -1) {
       _schools[existingIdx] = newSchool;
     } else {
@@ -571,25 +757,28 @@ class MockStorageService {
     return newSchool;
   }
 
-  SchoolResponse updateSchoolStatus(String tenantId, String newStatus) {
-    final index = _schools.indexWhere((s) => s.tenantId == tenantId);
+  SchoolResponse updateSchoolStatus(String targetId, String newStatus) {
+    var index = _schools.indexWhere((s) => s.id == targetId);
+    if (index == -1) {
+      index = _schools.indexWhere((s) => s.tenantId == targetId);
+    }
     if (index != -1) {
       final updated = _schools[index].copyWith(
         status: newStatus.toUpperCase(),
         updatedAt: DateTime.now().toIso8601String(),
       );
       _schools[index] = updated;
-      if (tenantId == _school.tenantId) {
+      if (targetId == _school.tenantId || targetId == _school.id) {
         _school = updated;
       }
       return updated;
     }
-    throw Exception('School tenant not found: $tenantId');
+    throw Exception('School not found: $targetId');
   }
 
-  bool deleteSchool(String tenantId) {
+  bool deleteSchool(String targetId) {
     final countBefore = _schools.length;
-    _schools.removeWhere((s) => s.tenantId == tenantId);
+    _schools.removeWhere((s) => s.id == targetId || s.tenantId == targetId);
     return _schools.length < countBefore;
   }
 

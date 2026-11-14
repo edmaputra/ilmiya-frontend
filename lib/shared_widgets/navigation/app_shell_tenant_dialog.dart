@@ -220,7 +220,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Search school name or enter tenant partition ID',
+                  "Foundation: ${widget.auth.tenantName} • Campus: ${widget.auth.schoolName}",
                   style: TextStyle(
                     fontSize: 12,
                     color: secondaryTextColor,

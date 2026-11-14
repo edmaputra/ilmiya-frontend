@@ -5,10 +5,13 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
+import '../../../core/models/tenant.dart';
 import '../../../core/services/school_service.dart';
+import '../../../core/services/tenant_service.dart';
 import '../../../core/utils/app_toast.dart';
 import '../../../state/auth_notifier.dart';
 import '../dialogs/edit_tenant_dialog.dart';
+import '../dialogs/register_school_dialog.dart';
 import '../dialogs/register_tenant_dialog.dart';
 import '../dialogs/tenant_settings_dialog.dart';
 import '../dialogs/tenant_status_confirmation_dialog.dart';
@@ -28,6 +31,7 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  List<TenantResponse> _tenants = [];
   List<SchoolResponse> _schools = [];
   bool _isLoading = true;
   String _searchQuery = '';
@@ -51,14 +55,16 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
   Future<void> _loadSchools() async {
     setState(() => _isLoading = true);
     try {
+      final tenantsList = await tenantService.listTenants();
       final list = await schoolService.listSchools();
       if (mounted) {
         setState(() {
+          _tenants = tenantsList;
           _schools = list;
           _isLoading = false;
           final auth = context.read<AuthNotifier>();
           _inspectedSchool = list.firstWhere(
-            (s) => s.tenantId == auth.tenantId,
+            (s) => s.id == auth.schoolId || s.tenantId == auth.tenantId,
             orElse: () => list.isNotEmpty ? list.first : _schools.first,
           );
         });
@@ -72,6 +78,14 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     RegisterTenantDialog.show(
       context,
       onTenantRegistered: _loadSchools,
+    );
+  }
+
+  void _showRegisterSchoolDialog([String? tenantId]) {
+    RegisterSchoolDialog.show(
+      context,
+      initialTenantId: tenantId,
+      onSchoolRegistered: _loadSchools,
     );
   }
 
@@ -251,6 +265,7 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
                 TenantDirectoryTab(
                   allSchools: _schools,
                   filteredSchools: filteredSchools,
+                  allTenants: _tenants,
                   searchQuery: _searchQuery,
                   selectedStatusFilter: _selectedStatusFilter,
                   currentTenantId: auth.tenantId,
@@ -262,14 +277,16 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
                   onEditProfile: _showEditProfileDialog,
                   onSettings: _showSettingsDialog,
                   onToggleStatus: _toggleTenantStatus,
+                  onAddCampus: (tenantId) =>
+                      _showRegisterSchoolDialog(tenantId),
                 ),
                 TenantInspectorTab(
                   schools: _schools,
                   inspectedSchool: _inspectedSchool,
                   onSelectSchool: (newId) {
                     setState(() {
-                      _inspectedSchool =
-                          _schools.firstWhere((s) => s.tenantId == newId);
+                      _inspectedSchool = _schools.firstWhere(
+                          (s) => s.id == newId || s.tenantId == newId);
                     });
                   },
                   onEditProfile: _showEditProfileDialog,
