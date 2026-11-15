@@ -4,6 +4,7 @@ import 'package:ilmiya_app/core/models/iam.dart';
 import 'package:ilmiya_app/core/services/mock_storage_service.dart';
 import 'package:ilmiya_app/core/theme/app_theme.dart';
 import 'package:ilmiya_app/features/auth/presentation/login_dialog.dart';
+import 'package:ilmiya_app/features/school_profile/dialogs/register_foundation_dialog.dart';
 import 'package:ilmiya_app/features/school_profile/presentation/tenant_management_screen.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
 import 'package:kite_ui/shadcn.dart';
@@ -30,7 +31,7 @@ void main() {
 
   group('TenantManagementScreen Tests', () {
     testWidgets(
-        'renders title, superadmin badge, and switches through all 3 tabs',
+        'renders title, superadmin badge, and switches through all 4 tabs',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -44,9 +45,19 @@ void main() {
       expect(find.text('Tenant & School Profile Management'), findsOneWidget);
       expect(find.text('SUPERADMIN'), findsWidgets);
 
-      // Default tab: Tenants Directory
-      expect(find.text('TOTAL TENANTS'), findsOneWidget);
+      // Default tab: Foundations (Yayasan)
+      expect(find.text('TOTAL FOUNDATIONS'), findsOneWidget);
+      expect(find.text('ACTIVE FOUNDATIONS'), findsOneWidget);
+      expect(find.text('Register Foundation / Tenant'), findsOneWidget);
+
+      // Switch to Schools & Campuses tab
+      final schoolsTab = find.text('Schools & Campuses');
+      await tester.ensureVisible(schoolsTab);
+      await tester.tap(schoolsTab);
+      await tester.pumpAndSettle();
+      expect(find.text('TOTAL CAMPUSES'), findsOneWidget);
       expect(find.text('ACTIVE SCHOOLS'), findsOneWidget);
+      expect(find.text('Register School Campus'), findsOneWidget);
 
       // Switch to Institutional Inspector tab
       final inspectorTab = find.text('Institutional Inspector');
@@ -66,7 +77,7 @@ void main() {
       expect(find.text('Data Isolation & Security Policies'), findsOneWidget);
     });
 
-    testWidgets('search filtering in Tenants Directory narrows results',
+    testWidgets('search filtering in Foundations Directory narrows results',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -79,30 +90,30 @@ void main() {
       final searchField = find.byWidgetPredicate((w) =>
           w is TextField &&
           w.decoration?.hintText ==
-              'Search by school name, tenant ID, code, or NPSN...');
+              'Search by foundation name, tenant ID, or AHU number...');
       expect(searchField, findsOneWidget);
 
-      // Filter for Lincoln
+      // Filter for Lincoln Foundation
       await tester.enterText(searchField, 'Lincoln');
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Lincoln'), findsWidgets);
-      expect(find.text('Al-Azhar Islamic Academy'), findsNothing);
+      expect(find.text('Yayasan Pesantren Islam Al-Azhar'), findsNothing);
 
       // Filter for nonexistent
-      await tester.enterText(searchField, 'NonExistentSchool12345');
+      await tester.enterText(searchField, 'NonExistentFoundation12345');
       await tester.pumpAndSettle();
 
-      expect(
-          find.text('No school tenants matched the criteria.'), findsOneWidget);
+      expect(find.text('No foundation tenants matched the criteria.'),
+          findsOneWidget);
 
       // Clear search
       await tester.enterText(searchField, '');
       await tester.pumpAndSettle();
-      expect(find.text('Al-Azhar Islamic Academy'), findsOneWidget);
+      expect(find.text('Yayasan Pendidikan Lincoln Ilmiya'), findsOneWidget);
     });
 
-    testWidgets('status filter chips filter tenants correctly',
+    testWidgets('status filter chips filter foundations correctly',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -111,28 +122,23 @@ void main() {
 
       await tester.pumpWidget(buildTestableTenantScreen());
       await tester.pumpAndSettle();
-
-      // Tap PENDING status chip
-      await tester.tap(find.widgetWithText(ChoiceChip, 'PENDING'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Horizon International STEM Academy'), findsOneWidget);
-      expect(find.text('Al-Azhar Islamic Academy'), findsNothing);
 
       // Tap SUSPENDED status chip
       await tester.tap(find.widgetWithText(ChoiceChip, 'SUSPENDED'));
       await tester.pumpAndSettle();
 
-      expect(find.text('St. Jude Preparatory School'), findsOneWidget);
+      expect(find.text('St. Jude Educational Association'), findsOneWidget);
+      expect(find.text('Yayasan Pendidikan Lincoln Ilmiya'), findsNothing);
 
       // Tap ALL status chip
       await tester.tap(find.widgetWithText(ChoiceChip, 'ALL'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Al-Azhar Islamic Academy'), findsOneWidget);
+      expect(find.text('Yayasan Pendidikan Lincoln Ilmiya'), findsOneWidget);
     });
 
-    testWidgets('Register School button opens dialog and Cancel dismisses it',
+    testWidgets(
+        'Register Foundation button opens dialog and Cancel dismisses it',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -142,25 +148,29 @@ void main() {
       await tester.pumpWidget(buildTestableTenantScreen());
       await tester.pumpAndSettle();
 
-      final registerBtn = find.text('Register School');
+      final registerBtn = find.text('Register Foundation / Tenant');
       expect(registerBtn, findsOneWidget);
       await tester.tap(registerBtn);
       await tester.pumpAndSettle();
 
-      expect(find.text('Register School Tenant'), findsOneWidget);
+      expect(find.text('Register Foundation / Tenant'), findsWidgets);
       expect(
           find.text(
-              'Provision a new institutional partition with isolated databases, academic calendar, and IAM scope tree.'),
+              'Provision a parent Foundation (Yayasan) organization to govern multiple school campuses and centralize administrative oversight.'),
           findsOneWidget);
 
       // Tap Cancel
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Register School Tenant'), findsNothing);
+      expect(
+          find.text(
+              'Provision a parent Foundation (Yayasan) organization to govern multiple school campuses and centralize administrative oversight.'),
+          findsNothing);
     });
 
-    testWidgets('Register School registers new tenant with valid fields',
+    testWidgets(
+        'Register Foundation registers new foundation with valid fields',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -170,30 +180,32 @@ void main() {
       await tester.pumpWidget(buildTestableTenantScreen());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Register School'));
+      await tester.tap(find.text('Register Foundation / Tenant'));
       await tester.pumpAndSettle();
 
       // Fill in fields
-      final tenantIdField = find.widgetWithText(TextField, 'Tenant ID *');
-      final codeField = find.widgetWithText(TextField, 'Institution Code *');
+      final tenantIdField =
+          find.widgetWithText(TextField, 'Foundation / Tenant ID *');
       final nameField =
-          find.widgetWithText(TextField, 'School / Institution Name *');
+          find.widgetWithText(TextField, 'Foundation Name (Yayasan) *');
 
       await tester.enterText(tenantIdField, 'tenant-summit-007');
-      await tester.enterText(codeField, 'SUMMIT-007');
-      await tester.enterText(nameField, 'Summit Valley Prep');
+      await tester.enterText(nameField, 'Yayasan Summit Valley');
       await tester.pumpAndSettle();
 
-      // Tap Register Tenant inside dialog actions
-      await tester.tap(find.text('Register Tenant'));
+      // Tap Register Foundation inside dialog actions
+      final submitBtn =
+          find.widgetWithText(FilledButton, 'Register Foundation');
+      expect(submitBtn, findsOneWidget);
+      await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
-      expect(find.text('Register School Tenant'), findsNothing);
-      expect(
-          find.text('Summit Valley Prep', skipOffstage: false), findsOneWidget);
+      expect(find.byType(RegisterFoundationDialog), findsNothing);
+      expect(find.text('Yayasan Summit Valley', skipOffstage: false),
+          findsOneWidget);
     });
 
-    testWidgets('Edit Profile icon button opens dialog and Cancel dismisses',
+    testWidgets('Add School Campus button opens RegisterSchoolDialog',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -203,21 +215,44 @@ void main() {
       await tester.pumpWidget(buildTestableTenantScreen());
       await tester.pumpAndSettle();
 
-      final editBtns = find.byTooltip('Edit Profile');
+      final addCampusBtns = find.text('Add School Campus');
+      expect(addCampusBtns, findsWidgets);
+      await tester.tap(addCampusBtns.first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Register School Campus / Unit'), findsOneWidget);
+      expect(find.text('Parent Foundation (Yayasan) *'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Register School Campus / Unit'), findsNothing);
+    });
+
+    testWidgets('Edit Foundation icon button opens dialog and Cancel dismisses',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableTenantScreen());
+      await tester.pumpAndSettle();
+
+      final editBtns = find.text('Edit Foundation');
       expect(editBtns, findsWidgets);
       await tester.tap(editBtns.first);
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Edit Tenant:'), findsOneWidget);
+      expect(find.textContaining('Edit Foundation:'), findsOneWidget);
 
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Edit Tenant:'), findsNothing);
+      expect(find.textContaining('Edit Foundation:'), findsNothing);
     });
 
-    testWidgets(
-        'Operational Settings icon button opens dialog and Cancel dismisses',
+    testWidgets('Toggle Foundation status toggles status',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -227,43 +262,15 @@ void main() {
       await tester.pumpWidget(buildTestableTenantScreen());
       await tester.pumpAndSettle();
 
-      final settingsBtns = find.byTooltip('Operational Settings');
-      expect(settingsBtns, findsWidgets);
-      await tester.tap(settingsBtns.first);
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Operational Rules:'), findsOneWidget);
-
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Operational Rules:'), findsNothing);
-    });
-
-    testWidgets('Toggle status opens confirmation dialog and Cancel dismisses',
-        (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1280, 900);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(buildTestableTenantScreen());
-      await tester.pumpAndSettle();
-
-      final suspendBtns = find.byTooltip('Suspend Tenant');
+      final suspendBtns = find.text('Suspend');
       expect(suspendBtns, findsWidgets);
       await tester.tap(suspendBtns.first);
       await tester.pumpAndSettle();
 
-      expect(find.text('Confirm Tenant Status Change'), findsOneWidget);
-
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Confirm Tenant Status Change'), findsNothing);
+      expect(find.textContaining('is now suspended'), findsOneWidget);
     });
 
-    testWidgets('Switch tenant button triggers active session switch',
+    testWidgets('Schools & Campuses tab searches and renders school cards',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -273,13 +280,20 @@ void main() {
       await tester.pumpWidget(buildTestableTenantScreen());
       await tester.pumpAndSettle();
 
-      final switchBtns = find.text('Switch');
-      expect(switchBtns, findsWidgets);
-      await tester.tap(switchBtns.first);
+      // Switch to Schools & Campuses tab
+      await tester.tap(find.text('Schools & Campuses'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Active session switched to tenant:'),
-          findsOneWidget);
+      final searchField = find.byWidgetPredicate((w) =>
+          w is TextField &&
+          w.decoration?.hintText ==
+              'Search by school name, tenant ID, code, or NPSN...');
+      expect(searchField, findsOneWidget);
+
+      await tester.enterText(searchField, 'Lincoln');
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Lincoln'), findsWidgets);
     });
 
     testWidgets(
@@ -308,7 +322,7 @@ void main() {
     });
 
     testWidgets(
-        'renders Tenants Directory without overflow on mobile viewport (375x667)',
+        'renders Foundations Directory without overflow on mobile viewport (375x667)',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(375, 667);
       tester.view.devicePixelRatio = 1.0;
@@ -319,9 +333,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Tenant & School Profile Management'), findsOneWidget);
-      expect(find.text('TOTAL TENANTS'), findsOneWidget);
-      expect(find.text('Register School'), findsOneWidget);
-      expect(find.textContaining('Lincoln', skipOffstage: false), findsWidgets);
+      expect(find.text('TOTAL FOUNDATIONS'), findsOneWidget);
+
+      final registerBtn = find.text('Register Foundation / Tenant');
+      await tester.drag(find.byType(ListView).first, const Offset(0, -200));
+      await tester.pumpAndSettle();
+      expect(registerBtn, findsOneWidget);
+
+      await tester.drag(find.byType(ListView).first, const Offset(0, -200));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Lincoln'), findsWidgets);
     });
 
     testWidgets(
@@ -386,28 +407,28 @@ void main() {
       await tester.pumpWidget(buildTestableTenantScreen());
       await tester.pumpAndSettle();
 
-      expect(find.text('TOTAL TENANTS'), findsOneWidget);
-      expect(find.text('ACTIVE SCHOOLS'), findsOneWidget);
-      expect(find.text('PENDING ONBOARDING'), findsOneWidget);
+      expect(find.text('TOTAL FOUNDATIONS'), findsOneWidget);
+      expect(find.text('ACTIVE FOUNDATIONS'), findsOneWidget);
       expect(find.text('SUSPENDED'), findsWidgets);
+      expect(find.text('TOTAL CAMPUSES'), findsOneWidget);
 
       // Tablet viewport (600x900) -> 2x2 grid
       tester.view.physicalSize = const Size(600, 900);
       await tester.pumpAndSettle();
 
-      expect(find.text('TOTAL TENANTS'), findsOneWidget);
-      expect(find.text('ACTIVE SCHOOLS'), findsOneWidget);
-      expect(find.text('PENDING ONBOARDING'), findsOneWidget);
+      expect(find.text('TOTAL FOUNDATIONS'), findsOneWidget);
+      expect(find.text('ACTIVE FOUNDATIONS'), findsOneWidget);
       expect(find.text('SUSPENDED'), findsWidgets);
+      expect(find.text('TOTAL CAMPUSES'), findsOneWidget);
 
       // Narrow mobile viewport (320x568) -> 1-column stack
       tester.view.physicalSize = const Size(320, 568);
       await tester.pumpAndSettle();
 
-      expect(find.text('TOTAL TENANTS'), findsOneWidget);
-      expect(find.text('ACTIVE SCHOOLS'), findsOneWidget);
-      expect(find.text('PENDING ONBOARDING'), findsOneWidget);
+      expect(find.text('TOTAL FOUNDATIONS'), findsOneWidget);
+      expect(find.text('ACTIVE FOUNDATIONS'), findsOneWidget);
       expect(find.text('SUSPENDED'), findsWidgets);
+      expect(find.text('TOTAL CAMPUSES'), findsOneWidget);
     });
   });
 }

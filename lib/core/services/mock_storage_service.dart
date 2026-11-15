@@ -564,7 +564,7 @@ class MockStorageService {
       createdAt: DateTime.now().toIso8601String(),
       updatedAt: DateTime.now().toIso8601String(),
     );
-    _tenants.add(newTenant);
+    _tenants.insert(0, newTenant);
     return newTenant;
   }
 
