@@ -56,6 +56,7 @@ void main() {
       expect(storage.tenantId, isNull);
       expect(storage.userProfile, isNull);
       expect(storage.schoolName, isNull);
+      expect(storage.currentTab, isNull);
     });
 
     test('Saves and restores ThemeMode and currentTab', () async {

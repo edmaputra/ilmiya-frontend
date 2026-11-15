@@ -2,27 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
 import '../../../core/services/iam_service.dart';
 import '../../../core/utils/app_toast.dart';
 
 class IamUserTile extends StatelessWidget {
   final UserResponse user;
+  final List<RoleResponse> assignedRoles;
+  final bool canEdit;
   final bool canUpdateStatus;
   final bool canAssign;
   final bool canDelete;
+  final ValueChanged<UserResponse>? onEditUser;
   final ValueChanged<UserResponse> onAssignRole;
   final Future<void> Function() onDataReload;
 
   const IamUserTile({
     super.key,
     required this.user,
+    this.assignedRoles = const [],
+    this.canEdit = true,
     required this.canUpdateStatus,
     required this.canAssign,
     required this.canDelete,
+    this.onEditUser,
     required this.onAssignRole,
     required this.onDataReload,
   });
+
+  Widget _buildRoleBadges() {
+    if (assignedRoles.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 2,
+        children: assignedRoles.map((role) {
+          final label = role.name.isNotEmpty ? role.name : role.code;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+            decoration: BoxDecoration(
+              color: AppColors.forestSage.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: AppColors.forestSage.withOpacity(0.3),
+                width: 0.8,
+              ),
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppColors.forestSage,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +120,7 @@ class IamUserTile extends StatelessWidget {
                               color: c.mutedForeground,
                             ),
                           ),
+                          _buildRoleBadges(),
                         ],
                       ),
                     ),
@@ -129,6 +170,21 @@ class IamUserTile extends StatelessWidget {
                             }
                           : null,
                     ),
+                    if (canEdit && onEditUser != null)
+                      OutlinedButton.icon(
+                        onPressed: () => onEditUser!(user),
+                        icon: const Icon(LucideIcons.pencil, size: 12),
+                        label:
+                            const Text('Edit', style: TextStyle(fontSize: 11)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          foregroundColor: c.foreground,
+                          side: BorderSide(color: c.border),
+                          shape: const RoundedRectangleBorder(
+                              borderRadius: KiteRadius.allSm),
+                        ),
+                      ),
                     OutlinedButton(
                       onPressed: canAssign ? () => onAssignRole(user) : null,
                       style: OutlinedButton.styleFrom(
@@ -198,9 +254,15 @@ class IamUserTile extends StatelessWidget {
                 const KiteBadge('SUPERADMIN', tone: KiteTone.warning),
             ],
           ),
-          subtitle: Text(
-            user.email,
-            style: t.small.copyWith(fontSize: 11, color: c.mutedForeground),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                user.email,
+                style: t.small.copyWith(fontSize: 11, color: c.mutedForeground),
+              ),
+              _buildRoleBadges(),
+            ],
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -242,6 +304,22 @@ class IamUserTile extends StatelessWidget {
                     : null,
               ),
               const SizedBox(width: 8),
+              if (canEdit && onEditUser != null) ...[
+                OutlinedButton.icon(
+                  onPressed: () => onEditUser!(user),
+                  icon: const Icon(LucideIcons.pencil, size: 12),
+                  label: const Text('Edit', style: TextStyle(fontSize: 11)),
+                  style: OutlinedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    foregroundColor: c.foreground,
+                    side: BorderSide(color: c.border),
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: KiteRadius.allSm),
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
               OutlinedButton(
                 onPressed: canAssign ? () => onAssignRole(user) : null,
                 style: OutlinedButton.styleFrom(

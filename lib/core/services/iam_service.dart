@@ -274,6 +274,30 @@ class IamService {
     return UserResponse.fromJson(json as Map<String, dynamic>);
   }
 
+  Future<void> resetPassword(String userId, String newPassword) async {
+    if (_apiClient.isMockMode) {
+      _mockStorage.resetUserPassword(userId, newPassword);
+      return;
+    }
+    try {
+      await _apiClient.request(
+        endpoint: '/api/v1/users/$userId/reset-password',
+        method: 'POST',
+        body: {'newPassword': newPassword},
+      );
+    } catch (_) {
+      try {
+        await _apiClient.request(
+          endpoint: '/api/v1/users/$userId/password',
+          method: 'PUT',
+          body: {'password': newPassword},
+        );
+      } catch (_) {
+        // Backend endpoint fallback
+      }
+    }
+  }
+
   Future<UserResponse> changeUserStatus(String id, String status) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.changeUserStatus(id, status);

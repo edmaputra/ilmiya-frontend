@@ -77,15 +77,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(appState.currentTab, equals(1));
 
-    // Tap Executive Dashboard (tab 4)
-    await tester.tap(find.text('Executive Dashboard'));
+    // Tap School Profile (tab 0)
+    await tester.tap(find.text('School Profile'));
     await tester.pumpAndSettle();
-    expect(appState.currentTab, equals(4));
+    expect(appState.currentTab, equals(0));
 
     // Tap IAM Console (tab 2)
     await tester.tap(find.text('IAM Console'));
     await tester.pumpAndSettle();
     expect(appState.currentTab, equals(2));
+
+    // Hidden navigation tiles should not be rendered
+    expect(find.text('Executive Dashboard'), findsNothing);
+    expect(find.text('Courses & Grades'), findsNothing);
+    expect(find.text('Communications & Labs'), findsNothing);
   });
 
   testWidgets('IlmiyaAppShell top bar buttons trigger actions',

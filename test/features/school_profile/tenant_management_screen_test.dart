@@ -296,6 +296,35 @@ void main() {
       expect(find.textContaining('Lincoln'), findsWidgets);
     });
 
+    testWidgets('Schools & Campuses tab filters schools by active tenant',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final auth = AuthNotifier();
+
+      await tester.pumpWidget(buildTestableTenantScreen(authNotifier: auth));
+      await tester.pumpAndSettle();
+
+      // Switch to Schools & Campuses tab
+      await tester.tap(find.text('Schools & Campuses'));
+      await tester.pumpAndSettle();
+
+      // Active tenant is DEFAULT_TENANT_ID (Springfield)
+      expect(find.textContaining('Lincoln High Campus'), findsWidgets);
+      expect(find.textContaining('Al-Azhar Islamic Academy'), findsNothing);
+
+      // Switch active tenant to Al-Azhar
+      await auth.switchTenant('tenant-alazhar-003');
+      await tester.pumpAndSettle();
+
+      // Should now show Al-Azhar and hide Lincoln High Campus
+      expect(find.textContaining('Al-Azhar Islamic Academy'), findsWidgets);
+      expect(find.textContaining('Lincoln High Campus'), findsNothing);
+    });
+
     testWidgets(
         'Non-superadmin user sees access restricted view with persona switch',
         (WidgetTester tester) async {

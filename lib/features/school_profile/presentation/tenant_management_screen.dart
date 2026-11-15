@@ -47,12 +47,30 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
   String _selectedFoundationFilter = 'ALL';
   String? _selectedAccreditationFilter;
   SchoolResponse? _inspectedSchool;
+  String? _lastObservedTenantId;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    final auth = context.read<AuthNotifier>();
+    _selectedFoundationFilter =
+        auth.tenantId.isNotEmpty ? auth.tenantId : 'ALL';
+    _lastObservedTenantId = auth.tenantId;
     _loadSchools();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentTenant = context.read<AuthNotifier>().tenantId;
+    if (_lastObservedTenantId != null &&
+        _lastObservedTenantId != currentTenant &&
+        currentTenant.isNotEmpty) {
+      _selectedFoundationFilter = currentTenant;
+      _loadSchools();
+    }
+    _lastObservedTenantId = currentTenant;
   }
 
   @override
@@ -65,7 +83,7 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     setState(() => _isLoading = true);
     try {
       final tenantsList = await tenantService.listTenants();
-      final list = await schoolService.listSchools();
+      final list = await schoolService.listSchools(bypassTenantHeader: true);
       if (mounted) {
         setState(() {
           _tenants = tenantsList;
@@ -91,10 +109,20 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
   }
 
   void _showRegisterSchoolDialog([String? tenantId]) {
+    final effectiveTenantId = (tenantId != null && tenantId.isNotEmpty)
+        ? tenantId
+        : (_selectedFoundationFilter != 'ALL'
+            ? _selectedFoundationFilter
+            : null);
     RegisterSchoolDialog.show(
       context,
-      initialTenantId: tenantId,
-      onSchoolRegistered: _loadSchools,
+      initialTenantId: effectiveTenantId,
+      onSchoolRegistered: () async {
+        await _loadSchools();
+        if (effectiveTenantId != null && mounted) {
+          setState(() => _selectedFoundationFilter = effectiveTenantId);
+        }
+      },
     );
   }
 
@@ -172,6 +200,9 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     try {
       await auth.switchTenant(tenantId);
       if (mounted) {
+        setState(() {
+          _selectedFoundationFilter = tenantId;
+        });
         AppToast.showSuccess(
           context,
           'Active session switched to tenant: $tenantId',

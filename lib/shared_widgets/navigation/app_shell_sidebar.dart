@@ -14,6 +14,11 @@ import 'app_shell_tenant_dialog.dart';
 class AppShellSidebar extends StatelessWidget {
   const AppShellSidebar({super.key});
 
+  /// Feature visibility toggles - preserved for future feature reuse
+  static bool get showExecutiveDashboard => false;
+  static bool get showCoursesAndGrades => false;
+  static bool get showCommunicationsAndLabs => false;
+
   @override
   Widget build(BuildContext context) {
     final c = KiteColors.of(context);
@@ -177,12 +182,12 @@ class AppShellSidebar extends StatelessWidget {
                   auth.hasRole('SCHOOL_ADMIN') ||
                   !auth.isAuthenticated;
 
-              final showInstitutionSection =
-                  canViewSchoolProfile || canViewDashboard;
-              final showAcademicsSection =
-                  canViewAcademicYears || canViewGrades;
+              final showInstitutionSection = canViewSchoolProfile ||
+                  (showExecutiveDashboard && canViewDashboard);
+              final showAcademicsSection = canViewAcademicYears ||
+                  (showCoursesAndGrades && canViewGrades);
               final showAdminSection = canViewIam || canViewTenants;
-              const showCommSection = true;
+              final showCommSection = showCommunicationsAndLabs;
 
               return ListView(
                 padding:
@@ -197,7 +202,7 @@ class AppShellSidebar extends StatelessWidget {
                         tabIndex: 0,
                         isActive: state.currentTab == 0,
                       ),
-                    if (canViewDashboard)
+                    if (showExecutiveDashboard && canViewDashboard)
                       AppShellNavTile(
                         title: 'Executive Dashboard',
                         icon: LucideIcons.layoutDashboard,
@@ -215,7 +220,7 @@ class AppShellSidebar extends StatelessWidget {
                         tabIndex: 1,
                         isActive: state.currentTab == 1,
                       ),
-                    if (canViewGrades)
+                    if (showCoursesAndGrades && canViewGrades)
                       AppShellNavTile(
                         title: 'Courses & Grades',
                         icon: LucideIcons.graduationCap,

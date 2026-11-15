@@ -251,6 +251,10 @@ class ApiClient extends ChangeNotifier {
       if (token != null) 'Authorization': 'Bearer $token',
       ...?headers,
     };
+    if (headers?.containsKey('X-Tenant-ID') == true &&
+        headers!['X-Tenant-ID']!.isEmpty) {
+      requestHeaders.remove('X-Tenant-ID');
+    }
 
     try {
       http.Response response;

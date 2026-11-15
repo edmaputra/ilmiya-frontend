@@ -104,6 +104,52 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('IamUserTile displays assigned roles and triggers edit user',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final role = RoleResponse(
+        id: 'r-1',
+        tenantId: 't-1',
+        code: 'SCHOOL_ADMIN',
+        name: 'School Administrator',
+        permissions: ['*'],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      );
+
+      bool editCalled = false;
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          IamUserTile(
+            user: sampleUser,
+            assignedRoles: [role],
+            canEdit: true,
+            canAssign: true,
+            canUpdateStatus: true,
+            canDelete: true,
+            onEditUser: (u) => editCalled = true,
+            onAssignRole: (_) {},
+            onDataReload: () async {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('School Administrator'), findsWidgets);
+
+      final editBtn = find.byIcon(LucideIcons.pencil);
+      expect(editBtn, findsWidgets);
+      await tester.tap(editBtn.first);
+      await tester.pumpAndSettle();
+
+      expect(editCalled, isTrue);
+    });
+
     testWidgets('IamUserTile renders mobile layout (< 600px width)',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(450, 800);

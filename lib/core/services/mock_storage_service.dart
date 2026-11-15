@@ -911,6 +911,15 @@ class MockStorageService {
     return _users[idx];
   }
 
+  void resetUserPassword(String id, String newPassword) {
+    final idx = _users.indexWhere((u) => u.id == id);
+    if (idx == -1) throw Exception('User $id not found');
+    // Updates mock user timestamp
+    _users[idx] = _users[idx].copyWith(
+      updatedAt: DateTime.now().toIso8601String(),
+    );
+  }
+
   UserResponse changeUserStatus(String id, String status) {
     final idx = _users.indexWhere((u) => u.id == id);
     if (idx == -1) throw Exception('User $id not found');

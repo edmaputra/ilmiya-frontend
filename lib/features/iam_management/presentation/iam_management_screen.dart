@@ -12,6 +12,7 @@ import '../dialogs/create_group_dialog.dart';
 import '../dialogs/create_role_dialog.dart';
 import '../dialogs/create_scope_dialog.dart';
 import '../dialogs/create_user_dialog.dart';
+import '../dialogs/edit_user_dialog.dart';
 import '../widgets/iam_access_restricted_view.dart';
 import '../widgets/iam_groups_tab.dart';
 import '../widgets/iam_roles_tab.dart';
@@ -33,6 +34,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   List<RoleResponse> _roles = [];
   List<GroupResponse> _groups = [];
   List<ScopeTreeNode> _scopes = [];
+  Map<String, List<RoleResponse>> _userRolesMap = {};
   bool _isLoading = true;
   String _searchQuery = '';
 
@@ -61,6 +63,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
           _roles = [];
           _groups = [];
           _scopes = [];
+          _userRolesMap = {};
         });
       }
       return;
@@ -86,12 +89,55 @@ class _IamManagementScreenState extends State<IamManagementScreen>
           return <ScopeTreeNode>[];
         }),
       ]);
+
+      final users = results[0] as List<UserResponse>;
+      final roles = results[1] as List<RoleResponse>;
+      final groups = results[2] as List<GroupResponse>;
+      final scopes = results[3] as List<ScopeTreeNode>;
+
+      final userRolesMap = <String, List<RoleResponse>>{};
+      if (users.isNotEmpty) {
+        try {
+          final assignmentsLists = await Future.wait(
+            users.map((u) => iamService
+                .getUserRoles(u.id)
+                .catchError((_) => <UserRoleAssignmentResponse>[])),
+          );
+          for (var i = 0; i < users.length; i++) {
+            final uId = users[i].id;
+            final assignments = assignmentsLists[i];
+            final assignedRoles = <RoleResponse>[];
+            for (final a in assignments) {
+              final role = roles.firstWhere(
+                (r) => r.id == a.roleId || r.code == a.roleId,
+                orElse: () => RoleResponse(
+                  id: a.roleId,
+                  tenantId: a.tenantId,
+                  code: a.roleId,
+                  name: a.roleId,
+                  description: '',
+                  permissions: [],
+                  isSystemRole: false,
+                  createdAt: a.assignedAt,
+                  updatedAt: a.assignedAt,
+                ),
+              );
+              if (!assignedRoles.any((r) => r.id == role.id)) {
+                assignedRoles.add(role);
+              }
+            }
+            userRolesMap[uId] = assignedRoles;
+          }
+        } catch (_) {}
+      }
+
       if (mounted) {
         setState(() {
-          _users = results[0] as List<UserResponse>;
-          _roles = results[1] as List<RoleResponse>;
-          _groups = results[2] as List<GroupResponse>;
-          _scopes = results[3] as List<ScopeTreeNode>;
+          _users = users;
+          _roles = roles;
+          _groups = groups;
+          _scopes = scopes;
+          _userRolesMap = userRolesMap;
           _isLoading = false;
         });
       }
@@ -104,6 +150,14 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     CreateUserDialog.show(
       context,
       onUserCreated: _loadAllIamData,
+    );
+  }
+
+  void _showEditUserDialog(UserResponse user) {
+    EditUserDialog.show(
+      context,
+      user: user,
+      onUserUpdated: _loadAllIamData,
     );
   }
 
@@ -145,6 +199,9 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     final t = KiteText.of(context);
     final auth = context.watch<AuthNotifier>();
     final canCreateUser = auth.hasPermission('iam:user:create');
+    final canEditUser = auth.hasPermission('iam:user:update') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasPermission('*');
     final canUpdateUserStatus = auth.hasPermission('iam:user:status');
     final canAssignRole = auth.hasPermission('iam:user:assign-role');
     final canDeleteUser = auth.hasPermission('iam:user:delete');
@@ -248,13 +305,16 @@ class _IamManagementScreenState extends State<IamManagementScreen>
               children: [
                 IamUsersTab(
                   users: filteredUsers,
+                  userRoles: _userRolesMap,
                   searchQuery: _searchQuery,
                   canCreate: canCreateUser,
+                  canEdit: canEditUser,
                   canUpdateStatus: canUpdateUserStatus,
                   canAssign: canAssignRole,
                   canDelete: canDeleteUser,
                   onSearchChanged: (v) => setState(() => _searchQuery = v),
                   onCreateUser: _showCreateUserDialog,
+                  onEditUser: _showEditUserDialog,
                   onAssignRole: _showAssignRoleDialog,
                   onDataReload: _loadAllIamData,
                 ),

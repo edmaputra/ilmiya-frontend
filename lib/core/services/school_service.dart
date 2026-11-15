@@ -10,8 +10,12 @@ class SchoolService {
       : _apiClient = apiClient ?? ApiClient(),
         _mockStorage = mockStorage ?? MockStorageService();
 
-  Future<List<SchoolResponse>> listSchools(
-      {String? tenantId, String? query, String? status}) async {
+  Future<List<SchoolResponse>> listSchools({
+    String? tenantId,
+    String? query,
+    String? status,
+    bool bypassTenantHeader = false,
+  }) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.listSchools(
           tenantId: tenantId, query: query, status: status);
@@ -32,9 +36,14 @@ class SchoolService {
       endpoint = '$endpoint?${qParams.join('&')}';
     }
 
+    final headers = <String, String>{
+      if (bypassTenantHeader) 'X-Tenant-ID': '',
+    };
+
     final json = await _apiClient.request(
       endpoint: endpoint,
       method: 'GET',
+      headers: headers.isNotEmpty ? headers : null,
     );
     if (json is Map && json.containsKey('content') && json['content'] is List) {
       return (json['content'] as List)
