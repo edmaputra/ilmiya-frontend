@@ -45,7 +45,7 @@ class IlmiyaAppShell extends StatelessWidget {
               : null,
           bottomNavigationBar: !isDesktop
               ? NavigationBar(
-                  selectedIndex: state.currentTab.clamp(0, 3),
+                  selectedIndex: state.currentTab.clamp(0, 2),
                   onDestinationSelected: (index) => state.setTab(index),
                   backgroundColor: c.card,
                   indicatorColor: c.primary.withOpacity(0.18),
@@ -61,10 +61,6 @@ class IlmiyaAppShell extends StatelessWidget {
                     NavigationDestination(
                       icon: Icon(LucideIcons.shieldCheck, size: 20),
                       label: 'IAM Console',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(LucideIcons.flaskConical, size: 20),
-                      label: 'Previews',
                     ),
                   ],
                 )

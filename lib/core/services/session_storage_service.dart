@@ -138,12 +138,14 @@ class SessionStorageService {
     _memoryFallback.remove(_keyTenantId);
     _memoryFallback.remove(_keyUserProfile);
     _memoryFallback.remove(_keySchoolName);
+    _memoryFallback.remove(_keyCurrentTab);
 
     await _prefs?.remove(_keyAccessToken);
     await _prefs?.remove(_keyRefreshToken);
     await _prefs?.remove(_keyTenantId);
     await _prefs?.remove(_keyUserProfile);
     await _prefs?.remove(_keySchoolName);
+    await _prefs?.remove(_keyCurrentTab);
   }
 
   // --- Theme Mode ---

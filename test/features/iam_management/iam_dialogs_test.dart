@@ -9,6 +9,7 @@ import 'package:ilmiya_app/features/iam_management/dialogs/create_group_dialog.d
 import 'package:ilmiya_app/features/iam_management/dialogs/create_role_dialog.dart';
 import 'package:ilmiya_app/features/iam_management/dialogs/create_scope_dialog.dart';
 import 'package:ilmiya_app/features/iam_management/dialogs/create_user_dialog.dart';
+import 'package:ilmiya_app/features/iam_management/dialogs/edit_user_dialog.dart';
 import 'package:ilmiya_app/features/iam_management/dialogs/manage_group_dialog.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
 import 'package:kite_ui/shadcn.dart';
@@ -443,6 +444,87 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(created, isTrue);
+    });
+  });
+
+  group('EditUserDialog Tests', () {
+    testWidgets('EditUserDialog renders and updates user name',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final user = mockStorageService.listUsers().first;
+      bool updated = false;
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          EditUserDialog(
+            user: user,
+            onUserUpdated: () async => updated = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Edit User:'), findsOneWidget);
+      expect(find.text(user.email), findsOneWidget);
+
+      final nameField = find.widgetWithText(TextFormField, user.fullName);
+      await tester.enterText(nameField, 'Updated User Name');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Save Changes'));
+      await tester.pumpAndSettle();
+
+      expect(updated, isTrue);
+    });
+
+    testWidgets('EditUserDialog validates password match and resets password',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final user = mockStorageService.listUsers().first;
+      bool updated = false;
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          EditUserDialog(
+            user: user,
+            onUserUpdated: () async => updated = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final textFields = find.byType(TextFormField);
+      // textFields.at(0) is Email Address (read-only)
+      // textFields.at(1) is Full Name
+      // textFields.at(2) is New Password
+      // textFields.at(3) is Confirm Password
+      await tester.enterText(textFields.at(2), 'NewPass123!');
+      await tester.enterText(textFields.at(3), 'DifferentPass!');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Save Changes'));
+      await tester.pumpAndSettle();
+
+      // Should show validation error
+      expect(find.text('Passwords do not match'), findsOneWidget);
+      expect(updated, isFalse);
+
+      // Now match passwords
+      await tester.enterText(textFields.at(3), 'NewPass123!');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Save Changes'));
+      await tester.pumpAndSettle();
+
+      expect(updated, isTrue);
     });
   });
 }

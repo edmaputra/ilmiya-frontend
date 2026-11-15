@@ -50,6 +50,21 @@ class AuthNotifier extends ChangeNotifier {
   String? _error;
   void Function()? _unsubscribeAuthExpired;
   bool _lastMockMode = true;
+  String _sessionId = DateTime.now().microsecondsSinceEpoch.toString();
+  final List<VoidCallback> _onLogoutListeners = [];
+  final List<VoidCallback> _onLoginListeners = [];
+
+  void Function() onLogout(VoidCallback callback) {
+    _onLogoutListeners.add(callback);
+    return () => _onLogoutListeners.remove(callback);
+  }
+
+  void Function() onLogin(VoidCallback callback) {
+    _onLoginListeners.add(callback);
+    return () => _onLoginListeners.remove(callback);
+  }
+
+  String get sessionId => _sessionId;
 
   AuthNotifier({
     ApiClient? apiClient,
@@ -100,7 +115,16 @@ class AuthNotifier extends ChangeNotifier {
       _permissions = [];
       _isLoading = false;
       _sessionStorage.clearAuthSession();
+      _tenantName = 'Springfield Educational Foundation';
+      _schoolName = 'SMA Negeri 1 Ilmiya';
+      _schoolId = null;
+      _sessionId = DateTime.now().microsecondsSinceEpoch.toString();
       _error = reason ?? 'Your session has expired. Please sign in again.';
+      for (final listener in List.of(_onLogoutListeners)) {
+        try {
+          listener();
+        } catch (_) {}
+      }
       notifyListeners();
     });
     _apiClient.addListener(_onApiClientChanged);
@@ -266,6 +290,12 @@ class AuthNotifier extends ChangeNotifier {
         user: _user,
         schoolName: _schoolName,
       );
+      _sessionId = DateTime.now().microsecondsSinceEpoch.toString();
+      for (final listener in List.of(_onLoginListeners)) {
+        try {
+          listener();
+        } catch (_) {}
+      }
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -304,6 +334,15 @@ class AuthNotifier extends ChangeNotifier {
     _error = null;
     _isLoading = false;
     _tenantId = _apiClient.tenantId;
+    _tenantName = 'Springfield Educational Foundation';
+    _schoolName = 'SMA Negeri 1 Ilmiya';
+    _schoolId = null;
+    _sessionId = DateTime.now().microsecondsSinceEpoch.toString();
+    for (final listener in List.of(_onLogoutListeners)) {
+      try {
+        listener();
+      } catch (_) {}
+    }
     notifyListeners();
   }
 
@@ -344,6 +383,12 @@ class AuthNotifier extends ChangeNotifier {
         user: _user,
         schoolName: _schoolName,
       );
+      _sessionId = DateTime.now().microsecondsSinceEpoch.toString();
+      for (final listener in List.of(_onLoginListeners)) {
+        try {
+          listener();
+        } catch (_) {}
+      }
     } catch (e) {
       _error = 'Failed to switch tenant: $e';
       notifyListeners();

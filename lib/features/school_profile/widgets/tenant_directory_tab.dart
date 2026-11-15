@@ -51,11 +51,19 @@ class TenantDirectoryTab extends StatelessWidget {
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
 
-    final totalCount = allSchools.length;
-    final activeCount = allSchools.where((s) => s.status == 'ACTIVE').length;
-    final pendingCount = allSchools.where((s) => s.status == 'PENDING').length;
+    final scopedSchools =
+        (selectedFoundationFilter != null && selectedFoundationFilter != 'ALL')
+            ? allSchools
+                .where((s) => s.tenantId == selectedFoundationFilter)
+                .toList()
+            : allSchools;
+
+    final totalCount = scopedSchools.length;
+    final activeCount = scopedSchools.where((s) => s.status == 'ACTIVE').length;
+    final pendingCount =
+        scopedSchools.where((s) => s.status == 'PENDING').length;
     final suspendedCount =
-        allSchools.where((s) => s.status == 'SUSPENDED').length;
+        scopedSchools.where((s) => s.status == 'SUSPENDED').length;
 
     final screenWidth = MediaQuery.sizeOf(context).width;
     final cardPadding = screenWidth < 600 ? 12.0 : 16.0;

@@ -110,6 +110,24 @@ class AppState extends ChangeNotifier {
   }
 
   // Setters & Actions
+  void resetSession() {
+    _currentTab = 0;
+    _currentRole = UserRole.student;
+    _courses = List.from(initialCourses);
+    _notifications = List.from(initialNotifications);
+    _channels = List.from(initialChannels);
+    _messages.clear();
+    for (var entry in initialMessages.entries) {
+      _messages[entry.key] = List.from(entry.value);
+    }
+    _activeChannelId = 'chan_vance_direct';
+    _pendingInquiryContext = null;
+    _activeToast = null;
+    _toastTimer?.cancel();
+    _toastTimer = null;
+    notifyListeners();
+  }
+
   void setRole(UserRole role) {
     _currentRole = role;
     notifyListeners();
