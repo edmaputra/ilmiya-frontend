@@ -14,9 +14,11 @@ class TenantDirectoryTab extends StatelessWidget {
   final List<TenantResponse>? allTenants;
   final String searchQuery;
   final String selectedStatusFilter;
+  final String? selectedFoundationFilter;
   final String currentTenantId;
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<String> onStatusFilterChanged;
+  final ValueChanged<String?>? onFoundationFilterChanged;
   final VoidCallback onRegisterTenant;
   final ValueChanged<String> onSwitchTenant;
   final ValueChanged<SchoolResponse> onEditProfile;
@@ -31,9 +33,11 @@ class TenantDirectoryTab extends StatelessWidget {
     this.allTenants,
     required this.searchQuery,
     required this.selectedStatusFilter,
+    this.selectedFoundationFilter,
     required this.currentTenantId,
     required this.onSearchChanged,
     required this.onStatusFilterChanged,
+    this.onFoundationFilterChanged,
     required this.onRegisterTenant,
     required this.onSwitchTenant,
     required this.onEditProfile,
@@ -65,9 +69,9 @@ class TenantDirectoryTab extends StatelessWidget {
             builder: (ctx, constraints) {
               final w = constraints.maxWidth;
               final pill1 = TenantMetricPill(
-                label: 'TOTAL TENANTS',
+                label: 'TOTAL CAMPUSES',
                 value: '$totalCount',
-                icon: LucideIcons.building2,
+                icon: LucideIcons.school,
               );
               final pill2 = TenantMetricPill(
                 label: 'ACTIVE SCHOOLS',
@@ -139,10 +143,10 @@ class TenantDirectoryTab extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Search and Filters Bar
-          LayoutBuilder(
-            builder: (ctx, constraints) {
-              final isNarrow = constraints.maxWidth < 750;
-              final searchField = TextField(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
                 decoration: InputDecoration(
                   hintText:
                       'Search by school name, tenant ID, code, or NPSN...',
@@ -157,27 +161,59 @@ class TenantDirectoryTab extends StatelessWidget {
                   ),
                 ),
                 onChanged: onSearchChanged,
-              );
-
-              final filtersAndAction = Wrap(
+              ),
+              const SizedBox(height: 10),
+              Wrap(
                 spacing: 8,
                 runSpacing: 8,
+                alignment: WrapAlignment.spaceBetween,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  // Status filter chips
-                  ...['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED'].map((st) {
-                    final isSel = selectedStatusFilter == st;
-                    return ChoiceChip(
-                      label: Text(st, style: const TextStyle(fontSize: 11)),
-                      selected: isSel,
-                      selectedColor: AppColors.warmSand,
-                      onSelected: (val) {
-                        if (val) onStatusFilterChanged(st);
-                      },
-                    );
-                  }),
-
-                  // Register School action
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (allTenants != null && allTenants!.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: c.border),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: selectedFoundationFilter ?? 'ALL',
+                              isDense: true,
+                              style:
+                                  TextStyle(fontSize: 12, color: c.foreground),
+                              items: [
+                                const DropdownMenuItem(
+                                  value: 'ALL',
+                                  child: Text('All Foundations'),
+                                ),
+                                ...allTenants!.map((t) => DropdownMenuItem(
+                                      value: t.id,
+                                      child: Text(t.name),
+                                    )),
+                              ],
+                              onChanged: onFoundationFilterChanged,
+                            ),
+                          ),
+                        ),
+                      ...['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED'].map((st) {
+                        final isSel = selectedStatusFilter == st;
+                        return ChoiceChip(
+                          label: Text(st, style: const TextStyle(fontSize: 11)),
+                          selected: isSel,
+                          selectedColor: AppColors.warmSand,
+                          onSelected: (val) {
+                            if (val) onStatusFilterChanged(st);
+                          },
+                        );
+                      }),
+                    ],
+                  ),
                   FilledButton.icon(
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.forestSage,
@@ -187,48 +223,37 @@ class TenantDirectoryTab extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 10),
                     ),
-                    onPressed: onRegisterTenant,
+                    onPressed: () {
+                      if (onAddCampus != null) {
+                        onAddCampus!(selectedFoundationFilter != 'ALL'
+                            ? selectedFoundationFilter ?? ''
+                            : '');
+                      } else {
+                        onRegisterTenant();
+                      }
+                    },
                     icon: const Icon(LucideIcons.plus, size: 16),
                     label: const Text(
-                      'Register School',
+                      'Register School Campus',
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
-              );
-
-              if (isNarrow) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    searchField,
-                    const SizedBox(height: 10),
-                    filtersAndAction,
-                  ],
-                );
-              }
-
-              return Row(
-                children: [
-                  Expanded(child: searchField),
-                  const SizedBox(width: 12),
-                  filtersAndAction,
-                ],
-              );
-            },
+              ),
+            ],
           ),
 
           const SizedBox(height: 16),
 
-          // Tenants List
+          // Schools List
           if (filteredSchools.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 40),
                 child: Column(
                   children: [
-                    Icon(LucideIcons.building,
+                    Icon(LucideIcons.school,
                         size: 40, color: c.mutedForeground),
                     const SizedBox(height: 8),
                     Text('No school tenants matched the criteria.', style: t.p),
