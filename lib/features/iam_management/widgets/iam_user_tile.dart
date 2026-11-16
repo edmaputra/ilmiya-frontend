@@ -5,28 +5,114 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
 import '../../../core/services/iam_service.dart';
+import '../../../core/utils/app_toast.dart';
 
 class IamUserTile extends StatelessWidget {
   final UserResponse user;
+  final List<RoleResponse> assignedRoles;
   final String? assignedRole;
   final String? assignedScope;
+  final bool canEdit;
   final bool canUpdateStatus;
   final bool canAssign;
   final bool canDelete;
+  final ValueChanged<UserResponse>? onEditUser;
   final ValueChanged<UserResponse> onAssignRole;
   final Future<void> Function() onDataReload;
 
   const IamUserTile({
     super.key,
     required this.user,
+    this.assignedRoles = const [],
     this.assignedRole,
     this.assignedScope,
+    this.canEdit = true,
     required this.canUpdateStatus,
     required this.canAssign,
     required this.canDelete,
+    this.onEditUser,
     required this.onAssignRole,
     required this.onDataReload,
   });
+
+  Widget _buildRoleBadges() {
+    final hasRoles = assignedRoles.isNotEmpty ||
+        (assignedRole != null && assignedRole!.isNotEmpty);
+    final hasScope = assignedScope != null && assignedScope!.isNotEmpty;
+    if (!hasRoles && !hasScope) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 2,
+        children: [
+          ...assignedRoles.map((role) {
+            final label = role.name.isNotEmpty ? role.name : role.code;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: AppColors.forestSage.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: AppColors.forestSage.withOpacity(0.3),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.forestSage,
+                ),
+              ),
+            );
+          }),
+          if (assignedRole != null && assignedRoles.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: AppColors.forestSage.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: AppColors.forestSage.withOpacity(0.3),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                assignedRole!,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.forestSage,
+                ),
+              ),
+            ),
+          if (hasScope)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E40AF).withOpacity(0.10),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: const Color(0xFF1E40AF).withOpacity(0.25),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                'Scope: $assignedScope',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1E40AF),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,49 +170,7 @@ class IamUserTile extends StatelessWidget {
                               color: c.mutedForeground,
                             ),
                           ),
-                          if (assignedRole != null ||
-                              assignedScope != null) ...[
-                            const SizedBox(height: 4),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 2,
-                              children: [
-                                if (assignedRole != null)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color: c.accent,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      'Role: $assignedRole',
-                                      style: const TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-                                if (assignedScope != null)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.forestSage
-                                          .withOpacity(0.12),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      'Scope: $assignedScope',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.forestSage,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
+                          _buildRoleBadges(),
                         ],
                       ),
                     ),
@@ -158,13 +202,40 @@ class IamUserTile extends StatelessWidget {
                       onChanged: canUpdateStatus
                           ? (val) async {
                               if (val != null) {
-                                await iamService.changeUserStatus(user.id, val);
-                                await onDataReload();
+                                try {
+                                  await iamService.changeUserStatus(
+                                      user.id, val);
+                                  await onDataReload();
+                                  if (context.mounted) {
+                                    AppToast.showSuccess(
+                                        context, 'User status updated to $val');
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    AppToast.showError(
+                                        context, 'Failed to update status: $e');
+                                  }
+                                }
                               }
                             }
                           : null,
                     ),
-                    OutlinedButton.icon(
+                    if (canEdit && onEditUser != null)
+                      OutlinedButton.icon(
+                        onPressed: () => onEditUser!(user),
+                        icon: const Icon(LucideIcons.pencil, size: 12),
+                        label:
+                            const Text('Edit', style: TextStyle(fontSize: 11)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          foregroundColor: c.foreground,
+                          side: BorderSide(color: c.border),
+                          shape: const RoundedRectangleBorder(
+                              borderRadius: KiteRadius.allSm),
+                        ),
+                      ),
+                    OutlinedButton(
                       onPressed: canAssign ? () => onAssignRole(user) : null,
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
@@ -174,8 +245,7 @@ class IamUserTile extends StatelessWidget {
                         shape: const RoundedRectangleBorder(
                             borderRadius: KiteRadius.allSm),
                       ),
-                      icon: const Icon(LucideIcons.shieldAlert, size: 12),
-                      label: const Text('Assign Role',
+                      child: const Text('Assign Role & Scope',
                           style: TextStyle(fontSize: 11)),
                     ),
                     IconButton(
@@ -183,8 +253,19 @@ class IamUserTile extends StatelessWidget {
                           size: 16, color: c.destructive),
                       onPressed: canDelete
                           ? () async {
-                              await iamService.deleteUser(user.id);
-                              await onDataReload();
+                              try {
+                                await iamService.deleteUser(user.id);
+                                await onDataReload();
+                                if (context.mounted) {
+                                  AppToast.showSuccess(context,
+                                      "User '${user.fullName}' deleted successfully");
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  AppToast.showError(
+                                      context, 'Failed to delete user: $e');
+                                }
+                              }
                             }
                           : null,
                     ),
@@ -197,7 +278,7 @@ class IamUserTile extends StatelessWidget {
 
         return ListTile(
           contentPadding:
-              const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           leading: CircleAvatar(
             backgroundColor: c.accent,
             child: Text(
@@ -230,46 +311,7 @@ class IamUserTile extends StatelessWidget {
                 user.email,
                 style: t.small.copyWith(fontSize: 11, color: c.mutedForeground),
               ),
-              if (assignedRole != null || assignedScope != null) ...[
-                const SizedBox(height: 3),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 2,
-                  children: [
-                    if (assignedRole != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: c.accent,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Role: $assignedRole',
-                          style: const TextStyle(
-                              fontSize: 10, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    if (assignedScope != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: AppColors.forestSage.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Scope: $assignedScope',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.forestSage,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
+              _buildRoleBadges(),
             ],
           ),
           trailing: Row(
@@ -294,14 +336,41 @@ class IamUserTile extends StatelessWidget {
                 onChanged: canUpdateStatus
                     ? (val) async {
                         if (val != null) {
-                          await iamService.changeUserStatus(user.id, val);
-                          await onDataReload();
+                          try {
+                            await iamService.changeUserStatus(user.id, val);
+                            await onDataReload();
+                            if (context.mounted) {
+                              AppToast.showSuccess(
+                                  context, 'User status updated to $val');
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              AppToast.showError(
+                                  context, 'Failed to update status: $e');
+                            }
+                          }
                         }
                       }
                     : null,
               ),
               const SizedBox(width: 8),
-              OutlinedButton.icon(
+              if (canEdit && onEditUser != null) ...[
+                OutlinedButton.icon(
+                  onPressed: () => onEditUser!(user),
+                  icon: const Icon(LucideIcons.pencil, size: 12),
+                  label: const Text('Edit', style: TextStyle(fontSize: 11)),
+                  style: OutlinedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    foregroundColor: c.foreground,
+                    side: BorderSide(color: c.border),
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: KiteRadius.allSm),
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
+              OutlinedButton(
                 onPressed: canAssign ? () => onAssignRole(user) : null,
                 style: OutlinedButton.styleFrom(
                   padding:
@@ -311,17 +380,27 @@ class IamUserTile extends StatelessWidget {
                   shape: const RoundedRectangleBorder(
                       borderRadius: KiteRadius.allSm),
                 ),
-                icon: const Icon(LucideIcons.shieldAlert, size: 12),
-                label:
-                    const Text('Assign Role', style: TextStyle(fontSize: 11)),
+                child: const Text('Assign Role & Scope',
+                    style: TextStyle(fontSize: 11)),
               ),
               const SizedBox(width: 4),
               IconButton(
                 icon: Icon(LucideIcons.trash2, size: 16, color: c.destructive),
                 onPressed: canDelete
                     ? () async {
-                        await iamService.deleteUser(user.id);
-                        await onDataReload();
+                        try {
+                          await iamService.deleteUser(user.id);
+                          await onDataReload();
+                          if (context.mounted) {
+                            AppToast.showSuccess(context,
+                                "User '${user.fullName}' deleted successfully");
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            AppToast.showError(
+                                context, 'Failed to delete user: $e');
+                          }
+                        }
                       }
                     : null,
               ),

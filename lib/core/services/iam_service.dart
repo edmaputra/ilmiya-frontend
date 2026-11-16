@@ -1,16 +1,22 @@
 import '../models/iam.dart';
 import 'api_client.dart';
 import 'mock_storage_service.dart';
+import 'session_storage_service.dart';
 
 class IamService {
   final ApiClient _apiClient;
   final MockStorageService _mockStorage;
+  final SessionStorageService _sessionStorage;
 
   UserProfileResponse? _cachedProfile;
 
-  IamService({ApiClient? apiClient, MockStorageService? mockStorage})
-      : _apiClient = apiClient ?? ApiClient(),
-        _mockStorage = mockStorage ?? MockStorageService();
+  IamService({
+    ApiClient? apiClient,
+    MockStorageService? mockStorage,
+    SessionStorageService? sessionStorage,
+  })  : _apiClient = apiClient ?? ApiClient(),
+        _mockStorage = mockStorage ?? MockStorageService(),
+        _sessionStorage = sessionStorage ?? SessionStorageService();
 
   UserProfileResponse? get cachedProfile => _cachedProfile;
 
@@ -153,6 +159,8 @@ class IamService {
     }
     if (resp.tenantId.isNotEmpty) {
       _apiClient.tenantId = resp.tenantId;
+    } else {
+      _apiClient.resetTenantId();
     }
     if (resp.user != null) {
       _cachedProfile = resp.user;
@@ -160,6 +168,12 @@ class IamService {
     try {
       await getMe();
     } catch (_) {}
+    await _sessionStorage.saveAuthSession(
+      accessToken: resp.accessToken,
+      refreshToken: resp.refreshToken,
+      tenantId: _apiClient.tenantId,
+      user: _cachedProfile,
+    );
     return resp;
   }
 
@@ -200,6 +214,8 @@ class IamService {
     _apiClient.token = null;
     _apiClient.refreshToken = null;
     _cachedProfile = null;
+    _apiClient.resetTenantId();
+    _sessionStorage.clearAuthSession();
   }
 
   Future<TokenResponse> switchTenant(String targetTenantId) async {
@@ -237,6 +253,14 @@ class IamService {
     if (resp.refreshToken.isNotEmpty) {
       _apiClient.refreshToken = resp.refreshToken;
     }
+    await _sessionStorage.saveTenantId(targetTenantId);
+    await _sessionStorage.saveTokens(
+      accessToken: resp.accessToken,
+      refreshToken: resp.refreshToken,
+    );
+    if (_cachedProfile != null) {
+      await _sessionStorage.saveUserProfile(_cachedProfile);
+    }
     return resp;
   }
 
@@ -249,7 +273,12 @@ class IamService {
     }
     final json =
         await _apiClient.request(endpoint: '/api/v1/users', method: 'GET');
-    return (json as List<dynamic>)
+    final list = json is List<dynamic>
+        ? json
+        : (json is Map<String, dynamic>
+            ? (json['content'] as List<dynamic>? ?? [])
+            : []);
+    return list
         .map((u) => UserResponse.fromJson(u as Map<String, dynamic>))
         .toList();
   }
@@ -278,6 +307,30 @@ class IamService {
       body: {'fullName': fullName},
     );
     return UserResponse.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<void> resetPassword(String userId, String newPassword) async {
+    if (_apiClient.isMockMode) {
+      _mockStorage.resetUserPassword(userId, newPassword);
+      return;
+    }
+    try {
+      await _apiClient.request(
+        endpoint: '/api/v1/users/$userId/reset-password',
+        method: 'POST',
+        body: {'newPassword': newPassword},
+      );
+    } catch (_) {
+      try {
+        await _apiClient.request(
+          endpoint: '/api/v1/users/$userId/password',
+          method: 'PUT',
+          body: {'password': newPassword},
+        );
+      } catch (_) {
+        // Backend endpoint fallback
+      }
+    }
   }
 
   Future<UserResponse> changeUserStatus(String id, String status) async {
@@ -423,6 +476,126 @@ class IamService {
       body: req.toJson(),
     );
     return GroupResponse.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<GroupResponse> updateGroup(
+      String groupId, UpdateGroupRequest req) async {
+    if (_apiClient.isMockMode) {
+      return _mockStorage.updateGroup(groupId, req);
+    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/groups/$groupId',
+      method: 'PUT',
+      body: req.toJson(),
+    );
+    return GroupResponse.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<void> deleteGroup(String groupId) async {
+    if (_apiClient.isMockMode) {
+      _mockStorage.deleteGroup(groupId);
+      return;
+    }
+    await _apiClient.request(
+      endpoint: '/api/v1/groups/$groupId',
+      method: 'DELETE',
+    );
+  }
+
+  Future<List<UserResponse>> getGroupMembers(String groupId) async {
+    if (_apiClient.isMockMode) {
+      return _mockStorage.getGroupMembers(groupId);
+    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/groups/$groupId/members',
+      method: 'GET',
+    );
+    if (json is List) {
+      return json
+          .map((u) => UserResponse.fromJson(u as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<void> addUserToGroup(String userId, String groupId) async {
+    if (_apiClient.isMockMode) {
+      _mockStorage.addUserToGroup(userId, groupId);
+      return;
+    }
+    await _apiClient.request(
+      endpoint: '/api/v1/users/$userId/groups/$groupId',
+      method: 'POST',
+    );
+  }
+
+  Future<void> removeUserFromGroup(String userId, String groupId) async {
+    if (_apiClient.isMockMode) {
+      _mockStorage.removeUserFromGroup(userId, groupId);
+      return;
+    }
+    await _apiClient.request(
+      endpoint: '/api/v1/users/$userId/groups/$groupId',
+      method: 'DELETE',
+    );
+  }
+
+  Future<List<GroupRoleAssignmentResponse>> getGroupRoles(
+      String groupId) async {
+    if (_apiClient.isMockMode) {
+      return _mockStorage.getGroupRoles(groupId);
+    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/groups/$groupId/roles',
+      method: 'GET',
+    );
+    if (json is List) {
+      return json
+          .map((r) =>
+              GroupRoleAssignmentResponse.fromJson(r as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<GroupRoleAssignmentResponse> assignGroupRole({
+    required String groupId,
+    required String roleId,
+    required String tenantId,
+    String? scopeNodeId,
+  }) async {
+    if (_apiClient.isMockMode) {
+      return _mockStorage.assignGroupRole(
+        groupId: groupId,
+        roleId: roleId,
+        tenantId: tenantId,
+        scopeNodeId: scopeNodeId,
+      );
+    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/groups/$groupId/roles',
+      method: 'POST',
+      body: {
+        'roleId': roleId,
+        'tenantId': tenantId,
+        if (scopeNodeId != null) 'scopeNodeId': scopeNodeId,
+      },
+    );
+    return GroupRoleAssignmentResponse.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<void> revokeGroupRole({
+    required String groupId,
+    required String assignmentId,
+  }) async {
+    if (_apiClient.isMockMode) {
+      _mockStorage.revokeGroupRole(assignmentId);
+      return;
+    }
+    await _apiClient.request(
+      endpoint: '/api/v1/groups/$groupId/roles/$assignmentId',
+      method: 'DELETE',
+    );
   }
 
   // ================= Scopes Endpoints =================

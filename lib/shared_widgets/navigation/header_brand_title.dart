@@ -58,14 +58,17 @@ class HeaderBrandTitle extends StatelessWidget {
                   ),
                 ],
               ),
-              Text(
-                tenantDisplayName,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.forestSage,
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 180),
+                child: Text(
+                  tenantDisplayName,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.forestSage,
+                  ),
                 ),
               ),
             ],

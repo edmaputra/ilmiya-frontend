@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import '../../../core/services/api_client.dart';
 import '../../../state/app_state.dart';
 import '../../../state/auth_notifier.dart';
 import '../../auth/presentation/login_dialog.dart';
@@ -117,29 +116,6 @@ List<CommandActionItem> buildCommandActions(BuildContext context) {
       onSelect: () {
         appState.toggleThemeMode();
         Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: apiClient.isMockMode
-          ? 'Switch to Live REST Backend'
-          : 'Switch to Mock Simulation',
-      group: 'Actions',
-      icon: LucideIcons.server,
-      subtitle: apiClient.isMockMode
-          ? 'Connect to backend at ${apiClient.baseUrl}'
-          : 'Use fast in-memory simulation',
-      onSelect: () {
-        apiClient.toggleMockMode();
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              apiClient.isMockMode
-                  ? 'Switched to Mock In-Memory Simulation'
-                  : 'Switched to Live REST Backend Mode (${apiClient.baseUrl})',
-            ),
-          ),
-        );
       },
     ),
     CommandActionItem(

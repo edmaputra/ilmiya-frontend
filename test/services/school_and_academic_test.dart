@@ -6,6 +6,10 @@ import 'package:ilmiya_app/core/services/api_client.dart';
 import 'package:ilmiya_app/core/services/school_service.dart';
 
 void main() {
+  setUp(() {
+    apiClient.isMockMode = true;
+  });
+
   group('SchoolService Mock CRUD Tests', () {
     test('getProfile returns default school configuration', () async {
       final profile = await schoolService.getProfile();

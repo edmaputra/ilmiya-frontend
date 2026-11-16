@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
 import '../../../core/services/school_service.dart';
+import '../../../core/utils/app_toast.dart';
 
 class OperationalSettingsDialog extends StatefulWidget {
   final SchoolResponse profile;
@@ -57,16 +58,24 @@ class _OperationalSettingsDialogState extends State<OperationalSettingsDialog> {
   }
 
   Future<void> _submit() async {
-    final updated =
-        await schoolService.configureSettings(ConfigureSchoolSettingsRequest(
-      workingDays: _selectedDays,
-      gradingPreference: _grading,
-      termLayout: _termLayout,
-    ));
+    try {
+      final updated =
+          await schoolService.configureSettings(ConfigureSchoolSettingsRequest(
+        workingDays: _selectedDays,
+        gradingPreference: _grading,
+        termLayout: _termLayout,
+      ));
 
-    if (mounted) {
-      widget.onSettingsUpdated(updated);
-      Navigator.of(context).pop();
+      if (mounted) {
+        widget.onSettingsUpdated(updated);
+        Navigator.of(context).pop();
+        AppToast.showSuccess(
+            context, 'Operational settings updated successfully');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, 'Failed to save operational settings: $e');
+      }
     }
   }
 

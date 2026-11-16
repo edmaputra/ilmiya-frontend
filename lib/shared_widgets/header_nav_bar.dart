@@ -31,20 +31,8 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
         ? auth.roles.first
         : appState.currentUser.role.displayName;
 
-    final tenantDisplayName = auth.tenantId == 'tenant-lincoln-high-001'
-        ? 'Lincoln High School'
-        : auth.tenantId == 'tenant-sma1-ilmiya-002'
-            ? 'SMA Negeri 1 Ilmiya'
-            : auth.tenantId
-                .replaceAll('tenant-', '')
-                .replaceAll('-', ' ')
-                .toUpperCase();
-
-    final shortTenantName = auth.tenantId == 'tenant-lincoln-high-001'
-        ? 'Lincoln High'
-        : auth.tenantId == 'tenant-sma1-ilmiya-002'
-            ? 'SMAN 1 Ilmiya'
-            : auth.tenantId;
+    final tenantDisplayName = auth.schoolName;
+    final shortTenantName = auth.schoolName;
 
     return Container(
       decoration: const BoxDecoration(
@@ -74,35 +62,61 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          HeaderNavPill(
-                            label: 'School Profile',
-                            tabIndex: 0,
-                            icon: Icons.account_balance_outlined,
-                            isActive: appState.currentTab == 0,
-                          ),
-                          HeaderNavPill(
-                            label: 'Academic Years',
-                            tabIndex: 1,
-                            icon: Icons.calendar_month_outlined,
-                            isActive: appState.currentTab == 1,
-                          ),
-                          HeaderNavPill(
-                            label: 'IAM Console',
-                            tabIndex: 2,
-                            icon: Icons.admin_panel_settings_outlined,
-                            isActive: appState.currentTab == 2,
-                          ),
-                          HeaderNavPill(
-                            label: 'Feature Previews',
-                            tabIndex: 3,
-                            icon: Icons.science_outlined,
-                            isActive: appState.currentTab == 3,
-                            tag: 'Labs',
-                          ),
-                        ],
+                      child: Builder(
+                        builder: (context) {
+                          final canViewSchool =
+                              auth.hasPermission('school:profile:read') ||
+                                  auth.hasRole('SUPERADMIN') ||
+                                  auth.hasRole('SCHOOL_ADMIN');
+                          final canViewAcademic =
+                              auth.hasPermission('academic:year:read') ||
+                                  auth.hasRole('SUPERADMIN') ||
+                                  auth.hasRole('SCHOOL_ADMIN');
+                          final canViewIam =
+                              auth.hasPermission('iam:user:read') ||
+                                  auth.hasPermission('iam:role:read') ||
+                                  auth.hasPermission('iam:group:read') ||
+                                  auth.hasPermission('iam:scope:read') ||
+                                  auth.hasRole('SUPERADMIN');
+                          final canViewPreviews = auth.hasRole('SUPERADMIN') ||
+                              auth.hasRole('SCHOOL_ADMIN') ||
+                              !auth.isAuthenticated;
+
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (canViewSchool)
+                                HeaderNavPill(
+                                  label: 'School Profile',
+                                  tabIndex: 0,
+                                  icon: Icons.account_balance_outlined,
+                                  isActive: appState.currentTab == 0,
+                                ),
+                              if (canViewAcademic)
+                                HeaderNavPill(
+                                  label: 'Academic Years',
+                                  tabIndex: 1,
+                                  icon: Icons.calendar_month_outlined,
+                                  isActive: appState.currentTab == 1,
+                                ),
+                              if (canViewIam)
+                                HeaderNavPill(
+                                  label: 'IAM Console',
+                                  tabIndex: 2,
+                                  icon: Icons.admin_panel_settings_outlined,
+                                  isActive: appState.currentTab == 2,
+                                ),
+                              if (canViewPreviews)
+                                HeaderNavPill(
+                                  label: 'Feature Previews',
+                                  tabIndex: 3,
+                                  icon: Icons.science_outlined,
+                                  isActive: appState.currentTab == 3,
+                                  tag: 'Labs',
+                                ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),

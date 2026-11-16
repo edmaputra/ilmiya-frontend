@@ -9,6 +9,8 @@ import 'package:ilmiya_app/main.dart';
 import 'package:ilmiya_app/state/app_state.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
 import 'package:ilmiya_app/core/services/api_client.dart';
+import 'package:ilmiya_app/core/models/iam.dart';
+import 'package:ilmiya_app/features/auth/presentation/login_screen.dart';
 
 final Uint8List _transparentImage = Uint8List.fromList([
   0x89,
@@ -144,6 +146,10 @@ void main() {
     HttpOverrides.global = _MockHttpOverrides();
   });
 
+  setUp(() {
+    apiClient.isMockMode = true;
+  });
+
   tearDownAll(() {
     HttpOverrides.global = null;
   });
@@ -175,10 +181,10 @@ void main() {
     expect(find.text('School Profile'), findsWidgets);
     expect(find.text('Academic Years'), findsWidgets);
     expect(find.text('IAM Console'), findsWidgets);
-    expect(find.text('Feature Previews'), findsWidgets);
+    expect(find.text('Feature Previews'), findsNothing);
 
     // Verify School Profile content loaded
-    expect(find.textContaining('SMA Negeri 1 Ilmiya'), findsOneWidget);
+    expect(find.textContaining('SMA Negeri 1 Ilmiya'), findsWidgets);
     expect(find.text('Operational Rules'), findsOneWidget);
   });
 
@@ -302,8 +308,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Initial tenant is Lincoln High School
-    expect(find.text('Lincoln High School'), findsWidgets);
+    // Initial tenant is SMA Negeri 1 Ilmiya (Lincoln High Campus)
+    expect(find.textContaining('SMA Negeri 1 Ilmiya (Lincoln High Campus)'),
+        findsWidgets);
 
     // Switch tenant to SMAN 1 Ilmiya
     await authNotifier.switchTenant('tenant-sma1-ilmiya-002');
@@ -390,5 +397,52 @@ void main() {
     final size2 = tester.getSize(termCardContainers.at(1));
     expect(size1.height, equals(size2.height));
     expect(size1.width, equals(size2.width));
+  });
+
+  testWidgets(
+      'Logout resets session and next login starts from main page (School Profile)',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final appState = AppState();
+    final authNotifier = AuthNotifier();
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: apiClient),
+          ChangeNotifierProvider<AppState>.value(value: appState),
+          ChangeNotifierProvider<AuthNotifier>.value(value: authNotifier),
+        ],
+        child: const IlmiyaApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Navigate away from tab 0 to Academic Years (tab 1)
+    appState.setTab(1);
+    await tester.pumpAndSettle();
+    expect(appState.currentTab, equals(1));
+    expect(find.text('Academic Years & Terms'), findsOneWidget);
+
+    // Logout
+    authNotifier.logout();
+    await tester.pumpAndSettle();
+
+    // Verify LoginScreen is shown and appState tab is reset to 0
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(appState.currentTab, equals(0));
+
+    // Login as a different persona
+    await authNotifier.loginAsPersona(DemoPersonaKey.teacher);
+    await tester.pumpAndSettle();
+
+    // Verify user is on main page / School Profile (tab 0)
+    expect(appState.currentTab, equals(0));
+    expect(find.textContaining('SMA Negeri 1 Ilmiya'), findsWidgets);
+    expect(find.text('Operational Rules'), findsOneWidget);
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
 import '../../../core/services/school_service.dart';
+import '../../../core/utils/app_toast.dart';
 
 class EditTenantDialog extends StatefulWidget {
   final SchoolResponse school;
@@ -63,25 +64,29 @@ class _EditTenantDialogState extends State<EditTenantDialog> {
   }
 
   Future<void> _save() async {
-    await schoolService.updateProfile(
-      UpdateSchoolRequest(
-        name: _nameCtrl.text.trim(),
-        address: _addrCtrl.text.trim(),
-        contactEmail: _emailCtrl.text.trim(),
-        contactPhone: _phoneCtrl.text.trim(),
-        governmentRegistrationNumber:
-            _npsnCtrl.text.trim().isNotEmpty ? _npsnCtrl.text.trim() : null,
-        accreditationStatus: _accredStatus,
-      ),
-      tenantId: widget.school.tenantId,
-    );
-
-    if (mounted) {
-      Navigator.of(context).pop();
-      widget.onUpdated();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tenant profile successfully updated.')),
+    try {
+      await schoolService.updateProfile(
+        UpdateSchoolRequest(
+          name: _nameCtrl.text.trim(),
+          address: _addrCtrl.text.trim(),
+          contactEmail: _emailCtrl.text.trim(),
+          contactPhone: _phoneCtrl.text.trim(),
+          governmentRegistrationNumber:
+              _npsnCtrl.text.trim().isNotEmpty ? _npsnCtrl.text.trim() : null,
+          accreditationStatus: _accredStatus,
+        ),
+        tenantId: widget.school.tenantId,
       );
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        widget.onUpdated();
+        AppToast.showSuccess(context, 'Tenant profile successfully updated.');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, 'Failed to update tenant profile: $e');
+      }
     }
   }
 

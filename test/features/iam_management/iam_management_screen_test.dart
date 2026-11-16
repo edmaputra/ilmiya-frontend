@@ -136,10 +136,10 @@ void main() {
       await tester.tap(createRoleBtn);
       await tester.pumpAndSettle();
 
-      // Locate the dialog title text inside the AlertDialog
+      // Locate the dialog title text inside the Dialog
       expect(
         find.descendant(
-          of: find.byType(AlertDialog),
+          of: find.byType(Dialog),
           matching: find.text('Create Custom Role'),
         ),
         findsOneWidget,
@@ -149,8 +149,8 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
       await tester.pumpAndSettle();
 
-      // AlertDialog should be gone
-      expect(find.byType(AlertDialog), findsNothing);
+      // Dialog should be gone
+      expect(find.byType(Dialog), findsNothing);
     });
 
     testWidgets(
@@ -227,7 +227,7 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
     });
 
-    testWidgets('Assign Role button opens dialog and can be cancelled',
+    testWidgets('Assign Role & Scope button opens dialog and can be cancelled',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -237,14 +237,15 @@ void main() {
       await tester.pumpWidget(buildTestableWidget());
       await tester.pumpAndSettle();
 
-      // Tap 'Assign Role' OutlinedButton on the first user
-      final assignRoleBtn = find.widgetWithText(OutlinedButton, 'Assign Role');
+      // Tap 'Assign Role & Scope' OutlinedButton on the first user
+      final assignRoleBtn =
+          find.widgetWithText(OutlinedButton, 'Assign Role & Scope');
       expect(assignRoleBtn, findsWidgets);
       await tester.tap(assignRoleBtn.first);
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.textContaining('Assign Role:'), findsOneWidget);
+      expect(find.textContaining('Assign Role & Scope:'), findsOneWidget);
 
       // Tap Cancel
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
@@ -275,6 +276,7 @@ void main() {
 
       await tester.enterText(textFields.at(0), 'test.created@ilmiya.edu');
       await tester.enterText(textFields.at(1), 'Test Created User');
+      await tester.enterText(textFields.at(2), 'SecretPass123!');
       await tester.pumpAndSettle();
 
       // Tap the submit button inside AlertDialog

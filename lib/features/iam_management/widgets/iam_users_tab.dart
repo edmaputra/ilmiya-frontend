@@ -7,13 +7,16 @@ import 'iam_user_tile.dart';
 
 class IamUsersTab extends StatelessWidget {
   final List<UserResponse> users;
+  final Map<String, List<RoleResponse>> userRoles;
   final String searchQuery;
   final bool canCreate;
+  final bool canEdit;
   final bool canUpdateStatus;
   final bool canAssign;
   final bool canDelete;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onCreateUser;
+  final ValueChanged<UserResponse>? onEditUser;
   final ValueChanged<UserResponse> onAssignRole;
   final Future<void> Function() onDataReload;
   final Map<String, UserRoleAssignmentResponse> userAssignments;
@@ -23,13 +26,16 @@ class IamUsersTab extends StatelessWidget {
   const IamUsersTab({
     super.key,
     required this.users,
+    this.userRoles = const {},
     required this.searchQuery,
     required this.canCreate,
+    this.canEdit = true,
     required this.canUpdateStatus,
     required this.canAssign,
     required this.canDelete,
     required this.onSearchChanged,
     required this.onCreateUser,
+    this.onEditUser,
     required this.onAssignRole,
     required this.onDataReload,
     this.userAssignments = const {},
@@ -104,11 +110,14 @@ class IamUsersTab extends StatelessWidget {
 
                 return IamUserTile(
                   user: u,
-                  assignedRole: role?.code,
+                  assignedRoles:
+                      userRoles[u.id] ?? (role != null ? [role] : const []),
                   assignedScope: scopePath ?? assignment?.scopeNodeId,
+                  canEdit: canEdit,
                   canUpdateStatus: canUpdateStatus,
                   canAssign: canAssign,
                   canDelete: canDelete,
+                  onEditUser: onEditUser,
                   onAssignRole: onAssignRole,
                   onDataReload: onDataReload,
                 );

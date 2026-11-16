@@ -14,6 +14,11 @@ import 'app_shell_tenant_dialog.dart';
 class AppShellSidebar extends StatelessWidget {
   const AppShellSidebar({super.key});
 
+  /// Feature visibility toggles - preserved for future feature reuse
+  static bool get showExecutiveDashboard => false;
+  static bool get showCoursesAndGrades => false;
+  static bool get showCommunicationsAndLabs => false;
+
   @override
   Widget build(BuildContext context) {
     final c = KiteColors.of(context);
@@ -23,17 +28,15 @@ class AppShellSidebar extends StatelessWidget {
 
     final tenantDisplayName = auth.isPlatformSession
         ? 'Platform Management'
-        : auth.tenantId == 'tenant-lincoln-high-001'
-            ? 'Lincoln High School'
-            : auth.tenantId == 'tenant-sma1-ilmiya-002'
-                ? 'SMAN 1 Ilmiya'
-                : auth.tenantId
-                    .replaceAll('tenant-', '')
-                    .replaceAll('-', ' ')
-                    .toUpperCase();
+        : (auth.tenantId.isEmpty
+            ? 'No Tenant Selected'
+            : (auth.schoolName.isNotEmpty ? auth.schoolName : auth.tenantName));
 
-    final tenantSubtitle =
-        auth.isPlatformSession ? 'Manage Tenants (Global)' : auth.tenantId;
+    final tenantSubtitle = auth.isPlatformSession
+        ? 'Manage Tenants (Global)'
+        : (auth.tenantId.isEmpty
+            ? 'Select school tenant'
+            : 'Active Institution');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,7 +100,7 @@ class AppShellSidebar extends StatelessWidget {
               // Active Tenant Selector Card
               InkWell(
                 borderRadius: BorderRadius.circular(10),
-                onTap: auth.isTenantAdmin
+                onTap: (auth.isPlatformSession || auth.isTenantAdmin)
                     ? null
                     : () => AppShellTenantDialog.show(context, auth),
                 child: Container(
@@ -124,9 +127,10 @@ class AppShellSidebar extends StatelessWidget {
                               tenantDisplayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: c.foreground,
                               ),
                             ),
                             Text(
@@ -134,18 +138,19 @@ class AppShellSidebar extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 9,
+                                fontSize: 10,
                                 color: c.mutedForeground,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      Icon(
-                        LucideIcons.chevronsUpDown,
-                        size: 14,
-                        color: c.mutedForeground,
-                      ),
+                      if (!auth.isPlatformSession && !auth.isTenantAdmin)
+                        Icon(
+                          LucideIcons.chevronsUpDown,
+                          size: 14,
+                          color: c.mutedForeground,
+                        ),
                     ],
                   ),
                 ),
@@ -158,87 +163,151 @@ class AppShellSidebar extends StatelessWidget {
 
         // Navigation Sections
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            children: [
-              if (auth.isSuperAdmin && auth.isPlatformSession) ...[
-                _buildSectionHeader('Platform Operations'),
-                AppShellNavTile(
-                  title: 'Tenant Console',
-                  icon: LucideIcons.building2,
-                  tabIndex: 8,
-                  isActive: state.currentTab == 8,
-                  badgeText: 'Admin',
-                ),
-              ] else ...[
-                _buildSectionHeader('Institution & Control'),
-                AppShellNavTile(
-                  title: 'School Profile',
-                  icon: LucideIcons.school,
-                  tabIndex: 0,
-                  isActive: state.currentTab == 0,
-                ),
-                AppShellNavTile(
-                  title: 'Executive Dashboard',
-                  icon: LucideIcons.layoutDashboard,
-                  tabIndex: 4,
-                  isActive: state.currentTab == 4,
-                ),
-                const SizedBox(height: 12),
-                _buildSectionHeader('Academics'),
-                AppShellNavTile(
-                  title: 'Academic Years',
-                  icon: LucideIcons.calendarDays,
-                  tabIndex: 1,
-                  isActive: state.currentTab == 1,
-                ),
-                AppShellNavTile(
-                  title: 'Courses & Grades',
-                  icon: LucideIcons.graduationCap,
-                  tabIndex: 5,
-                  isActive: state.currentTab == 5,
-                ),
-                const SizedBox(height: 12),
-                _buildSectionHeader('Administration'),
-                AppShellNavTile(
-                  title: 'IAM Console',
-                  icon: LucideIcons.shieldCheck,
-                  tabIndex: 2,
-                  isActive: state.currentTab == 2,
-                ),
-                if (auth.isSuperAdmin)
-                  AppShellNavTile(
-                    title: 'Tenant Console',
-                    icon: LucideIcons.building2,
-                    tabIndex: 8,
-                    isActive: state.currentTab == 8,
-                    badgeText: 'Admin',
-                  ),
-                const SizedBox(height: 12),
-                _buildSectionHeader('Communications & Labs'),
-                AppShellNavTile(
-                  title: 'Feature Previews',
-                  icon: LucideIcons.flaskConical,
-                  tabIndex: 3,
-                  isActive: state.currentTab == 3,
-                  badgeText: 'Labs',
-                ),
-                AppShellNavTile(
-                  title: 'Messages',
-                  icon: LucideIcons.messageSquare,
-                  tabIndex: 6,
-                  isActive: state.currentTab == 6,
-                  unreadCount: state.unreadMessagesCount,
-                ),
-                AppShellNavTile(
-                  title: 'Notifications',
-                  icon: LucideIcons.bell,
-                  tabIndex: 7,
-                  isActive: state.currentTab == 7,
-                  unreadCount: state.unreadNotifsCount,
-                ),
-              ],
-            ],
+          child: AnimatedBuilder(
+            animation: auth,
+            builder: (context, _) {
+              if (auth.isSuperAdmin && auth.isPlatformSession) {
+                return ListView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  children: [
+                    _buildSectionHeader('Platform Operations'),
+                    AppShellNavTile(
+                      title: 'Tenant Console',
+                      icon: LucideIcons.building2,
+                      tabIndex: 8,
+                      isActive: state.currentTab == 8,
+                      badgeText: 'Admin',
+                    ),
+                  ],
+                );
+              }
+
+              final canViewSchoolProfile = auth.hasPermission('school:read') ||
+                  auth.hasPermission('*') ||
+                  auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN') ||
+                  auth.hasRole('SCHOOL_ADMIN');
+              final canViewDashboard = auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN') ||
+                  auth.hasRole('PRINCIPAL') ||
+                  auth.hasRole('SCHOOL_ADMIN');
+              final canViewAcademicYears =
+                  auth.hasPermission('academic-year:read') ||
+                      auth.hasPermission('*') ||
+                      auth.hasRole('SUPERADMIN') ||
+                      auth.hasRole('TENANT_ADMIN') ||
+                      auth.hasRole('SCHOOL_ADMIN');
+              final canViewGrades = auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN') ||
+                  auth.hasRole('TEACHER') ||
+                  auth.hasRole('STUDENT');
+              final canViewIam = auth.hasPermission('iam:user:read') ||
+                  auth.hasPermission('iam:role:read') ||
+                  auth.hasPermission('iam:group:read') ||
+                  auth.hasPermission('iam:scope:read') ||
+                  auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN');
+              final canViewTenants = auth.isSuperAdmin;
+              final canViewPreviews = auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN') ||
+                  auth.hasRole('SCHOOL_ADMIN') ||
+                  !auth.isAuthenticated;
+
+              final showInstitutionSection = canViewSchoolProfile ||
+                  (showExecutiveDashboard && canViewDashboard);
+              final showAcademicsSection = canViewAcademicYears ||
+                  (showCoursesAndGrades && canViewGrades);
+              final showAdminSection = canViewIam || canViewTenants;
+              final showCommSection = showCommunicationsAndLabs;
+
+              return ListView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                children: [
+                  if (showInstitutionSection) ...[
+                    _buildSectionHeader('Institution & Control'),
+                    if (canViewSchoolProfile)
+                      AppShellNavTile(
+                        title: 'School Profile',
+                        icon: LucideIcons.school,
+                        tabIndex: 0,
+                        isActive: state.currentTab == 0,
+                      ),
+                    if (showExecutiveDashboard && canViewDashboard)
+                      AppShellNavTile(
+                        title: 'Executive Dashboard',
+                        icon: LucideIcons.layoutDashboard,
+                        tabIndex: 4,
+                        isActive: state.currentTab == 4,
+                      ),
+                  ],
+                  if (showAcademicsSection) ...[
+                    const SizedBox(height: 12),
+                    _buildSectionHeader('Academics'),
+                    if (canViewAcademicYears)
+                      AppShellNavTile(
+                        title: 'Academic Years',
+                        icon: LucideIcons.calendarDays,
+                        tabIndex: 1,
+                        isActive: state.currentTab == 1,
+                      ),
+                    if (showCoursesAndGrades && canViewGrades)
+                      AppShellNavTile(
+                        title: 'Courses & Grades',
+                        icon: LucideIcons.graduationCap,
+                        tabIndex: 5,
+                        isActive: state.currentTab == 5,
+                      ),
+                  ],
+                  if (showAdminSection) ...[
+                    const SizedBox(height: 12),
+                    _buildSectionHeader('Administration'),
+                    if (canViewIam)
+                      AppShellNavTile(
+                        title: 'IAM Console',
+                        icon: LucideIcons.shieldCheck,
+                        tabIndex: 2,
+                        isActive: state.currentTab == 2,
+                      ),
+                    if (canViewTenants)
+                      AppShellNavTile(
+                        title: 'Tenant Console',
+                        icon: LucideIcons.building2,
+                        tabIndex: 8,
+                        isActive: state.currentTab == 8,
+                        badgeText: 'Admin',
+                      ),
+                  ],
+                  if (showCommSection) ...[
+                    const SizedBox(height: 12),
+                    _buildSectionHeader('Communications & Labs'),
+                    if (canViewPreviews)
+                      AppShellNavTile(
+                        title: 'Feature Previews',
+                        icon: LucideIcons.flaskConical,
+                        tabIndex: 3,
+                        isActive: state.currentTab == 3,
+                        badgeText: 'Labs',
+                      ),
+                    AppShellNavTile(
+                      title: 'Messages',
+                      icon: LucideIcons.messageSquare,
+                      tabIndex: 6,
+                      isActive: state.currentTab == 6,
+                      unreadCount: state.unreadMessagesCount,
+                    ),
+                    AppShellNavTile(
+                      title: 'Notifications',
+                      icon: LucideIcons.bell,
+                      tabIndex: 7,
+                      isActive: state.currentTab == 7,
+                      unreadCount: state.unreadNotifsCount,
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
         ),
 

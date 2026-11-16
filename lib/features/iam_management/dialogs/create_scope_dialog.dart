@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
+import '../../../core/services/api_client.dart';
 import '../../../core/services/iam_service.dart';
+import '../../../core/utils/app_toast.dart';
 
 class CreateScopeDialog extends StatefulWidget {
   final String? parentId;
@@ -33,8 +35,10 @@ class CreateScopeDialog extends StatefulWidget {
 }
 
 class _CreateScopeDialogState extends State<CreateScopeDialog> {
+  final _formKey = GlobalKey<FormState>();
   final _codeCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -44,15 +48,29 @@ class _CreateScopeDialogState extends State<CreateScopeDialog> {
   }
 
   Future<void> _submit() async {
-    await iamService.createScope(CreateScopeRequest(
-      code: _codeCtrl.text.trim().toUpperCase(),
-      name: _nameCtrl.text.trim(),
-      parentId: widget.parentId,
-    ));
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
 
-    if (mounted) {
-      Navigator.of(context).pop();
-      await widget.onScopeCreated();
+    final scopeName = _nameCtrl.text.trim();
+    try {
+      await iamService.createScope(CreateScopeRequest(
+        tenantId: apiClient.tenantId,
+        code: _codeCtrl.text.trim().toUpperCase(),
+        name: scopeName,
+        parentId: widget.parentId,
+      ));
+
+      if (mounted) {
+        AppToast.showSuccess(
+            context, "Scope '$scopeName' created successfully");
+        Navigator.of(context).pop();
+        await widget.onScopeCreated();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        AppToast.showError(context, 'Failed to create scope: $e');
+      }
     }
   }
 
@@ -70,25 +88,34 @@ class _CreateScopeDialogState extends State<CreateScopeDialog> {
           ),
         ],
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _codeCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Scope Code (e.g. DEPT_SCIENCE)',
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _codeCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Scope Code (e.g. DEPT_SCIENCE)',
+              ),
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Scope code is required'
+                  : null,
             ),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _nameCtrl,
-            decoration: const InputDecoration(labelText: 'Scope Name'),
-          ),
-        ],
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _nameCtrl,
+              decoration: const InputDecoration(labelText: 'Scope Name'),
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Scope name is required'
+                  : null,
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
@@ -96,8 +123,17 @@ class _CreateScopeDialogState extends State<CreateScopeDialog> {
             backgroundColor: AppColors.forestSage,
             foregroundColor: Colors.white,
           ),
-          onPressed: _submit,
-          child: const Text('Save Scope'),
+          onPressed: _isLoading ? null : _submit,
+          child: _isLoading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Save Scope'),
         ),
       ],
     );

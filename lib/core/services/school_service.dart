@@ -10,14 +10,22 @@ class SchoolService {
       : _apiClient = apiClient ?? ApiClient(),
         _mockStorage = mockStorage ?? MockStorageService();
 
-  Future<List<SchoolResponse>> listSchools(
-      {String? query, String? status}) async {
+  Future<List<SchoolResponse>> listSchools({
+    String? tenantId,
+    String? query,
+    String? status,
+    bool bypassTenantHeader = false,
+  }) async {
     if (_apiClient.isMockMode) {
-      return _mockStorage.listSchools(query: query, status: status);
+      return _mockStorage.listSchools(
+          tenantId: tenantId, query: query, status: status);
     }
 
     String endpoint = '/api/v1/schools';
     final qParams = <String>[];
+    if (tenantId != null && tenantId.isNotEmpty) {
+      qParams.add('tenantId=${Uri.encodeComponent(tenantId)}');
+    }
     if (query != null && query.isNotEmpty) {
       qParams.add('query=${Uri.encodeComponent(query)}');
     }
@@ -28,10 +36,20 @@ class SchoolService {
       endpoint = '$endpoint?${qParams.join('&')}';
     }
 
+    final headers = <String, String>{
+      if (bypassTenantHeader) 'X-Tenant-ID': '',
+    };
+
     final json = await _apiClient.request(
       endpoint: endpoint,
       method: 'GET',
+      headers: headers.isNotEmpty ? headers : null,
     );
+    if (json is Map && json.containsKey('content') && json['content'] is List) {
+      return (json['content'] as List)
+          .map((e) => SchoolResponse.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
     if (json is List) {
       return json
           .map((e) => SchoolResponse.fromJson(e as Map<String, dynamic>))
@@ -42,33 +60,48 @@ class SchoolService {
 
   Future<SchoolResponse> getProfile({String? tenantId}) async {
     final effectiveTenant = tenantId ?? _apiClient.tenantId;
+    if (effectiveTenant.isEmpty) {
+      return SchoolResponse.empty();
+    }
     if (_apiClient.isMockMode) {
       return _mockStorage.getSchoolProfile(effectiveTenant);
     }
 
-    final endpoint = tenantId != null
-        ? '/api/v1/schools/$tenantId'
-        : '/api/v1/schools/profile';
-    final json = await _apiClient.request(
-      endpoint: endpoint,
-      method: 'GET',
-    );
-    return SchoolResponse.fromJson(json as Map<String, dynamic>);
+    try {
+      final headers = <String, String>{
+        if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
+      };
+
+      final json = await _apiClient.request(
+        endpoint: '/api/v1/schools/profile',
+        method: 'GET',
+        headers: headers.isNotEmpty ? headers : null,
+      );
+      return SchoolResponse.fromJson(json as Map<String, dynamic>);
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) {
+        return SchoolResponse.empty();
+      }
+      rethrow;
+    }
   }
 
   Future<SchoolResponse> updateProfile(UpdateSchoolRequest req,
       {String? tenantId}) async {
+    final effectiveTenant = tenantId ?? _apiClient.tenantId;
     if (_apiClient.isMockMode) {
       return _mockStorage.updateSchoolProfile(req,
-          targetTenantId: tenantId ?? _apiClient.tenantId);
+          targetTenantId: effectiveTenant);
     }
 
-    final endpoint = tenantId != null
-        ? '/api/v1/schools/$tenantId'
-        : '/api/v1/schools/profile';
+    final headers = <String, String>{
+      if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
+    };
+
     final json = await _apiClient.request(
-      endpoint: endpoint,
+      endpoint: '/api/v1/schools/profile',
       method: 'PUT',
+      headers: headers.isNotEmpty ? headers : null,
       body: req.toJson(),
     );
     return SchoolResponse.fromJson(json as Map<String, dynamic>);
@@ -76,17 +109,20 @@ class SchoolService {
 
   Future<SchoolResponse> configureSettings(ConfigureSchoolSettingsRequest req,
       {String? tenantId}) async {
+    final effectiveTenant = tenantId ?? _apiClient.tenantId;
     if (_apiClient.isMockMode) {
       return _mockStorage.configureSchoolSettings(req,
-          targetTenantId: tenantId ?? _apiClient.tenantId);
+          targetTenantId: effectiveTenant);
     }
 
-    final endpoint = tenantId != null
-        ? '/api/v1/schools/$tenantId/settings'
-        : '/api/v1/schools/settings';
+    final headers = <String, String>{
+      if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
+    };
+
     final json = await _apiClient.request(
-      endpoint: endpoint,
+      endpoint: '/api/v1/schools/settings',
       method: 'PUT',
+      headers: headers.isNotEmpty ? headers : null,
       body: req.toJson(),
     );
     return SchoolResponse.fromJson(json as Map<String, dynamic>);
@@ -98,7 +134,7 @@ class SchoolService {
     }
 
     final json = await _apiClient.request(
-      endpoint: '/api/v1/schools/register',
+      endpoint: '/api/v1/schools',
       method: 'POST',
       body: req.toJson(),
     );

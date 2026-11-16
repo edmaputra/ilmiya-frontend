@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../features/search/ilmiya_command_palette.dart';
 import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
+import 'app_shell_tenant_dialog.dart';
 
 class AppShellTopBar extends StatelessWidget {
   final bool isDesktop;
@@ -23,14 +24,9 @@ class AppShellTopBar extends StatelessWidget {
 
     final schoolDisplayName = auth.isPlatformSession
         ? 'Platform Tenant Management'
-        : auth.tenantId == 'tenant-lincoln-high-001'
-            ? 'Lincoln High School'
-            : auth.tenantId == 'tenant-sma1-ilmiya-002'
-                ? 'SMA Negeri 1 Ilmiya'
-                : auth.tenantId
-                    .replaceAll('tenant-', '')
-                    .replaceAll('-', ' ')
-                    .toUpperCase();
+        : (auth.tenantId.isEmpty
+            ? ''
+            : (auth.schoolName.isNotEmpty ? auth.schoolName : auth.tenantName));
 
     final pageTitles = [
       'School Profile',
@@ -75,16 +71,35 @@ class AppShellTopBar extends StatelessWidget {
                   style: t.large
                       .copyWith(fontWeight: FontWeight.w700, height: 1.1),
                 ),
-                Text(
-                  schoolDisplayName,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.forestSage,
+                if (schoolDisplayName.isNotEmpty) ...[
+                  InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: () => AppShellTenantDialog.show(context, auth),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            schoolDisplayName,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.forestSage,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        const Icon(
+                          LucideIcons.chevronsUpDown,
+                          size: 10,
+                          color: AppColors.forestSage,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

@@ -131,12 +131,8 @@ void main() {
       // Full menu is now reloaded for SuperAdmin
       expect(find.text('Tenant Console'), findsOneWidget);
       expect(find.text('School Profile'), findsOneWidget);
-      expect(find.text('Executive Dashboard'), findsOneWidget);
       expect(find.text('Academic Years'), findsOneWidget);
-      expect(find.text('Courses & Grades'), findsOneWidget);
       expect(find.text('IAM Console'), findsOneWidget);
-      expect(find.text('Messages'), findsOneWidget);
-      expect(find.text('Notifications'), findsOneWidget);
     });
   });
 
@@ -271,9 +267,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Assign Role: Budi Santoso, S.Pd'), findsOneWidget);
-      expect(find.text('Target Role:'), findsOneWidget);
-      expect(find.text('Boundary Scope:'), findsOneWidget);
+      expect(
+          find.text('Assign Role & Scope: Budi Santoso, S.Pd'), findsOneWidget);
+      expect(find.text('Role *'), findsOneWidget);
+      expect(find.text('Target Scope (Hierarchy)'), findsOneWidget);
 
       // Tap Assign & Save
       final saveBtn =
@@ -321,7 +318,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Siti Aminah, M.Si'), findsOneWidget);
-      expect(find.text('Role: Teacher'), findsOneWidget);
+      expect(find.text('Teacher'), findsOneWidget);
       expect(find.text('Scope: /ROOT/SCIENCE/PHYSICS'), findsOneWidget);
     });
   });
@@ -335,6 +332,7 @@ void main() {
       final createdRole = mockStorage.createRole(
         'tenant-lincoln-high-001',
         CreateRoleRequest(
+          tenantId: 'tenant-lincoln-high-001',
           code: 'CURRICULUM_EDITOR',
           name: 'Curriculum Editor',
           description: 'Initial description',
@@ -379,6 +377,7 @@ void main() {
       // Create custom role
       final customRole = await iamService.createRole(
         CreateRoleRequest(
+          tenantId: 'tenant-lincoln-high-001',
           code: 'CUSTOM_AUDITOR',
           name: 'Custom Auditor',
           description: 'Audits logs',

@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'session_storage_service.dart';
 
 class ApiException implements Exception {
   final int statusCode;
@@ -18,18 +21,77 @@ class ApiClient extends ChangeNotifier {
   factory ApiClient() => _instance;
   ApiClient._internal();
 
-  String _baseUrl = const String.fromEnvironment(
-    'ILMIYA_API_BASE_URL',
-    defaultValue: 'http://localhost:8080',
+  static const String _envMode = String.fromEnvironment(
+    'PROFILE',
+    defaultValue: String.fromEnvironment(
+      'APP_PROFILE',
+      defaultValue: String.fromEnvironment(
+        'APP_MODE',
+        defaultValue: '',
+      ),
+    ),
   );
-  String _tenantId = const String.fromEnvironment(
-    'ILMIYA_DEFAULT_TENANT_ID',
-    defaultValue: 'tenant-lincoln-high-001',
+  static const bool _hasEnvMock = bool.hasEnvironment('ILMIYA_MOCK_MODE') ||
+      bool.hasEnvironment('MOCK_MODE') ||
+      bool.hasEnvironment('MOCK');
+  static const bool _envMock = bool.fromEnvironment(
+    'ILMIYA_MOCK_MODE',
+    defaultValue: bool.fromEnvironment(
+      'MOCK_MODE',
+      defaultValue: bool.fromEnvironment(
+        'MOCK',
+        defaultValue: false,
+      ),
+    ),
   );
+
+  static bool _resolveInitialMockMode() {
+    if (_envMode.toLowerCase() == 'mock') return true;
+    if (_envMode.toLowerCase() == 'live' || _envMode.toLowerCase() == 'prod') {
+      return false;
+    }
+    if (_hasEnvMock) return _envMock;
+
+    // Detect if running under automated test runner (flutter test)
+    try {
+      if (Zone.current[#test.declarer] != null) {
+        return true;
+      }
+      final binding = ServicesBinding.instance;
+      if (binding.runtimeType.toString().contains('Test')) {
+        return true;
+      }
+    } catch (_) {}
+
+    return false; // Default is Live REST API for the application
+  }
+
+  static String _resolveInitialTenantId(bool isMock) {
+    const envTenant = String.fromEnvironment(
+      'ILMIYA_DEFAULT_TENANT_ID',
+      defaultValue: '',
+    );
+    if (envTenant.isNotEmpty) return envTenant;
+    return isMock
+        ? 'tenant-lincoln-high-001'
+        : '01940000-0000-7000-8000-000000000001';
+  }
+
+  static String _resolveInitialBaseUrl() {
+    const envBaseUrl = String.fromEnvironment(
+      'ILMIYA_API_BASE_URL',
+      defaultValue: '',
+    );
+    if (envBaseUrl.isNotEmpty) return envBaseUrl;
+    return 'https://ilmiya.localhost';
+  }
+
+  String _baseUrl = _resolveInitialBaseUrl();
+  String _tenantId = _resolveInitialTenantId(_resolveInitialMockMode());
   String? token;
   String? refreshToken;
-  bool _isMockMode = true;
-  bool _isRefreshing = false;
+  bool _isMockMode = _resolveInitialMockMode();
+  Completer<bool>? _refreshCompleter;
   final List<Function> _onAuthExpiredListeners = [];
   final List<Function> _onAccessDeniedListeners = [];
 
@@ -47,14 +109,71 @@ class ApiClient extends ChangeNotifier {
     }
   }
 
+  void resetTenantId() {
+    _tenantId = _resolveInitialTenantId(_isMockMode);
+    sessionStorageService.saveTenantId(_tenantId);
+    notifyListeners();
+  }
+
   void toggleMockMode() {
     isMockMode = !_isMockMode;
+  }
+
+  /// Loads startup profiling configuration from assets/config.json if available
+  Future<void> loadRuntimeConfig() async {
+    try {
+      final content = await rootBundle.loadString('assets/config.json');
+      _applyConfigJson(content);
+    } catch (_) {
+      try {
+        final response = await http.get(Uri.parse('assets/config.json'));
+        if (response.statusCode == 200) {
+          _applyConfigJson(response.body);
+        }
+      } catch (_) {
+        // Gracefully fall back to compile-time --dart-define or defaults
+      }
+    }
+
+    // Restore persisted session from storage if available
+    final savedToken = sessionStorageService.accessToken;
+    final savedRefreshToken = sessionStorageService.refreshToken;
+    final savedTenantId = sessionStorageService.tenantId;
+    if (savedToken != null && savedToken.isNotEmpty) {
+      token = savedToken;
+    }
+    if (savedRefreshToken != null && savedRefreshToken.isNotEmpty) {
+      refreshToken = savedRefreshToken;
+    }
+    if (savedTenantId != null && savedTenantId.isNotEmpty) {
+      _tenantId = savedTenantId;
+    }
+  }
+
+  void _applyConfigJson(String rawJson) {
+    final dynamic data = json.decode(rawJson);
+    if (data is Map<String, dynamic>) {
+      if (data['apiBaseUrl'] is String &&
+          (data['apiBaseUrl'] as String).isNotEmpty) {
+        baseUrl = data['apiBaseUrl'] as String;
+      }
+      if (data['defaultTenantId'] is String &&
+          (data['defaultTenantId'] as String).isNotEmpty) {
+        tenantId = data['defaultTenantId'] as String;
+      }
+      if (data['mockMode'] is bool) {
+        if (_envMode.isEmpty && !_hasEnvMock) {
+          isMockMode = data['mockMode'] as bool;
+        }
+      }
+    }
   }
 
   String get tenantId => _tenantId;
   set tenantId(String value) {
     if (_tenantId != value) {
       _tenantId = value;
+      sessionStorageService.saveTenantId(_tenantId);
       notifyListeners();
     }
   }
@@ -76,6 +195,7 @@ class ApiClient extends ChangeNotifier {
   void triggerAuthExpired([String? reason]) {
     token = null;
     refreshToken = null;
+    sessionStorageService.clearAuthSession();
     for (final listener in List.of(_onAuthExpiredListeners)) {
       try {
         (listener as dynamic)(reason);
@@ -108,15 +228,21 @@ class ApiClient extends ChangeNotifier {
     String method = 'GET',
     Map<String, String>? headers,
     dynamic body,
+    bool isRetry = false,
   }) async {
     final cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/$endpoint';
-    final url = Uri.parse('$_baseUrl$cleanEndpoint');
+    final normalizedEndpoint =
+        (_baseUrl.endsWith('/api') && cleanEndpoint.startsWith('/api/'))
+            ? cleanEndpoint.substring(4)
+            : cleanEndpoint;
+    final url = Uri.parse('$_baseUrl$normalizedEndpoint');
 
+    final isLoginEndpoint = cleanEndpoint == '/api/v1/auth/login';
     final isUuid = RegExp(
             r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
         .hasMatch(tenantId);
     final shouldSendTenantHeader =
-        tenantId.isNotEmpty && (_isMockMode || isUuid);
+        !isLoginEndpoint && tenantId.isNotEmpty && (_isMockMode || isUuid);
 
     final requestHeaders = <String, String>{
       'Content-Type': 'application/json',
@@ -125,6 +251,10 @@ class ApiClient extends ChangeNotifier {
       if (token != null) 'Authorization': 'Bearer $token',
       ...?headers,
     };
+    if (headers?.containsKey('X-Tenant-ID') == true &&
+        headers!['X-Tenant-ID']!.isEmpty) {
+      requestHeaders.remove('X-Tenant-ID');
+    }
 
     try {
       http.Response response;
@@ -153,42 +283,59 @@ class ApiClient extends ChangeNotifier {
           break;
       }
 
-      // Automatic 401 Session Refresh
+      // Automatic 401 Session Refresh with concurrency guard and single retry
       if (response.statusCode == 401 &&
           refreshToken != null &&
           !endpoint.contains('/api/v1/auth/') &&
-          !_isRefreshing) {
-        _isRefreshing = true;
-        try {
-          final refreshUrl = Uri.parse('$_baseUrl/api/v1/auth/refresh');
-          final refreshResp = await http.post(
-            refreshUrl,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'refreshToken': refreshToken}),
-          );
-
-          if (refreshResp.statusCode >= 200 && refreshResp.statusCode < 300) {
-            final data = jsonDecode(refreshResp.body) as Map<String, dynamic>;
-            token = data['accessToken'] as String?;
-            if (data['refreshToken'] != null) {
-              refreshToken = data['refreshToken'] as String?;
-            }
-            _isRefreshing = false;
-            // Retry request with new token
-            return await request(
-              endpoint: endpoint,
-              method: method,
-              headers: headers,
-              body: body,
+          !isRetry) {
+        bool refreshSucceeded = false;
+        if (_refreshCompleter == null) {
+          _refreshCompleter = Completer<bool>();
+          try {
+            final refreshUrl = Uri.parse('$_baseUrl/api/v1/auth/refresh');
+            final refreshResp = await http.post(
+              refreshUrl,
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({'refreshToken': refreshToken}),
             );
-          } else {
-            triggerAuthExpired(
-                'Session refresh token expired (401). Please sign in again.');
+
+            if (refreshResp.statusCode >= 200 && refreshResp.statusCode < 300) {
+              final data = jsonDecode(refreshResp.body) as Map<String, dynamic>;
+              token = data['accessToken'] as String?;
+              if (data['refreshToken'] != null) {
+                refreshToken = data['refreshToken'] as String?;
+              }
+              await sessionStorageService.saveTokens(
+                accessToken: token,
+                refreshToken: refreshToken,
+              );
+              refreshSucceeded = true;
+              _refreshCompleter!.complete(true);
+            } else {
+              _refreshCompleter!.complete(false);
+              triggerAuthExpired(
+                  'Session refresh token expired (401). Please sign in again.');
+            }
+          } catch (_) {
+            _refreshCompleter!.complete(false);
+            triggerAuthExpired('Session refresh failed. Please sign in again.');
+          } finally {
+            _refreshCompleter = null;
           }
-        } catch (_) {
-          triggerAuthExpired('Session refresh failed. Please sign in again.');
-        } finally {
-          _isRefreshing = false;
+        } else {
+          // A concurrent request is already refreshing the session, await its outcome
+          refreshSucceeded = await _refreshCompleter!.future;
+        }
+
+        if (refreshSucceeded && token != null) {
+          // Retry request with new token exactly once
+          return await request(
+            endpoint: endpoint,
+            method: method,
+            headers: headers,
+            body: body,
+            isRetry: true,
+          );
         }
       }
 

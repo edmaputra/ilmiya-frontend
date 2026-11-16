@@ -60,7 +60,7 @@ void main() {
 
   testWidgets('HeaderNavBar switches tabs via nav pills',
       (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1600, 900);
+    tester.view.physicalSize = const Size(1920, 1080);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -88,7 +88,7 @@ void main() {
     expect(appState.currentTab, equals(3));
   });
 
-  testWidgets('HeaderNavBar toggles mock / live API mode button',
+  testWidgets('HeaderNavBar displays startup mode status pill',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1280, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -103,16 +103,6 @@ void main() {
 
     final modeFinder = find.text('Mock Simulation');
     expect(modeFinder, findsOneWidget);
-
-    await tester.tap(modeFinder);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Live REST API'), findsOneWidget);
-
-    // Toggle back
-    await tester.tap(find.text('Live REST API'));
-    await tester.pumpAndSettle();
-    expect(find.text('Mock Simulation'), findsOneWidget);
   });
 
   testWidgets('HeaderNavBar opens tenant switcher dialog and switches tenant',
@@ -162,8 +152,8 @@ void main() {
     await tester.tap(find.byType(PopupMenuButton<String>));
     await tester.pumpAndSettle();
 
-    expect(find.text('1-CLICK PERSONAS (RBAC)'), findsOneWidget);
-    expect(find.text('Sign In with Custom Credentials...'), findsOneWidget);
+    expect(find.text('Switch School Tenant...'), findsOneWidget);
+    expect(find.text('Sign In with Another Account...'), findsOneWidget);
     expect(find.text('Sign Out'), findsOneWidget);
 
     // Select Sign Out

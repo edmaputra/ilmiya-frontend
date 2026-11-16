@@ -1,0 +1,5 @@
+{
+  "apiBaseUrl": "https://ilmiya.localhost",
+  "defaultTenantId": "01940000-0000-7000-8000-000000000001",
+  "mockMode": false
+}

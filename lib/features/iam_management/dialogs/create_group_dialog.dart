@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
+import '../../../core/services/api_client.dart';
 import '../../../core/services/iam_service.dart';
+import '../../../core/utils/app_toast.dart';
 
 class CreateGroupDialog extends StatefulWidget {
   final Future<void> Function() onGroupCreated;
@@ -29,10 +31,12 @@ class CreateGroupDialog extends StatefulWidget {
 }
 
 class _CreateGroupDialogState extends State<CreateGroupDialog> {
+  final _formKey = GlobalKey<FormState>();
   final _codeCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _idpCtrl = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -44,17 +48,32 @@ class _CreateGroupDialogState extends State<CreateGroupDialog> {
   }
 
   Future<void> _submit() async {
-    await iamService.createGroup(CreateGroupRequest(
-      code: _codeCtrl.text.trim().toUpperCase(),
-      name: _nameCtrl.text.trim(),
-      description: _descCtrl.text.trim(),
-      externalIdpGroupName:
-          _idpCtrl.text.trim().isNotEmpty ? _idpCtrl.text.trim() : null,
-    ));
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
 
-    if (mounted) {
-      Navigator.of(context).pop();
-      await widget.onGroupCreated();
+    final groupName = _nameCtrl.text.trim();
+    try {
+      await iamService.createGroup(CreateGroupRequest(
+        tenantId: apiClient.tenantId,
+        code: _codeCtrl.text.trim().toUpperCase(),
+        name: groupName,
+        description:
+            _descCtrl.text.trim().isNotEmpty ? _descCtrl.text.trim() : null,
+        externalIdpGroupName:
+            _idpCtrl.text.trim().isNotEmpty ? _idpCtrl.text.trim() : null,
+      ));
+
+      if (mounted) {
+        AppToast.showSuccess(
+            context, "Group '$groupName' created successfully");
+        Navigator.of(context).pop();
+        await widget.onGroupCreated();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        AppToast.showError(context, 'Failed to create group: $e');
+      }
     }
   }
 
@@ -70,35 +89,46 @@ class _CreateGroupDialogState extends State<CreateGroupDialog> {
               style: TextStyle(fontFamily: 'serif', fontSize: 18)),
         ],
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _codeCtrl,
-            decoration: const InputDecoration(labelText: 'Group Code'),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _codeCtrl,
+                decoration: const InputDecoration(labelText: 'Group Code'),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Group code is required'
+                    : null,
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _nameCtrl,
+                decoration: const InputDecoration(labelText: 'Group Name'),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Group name is required'
+                    : null,
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _descCtrl,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _idpCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'External IdP Mapping (Optional)',
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _nameCtrl,
-            decoration: const InputDecoration(labelText: 'Group Name'),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _descCtrl,
-            decoration: const InputDecoration(labelText: 'Description'),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _idpCtrl,
-            decoration: const InputDecoration(
-              labelText: 'External IdP Mapping (Optional)',
-            ),
-          ),
-        ],
+        ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
@@ -106,8 +136,17 @@ class _CreateGroupDialogState extends State<CreateGroupDialog> {
             backgroundColor: AppColors.forestSage,
             foregroundColor: Colors.white,
           ),
-          onPressed: _submit,
-          child: const Text('Create Group'),
+          onPressed: _isLoading ? null : _submit,
+          child: _isLoading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Save Group'),
         ),
       ],
     );

@@ -3,6 +3,7 @@ import 'package:kite_ui/shadcn.dart';
 import 'package:provider/provider.dart';
 
 import 'core/services/api_client.dart';
+import 'core/services/session_storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/academic_years/presentation/academic_years_screen.dart';
 import 'features/auth/presentation/login_screen.dart';
@@ -22,8 +23,10 @@ final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await sessionStorageService.init();
+  await apiClient.loadRuntimeConfig();
   runApp(
     MultiProvider(
       providers: [
@@ -46,6 +49,23 @@ class IlmiyaApp extends StatefulWidget {
 class _IlmiyaAppState extends State<IlmiyaApp> {
   void Function()? _unsubAuthExpired;
   void Function()? _unsubAccessDenied;
+  void Function()? _unsubLogout;
+  void Function()? _unsubLogin;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_unsubLogout == null) {
+      final auth = context.read<AuthNotifier>();
+      final state = context.read<AppState>();
+      _unsubLogout = auth.onLogout(() {
+        state.resetSession();
+      });
+      _unsubLogin = auth.onLogin(() {
+        state.resetSession();
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -87,6 +107,8 @@ class _IlmiyaAppState extends State<IlmiyaApp> {
   void dispose() {
     _unsubAuthExpired?.call();
     _unsubAccessDenied?.call();
+    _unsubLogout?.call();
+    _unsubLogin?.call();
     super.dispose();
   }
 
@@ -128,6 +150,8 @@ class _IlmiyaAppState extends State<IlmiyaApp> {
                 final modeSuffix = apiClient.isMockMode ? 'mock' : 'live';
                 return AdaptiveScaffold(
                   body: _LazyTabBody(
+                    key: ValueKey(
+                        'lazy_tab_${auth.sessionId}_${auth.tenantId}_$modeSuffix'),
                     currentTab: state.currentTab,
                     tenantId: auth.tenantId,
                     modeSuffix: modeSuffix,
@@ -148,6 +172,7 @@ class _LazyTabBody extends StatefulWidget {
   final String modeSuffix;
 
   const _LazyTabBody({
+    super.key,
     required this.currentTab,
     required this.tenantId,
     required this.modeSuffix,

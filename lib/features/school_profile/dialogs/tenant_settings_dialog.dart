@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
 import '../../../core/services/school_service.dart';
+import '../../../core/utils/app_toast.dart';
 
 class TenantSettingsDialog extends StatefulWidget {
   final SchoolResponse school;
@@ -56,21 +57,25 @@ class _TenantSettingsDialogState extends State<TenantSettingsDialog> {
   }
 
   Future<void> _save() async {
-    await schoolService.configureSettings(
-      ConfigureSchoolSettingsRequest(
-        workingDays: _selectedDays,
-        gradingPreference: _grading,
-        termLayout: _termLayout,
-      ),
-      tenantId: widget.school.tenantId,
-    );
-
-    if (mounted) {
-      Navigator.of(context).pop();
-      widget.onSaved();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Operational rules successfully saved.')),
+    try {
+      await schoolService.configureSettings(
+        ConfigureSchoolSettingsRequest(
+          workingDays: _selectedDays,
+          gradingPreference: _grading,
+          termLayout: _termLayout,
+        ),
+        tenantId: widget.school.tenantId,
       );
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        widget.onSaved();
+        AppToast.showSuccess(context, 'Operational rules successfully saved.');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, 'Failed to save operational rules: $e');
+      }
     }
   }
 

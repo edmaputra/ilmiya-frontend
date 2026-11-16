@@ -13,18 +13,25 @@ class LoginDialogHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.warmSand,
+            color: isDark ? const Color(0xFF1E293B) : AppColors.warmSand,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.borderLight),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.borderLight,
+            ),
           ),
-          child: const Icon(Icons.shield_outlined,
-              color: AppColors.forestSage, size: 24),
+          child: const Icon(
+            Icons.shield_outlined,
+            color: AppColors.forestSage,
+            size: 24,
+          ),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -37,9 +44,14 @@ class LoginDialogHeader extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppColors.warmSand,
+                      color:
+                          isDark ? const Color(0xFF1E293B) : AppColors.warmSand,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.borderLight),
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.darkBorder
+                            : AppColors.borderLight,
+                      ),
                     ),
                     child: const Text(
                       'ED-IAM SECURITY PORTAL',
@@ -54,19 +66,22 @@ class LoginDialogHeader extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Ilmiya Institutional Access',
                 style: TextStyle(
                   fontFamily: 'serif',
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: isDark ? Colors.white : AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 2),
-              const Text(
+              Text(
                 'Select a demo persona to test RBAC permissions or sign in with credentials.',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppColors.textMuted : AppColors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -74,7 +89,7 @@ class LoginDialogHeader extends StatelessWidget {
         if (!isStandalone)
           IconButton(
             icon: const Icon(Icons.close, size: 20),
-            color: AppColors.textMuted,
+            color: isDark ? AppColors.textMuted : AppColors.textMuted,
             onPressed: onClose ?? () => Navigator.of(context).pop(),
           ),
       ],

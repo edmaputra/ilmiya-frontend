@@ -77,11 +77,11 @@ class TenantInspectorTab extends StatelessWidget {
                               Expanded(
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<String>(
-                                    value: inspected.tenantId,
+                                    value: inspected.id,
                                     isExpanded: true,
                                     items: schools
                                         .map((s) => DropdownMenuItem(
-                                              value: s.tenantId,
+                                              value: s.id,
                                               child: Text(
                                                 '${s.name} (${s.tenantId})',
                                                 overflow: TextOverflow.ellipsis,
@@ -120,11 +120,11 @@ class TenantInspectorTab extends StatelessWidget {
                           Expanded(
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
-                                value: inspected.tenantId,
+                                value: inspected.id,
                                 isExpanded: true,
                                 items: schools
                                     .map((s) => DropdownMenuItem(
-                                          value: s.tenantId,
+                                          value: s.id,
                                           child: Text(
                                               '${s.name} (${s.tenantId} • ${s.institutionCode})'),
                                         ))

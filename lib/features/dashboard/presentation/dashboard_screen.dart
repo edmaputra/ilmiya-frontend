@@ -20,11 +20,7 @@ class DashboardScreen extends StatelessWidget {
     final isDesktop = MediaQuery.of(context).size.width >= 1024;
     final isMobile = KiteBreak.isMobile(context);
 
-    final schoolName = auth.tenantId == 'tenant-lincoln-high-001'
-        ? 'Lincoln High School'
-        : auth.tenantId == 'tenant-sma1-ilmiya-002'
-            ? 'SMA Negeri 1 Ilmiya'
-            : auth.tenantId;
+    final schoolName = auth.schoolName;
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(isMobile ? KiteSpace.sm : KiteSpace.xl),

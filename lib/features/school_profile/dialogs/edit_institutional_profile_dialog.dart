@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
 import '../../../core/services/school_service.dart';
+import '../../../core/utils/app_toast.dart';
 
 class EditInstitutionalProfileDialog extends StatefulWidget {
   final SchoolResponse profile;
@@ -65,19 +66,27 @@ class _EditInstitutionalProfileDialogState
   }
 
   Future<void> _submit() async {
-    final updated = await schoolService.updateProfile(UpdateSchoolRequest(
-      name: _nameCtrl.text.trim(),
-      address: _addrCtrl.text.trim(),
-      contactEmail: _emailCtrl.text.trim(),
-      contactPhone: _phoneCtrl.text.trim(),
-      governmentRegistrationNumber:
-          _npsnCtrl.text.trim().isNotEmpty ? _npsnCtrl.text.trim() : null,
-      accreditationStatus: _accredStatus,
-    ));
+    try {
+      final updated = await schoolService.updateProfile(UpdateSchoolRequest(
+        name: _nameCtrl.text.trim(),
+        address: _addrCtrl.text.trim(),
+        contactEmail: _emailCtrl.text.trim(),
+        contactPhone: _phoneCtrl.text.trim(),
+        governmentRegistrationNumber:
+            _npsnCtrl.text.trim().isNotEmpty ? _npsnCtrl.text.trim() : null,
+        accreditationStatus: _accredStatus,
+      ));
 
-    if (mounted) {
-      widget.onProfileUpdated(updated);
-      Navigator.of(context).pop();
+      if (mounted) {
+        widget.onProfileUpdated(updated);
+        Navigator.of(context).pop();
+        AppToast.showSuccess(
+            context, 'Institutional profile updated successfully');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, 'Failed to update profile: $e');
+      }
     }
   }
 

@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 
 import '../shadcn.dart';
@@ -15,11 +16,11 @@ class KiteMenuItem {
 
   /// A divider between groups.
   const KiteMenuItem.separator()
-    : label = '',
-      icon = null,
-      trailing = null,
-      onPressed = null,
-      destructive = false;
+      : label = '',
+        icon = null,
+        trailing = null,
+        onPressed = null,
+        destructive = false;
 
   final String label;
   final IconData? icon;

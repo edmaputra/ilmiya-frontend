@@ -83,7 +83,8 @@ class KiteLineChart extends StatelessWidget {
               TouchedSpotIndicatorData(
                 FlLine(color: c.border, strokeWidth: 1),
                 FlDotData(
-                  getDotPainter: (_, _, _, _) => FlDotCirclePainter(
+                  getDotPainter: (spot, percent, barData, index) =>
+                      FlDotCirclePainter(
                     radius: 3.5,
                     color: c.primary,
                     strokeWidth: 2,

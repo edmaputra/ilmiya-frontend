@@ -14,6 +14,7 @@ import '../dialogs/create_role_dialog.dart';
 import '../dialogs/create_scope_dialog.dart';
 import '../dialogs/create_user_dialog.dart';
 import '../dialogs/edit_role_dialog.dart';
+import '../dialogs/edit_user_dialog.dart';
 import '../widgets/iam_access_restricted_view.dart';
 import '../widgets/iam_groups_tab.dart';
 import '../widgets/iam_roles_tab.dart';
@@ -36,6 +37,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   List<GroupResponse> _groups = [];
   List<ScopeTreeNode> _scopes = [];
   Map<String, UserRoleAssignmentResponse> _userAssignments = {};
+  Map<String, List<RoleResponse>> _userRolesMap = {};
   bool _isLoading = true;
   String _searchQuery = '';
 
@@ -43,7 +45,9 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _loadAllIamData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAllIamData();
+    });
   }
 
   @override
@@ -66,6 +70,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
           _groups = [];
           _scopes = [];
           _userAssignments = {};
+          _userRolesMap = {};
         });
       }
       return;
@@ -74,28 +79,79 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     setState(() => _isLoading = true);
     try {
       final tId = auth.tenantId;
-      final u = await iamService.listUsers(tenantId: tId);
-      final r = await iamService.listRoles();
-      final g = await iamService.listGroups();
-      final s = await iamService.getScopeTree();
+      final results = await Future.wait([
+        iamService.listUsers(tenantId: tId).catchError((e) {
+          debugPrint('Error loading users: $e');
+          return <UserResponse>[];
+        }),
+        iamService.listRoles(tenantId: tId).catchError((e) {
+          debugPrint('Error loading roles: $e');
+          return <RoleResponse>[];
+        }),
+        iamService.listGroups().catchError((e) {
+          debugPrint('Error loading groups: $e');
+          return <GroupResponse>[];
+        }),
+        iamService.getScopeTree(tenantId: tId).catchError((e) {
+          debugPrint('Error loading scopes: $e');
+          return <ScopeTreeNode>[];
+        }),
+      ]);
 
+      final users = results[0] as List<UserResponse>;
+      final roles = results[1] as List<RoleResponse>;
+      final groups = results[2] as List<GroupResponse>;
+      final scopes = results[3] as List<ScopeTreeNode>;
+
+      final userRolesMap = <String, List<RoleResponse>>{};
       final assignments = <String, UserRoleAssignmentResponse>{};
-      for (final user in u) {
+
+      if (users.isNotEmpty) {
         try {
-          final userRoles = await iamService.getUserRoles(user.id);
-          if (userRoles.isNotEmpty) {
-            assignments[user.id] = userRoles.first;
+          final assignmentsLists = await Future.wait(
+            users.map((u) => iamService
+                .getUserRoles(u.id)
+                .catchError((_) => <UserRoleAssignmentResponse>[])),
+          );
+          for (var i = 0; i < users.length; i++) {
+            final uId = users[i].id;
+            final userAssigns = assignmentsLists[i];
+            if (userAssigns.isNotEmpty) {
+              assignments[uId] = userAssigns.first;
+            }
+            final assignedRoles = <RoleResponse>[];
+            for (final a in userAssigns) {
+              final role = roles.firstWhere(
+                (r) => r.id == a.roleId || r.code == a.roleId,
+                orElse: () => RoleResponse(
+                  id: a.roleId,
+                  tenantId: a.tenantId,
+                  code: a.roleId,
+                  name: a.roleId,
+                  description: '',
+                  permissions: [],
+                  isSystemRole: false,
+                  createdAt: a.assignedAt,
+                  updatedAt: a.assignedAt,
+                ),
+              );
+              if (!assignedRoles.any((r) => r.id == role.id)) {
+                assignedRoles.add(role);
+              }
+            }
+            userRolesMap[uId] = assignedRoles;
           }
         } catch (_) {}
       }
 
       if (mounted) {
         setState(() {
-          _users = u;
-          _roles = r;
-          _groups = g;
-          _scopes = s;
+          _users = users;
+          _roles = roles;
+          _groups = groups;
+          _scopes = scopes;
           _userAssignments = assignments;
+          _userRolesMap = userRolesMap;
           _isLoading = false;
         });
       }
@@ -108,6 +164,14 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     CreateUserDialog.show(
       context,
       onUserCreated: _loadAllIamData,
+    );
+  }
+
+  void _showEditUserDialog(UserResponse user) {
+    EditUserDialog.show(
+      context,
+      user: user,
+      onUserUpdated: _loadAllIamData,
     );
   }
 
@@ -226,33 +290,37 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       return IamAccessRestrictedView(auth: auth);
     }
 
-    final canCreateUser = auth.hasRole('SUPERADMIN') ||
+    final canCreateUser = auth.hasPermission('iam:user:create') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
+    final canEditUser = auth.hasPermission('iam:user:update') ||
+        auth.hasRole('SUPERADMIN') ||
         auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('iam:user:create');
-    final canUpdateUserStatus = auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('iam:user:status');
-    final canAssignRole = auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('iam:user:assign-role');
-    final canDeleteUser = auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('iam:user:delete');
-    final canCreateRole = auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('iam:role:create');
-    final canEditRole = auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('iam:role:update');
-    final canDeleteRole = auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('iam:role:delete');
-    final canCreateGroup = auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('iam:group:create');
-    final canCreateScope = auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('iam:scope:create');
+        auth.hasPermission('*');
+    final canUpdateUserStatus = auth.hasPermission('iam:user:status') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
+    final canAssignRole = auth.hasPermission('iam:user:assign-role') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
+    final canDeleteUser = auth.hasPermission('iam:user:delete') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
+    final canCreateRole = auth.hasPermission('iam:role:create') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
+    final canEditRole = auth.hasPermission('iam:role:update') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
+    final canDeleteRole = auth.hasPermission('iam:role:delete') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
+    final canCreateGroup = auth.hasPermission('iam:group:create') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
+    final canCreateScope = auth.hasPermission('iam:scope:create') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
 
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));
@@ -343,8 +411,10 @@ class _IamManagementScreenState extends State<IamManagementScreen>
               children: [
                 IamUsersTab(
                   users: filteredUsers,
+                  userRoles: _userRolesMap,
                   searchQuery: _searchQuery,
                   canCreate: canCreateUser,
+                  canEdit: canEditUser,
                   canUpdateStatus: canUpdateUserStatus,
                   canAssign: canAssignRole,
                   canDelete: canDeleteUser,
@@ -353,6 +423,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                   scopes: _scopes,
                   onSearchChanged: (v) => setState(() => _searchQuery = v),
                   onCreateUser: _showCreateUserDialog,
+                  onEditUser: _showEditUserDialog,
                   onAssignRole: _showAssignRoleDialog,
                   onDataReload: _loadAllIamData,
                 ),
@@ -367,8 +438,12 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                 ),
                 IamGroupsTab(
                   groups: _groups,
+                  users: _users,
+                  roles: _roles,
+                  scopes: _scopes,
                   canCreateGroup: canCreateGroup,
                   onCreateGroup: _showCreateGroupDialog,
+                  onGroupChanged: _loadAllIamData,
                 ),
                 IamScopesTab(
                   scopes: _scopes,
