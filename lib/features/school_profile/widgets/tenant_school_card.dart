@@ -110,7 +110,8 @@ class TenantSchoolCard extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: () => onSwitchTenant(school.tenantId),
                 icon: const Icon(LucideIcons.arrowRightLeft, size: 13),
-                label: const Text('Switch', style: TextStyle(fontSize: 11)),
+                label: const Text('Switch Session',
+                    style: TextStyle(fontSize: 11)),
                 style: OutlinedButton.styleFrom(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

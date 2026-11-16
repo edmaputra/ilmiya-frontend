@@ -21,14 +21,16 @@ class AppShellTopBar extends StatelessWidget {
     final state = context.watch<AppState>();
     final auth = context.watch<AuthNotifier>();
 
-    final schoolDisplayName = auth.tenantId == 'tenant-lincoln-high-001'
-        ? 'Lincoln High School'
-        : auth.tenantId == 'tenant-sma1-ilmiya-002'
-            ? 'SMA Negeri 1 Ilmiya'
-            : auth.tenantId
-                .replaceAll('tenant-', '')
-                .replaceAll('-', ' ')
-                .toUpperCase();
+    final schoolDisplayName = auth.isPlatformSession
+        ? 'Platform Tenant Management'
+        : auth.tenantId == 'tenant-lincoln-high-001'
+            ? 'Lincoln High School'
+            : auth.tenantId == 'tenant-sma1-ilmiya-002'
+                ? 'SMA Negeri 1 Ilmiya'
+                : auth.tenantId
+                    .replaceAll('tenant-', '')
+                    .replaceAll('-', ' ')
+                    .toUpperCase();
 
     final pageTitles = [
       'School Profile',

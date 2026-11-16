@@ -8,12 +8,20 @@ class IamRolesTab extends StatelessWidget {
   final List<RoleResponse> roles;
   final bool canCreateRole;
   final VoidCallback onCreateRole;
+  final ValueChanged<RoleResponse>? onEditRole;
+  final ValueChanged<RoleResponse>? onDeleteRole;
+  final bool canEditRole;
+  final bool canDeleteRole;
 
   const IamRolesTab({
     super.key,
     required this.roles,
     required this.canCreateRole,
     required this.onCreateRole,
+    this.onEditRole,
+    this.onDeleteRole,
+    this.canEditRole = true,
+    this.canDeleteRole = true,
   });
 
   @override
@@ -75,26 +83,59 @@ class IamRolesTab extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                            child: Text(
-                              r.name,
-                              overflow: TextOverflow.ellipsis,
-                              style: t.small.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: c.foreground,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  r.name,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: t.small.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: c.foreground,
+                                  ),
+                                ),
+                                Text(
+                                  r.code,
+                                  style: t.small.copyWith(
+                                    fontSize: 10,
+                                    fontFamily: 'monospace',
+                                    color: c.mutedForeground,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           if (r.isSystemRole)
-                            const KiteBadge('SYSTEM', tone: KiteTone.info),
+                            const KiteBadge('SYSTEM', tone: KiteTone.info)
+                          else
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (canEditRole && onEditRole != null)
+                                  IconButton(
+                                    icon: const Icon(LucideIcons.pencil,
+                                        size: 14),
+                                    tooltip: 'Edit Role',
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                        minWidth: 28, minHeight: 28),
+                                    onPressed: () => onEditRole!(r),
+                                  ),
+                                if (canDeleteRole && onDeleteRole != null)
+                                  IconButton(
+                                    icon: Icon(LucideIcons.trash2,
+                                        size: 14, color: c.destructive),
+                                    tooltip: 'Delete Role',
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                        minWidth: 28, minHeight: 28),
+                                    onPressed: () => onDeleteRole!(r),
+                                  ),
+                              ],
+                            ),
                         ],
-                      ),
-                      Text(
-                        r.code,
-                        style: t.small.copyWith(
-                          fontSize: 10,
-                          fontFamily: 'monospace',
-                          color: c.mutedForeground,
-                        ),
                       ),
                       const SizedBox(height: 6),
                       Text(

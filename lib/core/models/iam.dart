@@ -113,6 +113,24 @@ class UserRoleAssignmentResponse {
     );
   }
 
+  UserRoleAssignmentResponse copyWith({
+    String? id,
+    String? userId,
+    String? roleId,
+    String? tenantId,
+    String? scopeNodeId,
+    String? assignedAt,
+  }) {
+    return UserRoleAssignmentResponse(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      roleId: roleId ?? this.roleId,
+      tenantId: tenantId ?? this.tenantId,
+      scopeNodeId: scopeNodeId ?? this.scopeNodeId,
+      assignedAt: assignedAt ?? this.assignedAt,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'userId': userId,
@@ -165,6 +183,30 @@ class RoleResponse {
     );
   }
 
+  RoleResponse copyWith({
+    String? id,
+    String? tenantId,
+    String? code,
+    String? name,
+    String? description,
+    List<String>? permissions,
+    bool? isSystemRole,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return RoleResponse(
+      id: id ?? this.id,
+      tenantId: tenantId ?? this.tenantId,
+      code: code ?? this.code,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      permissions: permissions ?? this.permissions,
+      isSystemRole: isSystemRole ?? this.isSystemRole,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'tenantId': tenantId,
@@ -175,6 +217,24 @@ class RoleResponse {
         'isSystemRole': isSystemRole,
         'createdAt': createdAt,
         'updatedAt': updatedAt,
+      };
+}
+
+class UpdateRoleRequest {
+  final String name;
+  final String? description;
+  final List<String> permissions;
+
+  UpdateRoleRequest({
+    required this.name,
+    this.description,
+    required this.permissions,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        if (description != null) 'description': description,
+        'permissions': permissions,
       };
 }
 
@@ -474,6 +534,13 @@ class UserProfileResponse {
       scopes: scopes ?? this.scopes,
     );
   }
+
+  bool get isPlatformSuperAdmin => roles.any((r) =>
+      r.toUpperCase() == 'SUPERADMIN' || r.toUpperCase() == 'ROLE_SUPERADMIN');
+
+  bool get isTenantAdmin => roles.any((r) =>
+      r.toUpperCase() == 'TENANT_ADMIN' ||
+      r.toUpperCase() == 'ROLE_TENANT_ADMIN');
 }
 
 class LoginRequest {
@@ -494,7 +561,14 @@ class LoginRequest {
       };
 }
 
-enum DemoPersonaKey { superadmin, principal, teacher, student, parent }
+enum DemoPersonaKey {
+  superadmin,
+  tenantAdmin,
+  principal,
+  teacher,
+  student,
+  parent
+}
 
 class DemoPersona {
   final DemoPersonaKey key;
@@ -520,6 +594,14 @@ const Map<DemoPersonaKey, DemoPersona> DEMO_PERSONAS = {
     email: 'admin.utama@ilmiya.edu',
     description:
         'Unrestricted master access across all bounded contexts, scopes, and tenants.',
+  ),
+  DemoPersonaKey.tenantAdmin: DemoPersona(
+    key: DemoPersonaKey.tenantAdmin,
+    name: 'Ustadz Ahmad Fauzi',
+    roleLabel: 'Foundation Tenant Admin',
+    email: 'admin.yayasan@darussalam.org',
+    description:
+        'Foundation tenant management, school unit oversight, and tenant-wide IAM administration.',
   ),
   DemoPersonaKey.principal: DemoPersona(
     key: DemoPersonaKey.principal,

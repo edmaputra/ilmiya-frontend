@@ -6,12 +6,14 @@ import 'package:provider/provider.dart';
 import '../../../core/models/iam.dart';
 import '../../../core/services/api_client.dart';
 import '../../../core/services/iam_service.dart';
+import '../../../shared_widgets/tenant_session_required_view.dart';
 import '../../../state/auth_notifier.dart';
 import '../dialogs/assign_role_dialog.dart';
 import '../dialogs/create_group_dialog.dart';
 import '../dialogs/create_role_dialog.dart';
 import '../dialogs/create_scope_dialog.dart';
 import '../dialogs/create_user_dialog.dart';
+import '../dialogs/edit_role_dialog.dart';
 import '../widgets/iam_access_restricted_view.dart';
 import '../widgets/iam_groups_tab.dart';
 import '../widgets/iam_roles_tab.dart';
@@ -33,6 +35,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   List<RoleResponse> _roles = [];
   List<GroupResponse> _groups = [];
   List<ScopeTreeNode> _scopes = [];
+  Map<String, UserRoleAssignmentResponse> _userAssignments = {};
   bool _isLoading = true;
   String _searchQuery = '';
 
@@ -53,6 +56,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     final auth = context.read<AuthNotifier>();
     if (!apiClient.isMockMode &&
         !auth.hasRole('SUPERADMIN') &&
+        !auth.hasRole('TENANT_ADMIN') &&
         !auth.hasPermission('iam:user:read')) {
       if (mounted) {
         setState(() {
@@ -61,6 +65,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
           _roles = [];
           _groups = [];
           _scopes = [];
+          _userAssignments = {};
         });
       }
       return;
@@ -68,16 +73,29 @@ class _IamManagementScreenState extends State<IamManagementScreen>
 
     setState(() => _isLoading = true);
     try {
-      final u = await iamService.listUsers();
+      final tId = auth.tenantId;
+      final u = await iamService.listUsers(tenantId: tId);
       final r = await iamService.listRoles();
       final g = await iamService.listGroups();
       final s = await iamService.getScopeTree();
+
+      final assignments = <String, UserRoleAssignmentResponse>{};
+      for (final user in u) {
+        try {
+          final userRoles = await iamService.getUserRoles(user.id);
+          if (userRoles.isNotEmpty) {
+            assignments[user.id] = userRoles.first;
+          }
+        } catch (_) {}
+      }
+
       if (mounted) {
         setState(() {
           _users = u;
           _roles = r;
           _groups = g;
           _scopes = s;
+          _userAssignments = assignments;
           _isLoading = false;
         });
       }
@@ -94,10 +112,15 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   }
 
   void _showAssignRoleDialog(UserResponse user) {
+    final currentAssignment = _userAssignments[user.id];
     AssignRoleDialog.show(
       context,
       user: user,
       roles: _roles,
+      scopes: _scopes,
+      tenantId: context.read<AuthNotifier>().tenantId,
+      initialRoleId: currentAssignment?.roleId,
+      initialScopeId: currentAssignment?.scopeNodeId,
       onRoleAssigned: _loadAllIamData,
     );
   }
@@ -107,6 +130,65 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       context,
       onRoleCreated: _loadAllIamData,
     );
+  }
+
+  void _showEditRoleDialog(RoleResponse role) {
+    EditRoleDialog.show(
+      context,
+      role: role,
+      onRoleUpdated: _loadAllIamData,
+    );
+  }
+
+  Future<void> _deleteRole(RoleResponse role) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final c = KiteColors.of(ctx);
+        final t = KiteText.of(ctx);
+        return AlertDialog(
+          title: Text('Delete Role',
+              style: t.h4.copyWith(fontWeight: FontWeight.bold)),
+          content: Text(
+            'Are you sure you want to delete role "${role.name}" (${role.code})? This action cannot be undone.',
+            style: t.small,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: c.destructive,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await iamService.deleteRole(role.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Role "${role.name}" deleted successfully.')),
+          );
+        }
+        await _loadAllIamData();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete role: $e')),
+          );
+        }
+      }
+    }
   }
 
   void _showCreateGroupDialog() {
@@ -129,20 +211,48 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
     final auth = context.watch<AuthNotifier>();
-    final canCreateUser = auth.hasPermission('iam:user:create');
-    final canUpdateUserStatus = auth.hasPermission('iam:user:status');
-    final canAssignRole = auth.hasPermission('iam:user:assign-role');
-    final canDeleteUser = auth.hasPermission('iam:user:delete');
-    final canCreateRole = auth.hasPermission('iam:role:create');
-    final canCreateGroup = auth.hasPermission('iam:group:create');
-    final canCreateScope = auth.hasPermission('iam:scope:create');
+
+    if (auth.isPlatformSession) {
+      return const TenantSessionRequiredView(
+        sectionName: 'IAM Console & Security Governance',
+      );
+    }
 
     // RBAC Security Check
     if (!apiClient.isMockMode &&
         !auth.hasRole('SUPERADMIN') &&
+        !auth.hasRole('TENANT_ADMIN') &&
         !auth.hasPermission('iam:user:read')) {
       return IamAccessRestrictedView(auth: auth);
     }
+
+    final canCreateUser = auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN') ||
+        auth.hasPermission('iam:user:create');
+    final canUpdateUserStatus = auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN') ||
+        auth.hasPermission('iam:user:status');
+    final canAssignRole = auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN') ||
+        auth.hasPermission('iam:user:assign-role');
+    final canDeleteUser = auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN') ||
+        auth.hasPermission('iam:user:delete');
+    final canCreateRole = auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN') ||
+        auth.hasPermission('iam:role:create');
+    final canEditRole = auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN') ||
+        auth.hasPermission('iam:role:update');
+    final canDeleteRole = auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN') ||
+        auth.hasPermission('iam:role:delete');
+    final canCreateGroup = auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN') ||
+        auth.hasPermission('iam:group:create');
+    final canCreateScope = auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN') ||
+        auth.hasPermission('iam:scope:create');
 
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));
@@ -238,6 +348,9 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                   canUpdateStatus: canUpdateUserStatus,
                   canAssign: canAssignRole,
                   canDelete: canDeleteUser,
+                  userAssignments: _userAssignments,
+                  roles: _roles,
+                  scopes: _scopes,
                   onSearchChanged: (v) => setState(() => _searchQuery = v),
                   onCreateUser: _showCreateUserDialog,
                   onAssignRole: _showAssignRoleDialog,
@@ -247,6 +360,10 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                   roles: _roles,
                   canCreateRole: canCreateRole,
                   onCreateRole: _showCreateRoleDialog,
+                  onEditRole: _showEditRoleDialog,
+                  onDeleteRole: _deleteRole,
+                  canEditRole: canEditRole,
+                  canDeleteRole: canDeleteRole,
                 ),
                 IamGroupsTab(
                   groups: _groups,

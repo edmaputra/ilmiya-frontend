@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/academic_year.dart';
 import '../../../core/services/academic_year_service.dart';
+import '../../../shared_widgets/tenant_session_required_view.dart';
 import '../../../state/auth_notifier.dart';
 import '../dialogs/add_academic_term_dialog.dart';
 import '../dialogs/create_academic_year_dialog.dart';
@@ -95,6 +96,12 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
     final t = KiteText.of(context);
     final auth = context.watch<AuthNotifier>();
     final canWrite = auth.hasPermission('academic:year:write');
+
+    if (auth.isPlatformSession) {
+      return const TenantSessionRequiredView(
+        sectionName: 'Academic Calendar & Years',
+      );
+    }
 
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));

@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
 import '../../../core/services/iam_service.dart';
 
 class IamUserTile extends StatelessWidget {
   final UserResponse user;
+  final String? assignedRole;
+  final String? assignedScope;
   final bool canUpdateStatus;
   final bool canAssign;
   final bool canDelete;
@@ -16,6 +19,8 @@ class IamUserTile extends StatelessWidget {
   const IamUserTile({
     super.key,
     required this.user,
+    this.assignedRole,
+    this.assignedScope,
     required this.canUpdateStatus,
     required this.canAssign,
     required this.canDelete,
@@ -79,6 +84,49 @@ class IamUserTile extends StatelessWidget {
                               color: c.mutedForeground,
                             ),
                           ),
+                          if (assignedRole != null ||
+                              assignedScope != null) ...[
+                            const SizedBox(height: 4),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 2,
+                              children: [
+                                if (assignedRole != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: c.accent,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'Role: $assignedRole',
+                                      style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                if (assignedScope != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.forestSage
+                                          .withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'Scope: $assignedScope',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.forestSage,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -116,7 +164,7 @@ class IamUserTile extends StatelessWidget {
                             }
                           : null,
                     ),
-                    OutlinedButton(
+                    OutlinedButton.icon(
                       onPressed: canAssign ? () => onAssignRole(user) : null,
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
@@ -126,7 +174,8 @@ class IamUserTile extends StatelessWidget {
                         shape: const RoundedRectangleBorder(
                             borderRadius: KiteRadius.allSm),
                       ),
-                      child: const Text('Assign Role',
+                      icon: const Icon(LucideIcons.shieldAlert, size: 12),
+                      label: const Text('Assign Role',
                           style: TextStyle(fontSize: 11)),
                     ),
                     IconButton(
@@ -174,9 +223,54 @@ class IamUserTile extends StatelessWidget {
                 const KiteBadge('SUPERADMIN', tone: KiteTone.warning),
             ],
           ),
-          subtitle: Text(
-            user.email,
-            style: t.small.copyWith(fontSize: 11, color: c.mutedForeground),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                user.email,
+                style: t.small.copyWith(fontSize: 11, color: c.mutedForeground),
+              ),
+              if (assignedRole != null || assignedScope != null) ...[
+                const SizedBox(height: 3),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 2,
+                  children: [
+                    if (assignedRole != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: c.accent,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Role: $assignedRole',
+                          style: const TextStyle(
+                              fontSize: 10, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    if (assignedScope != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.forestSage.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Scope: $assignedScope',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.forestSage,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ],
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -207,7 +301,7 @@ class IamUserTile extends StatelessWidget {
                     : null,
               ),
               const SizedBox(width: 8),
-              OutlinedButton(
+              OutlinedButton.icon(
                 onPressed: canAssign ? () => onAssignRole(user) : null,
                 style: OutlinedButton.styleFrom(
                   padding:
@@ -217,7 +311,8 @@ class IamUserTile extends StatelessWidget {
                   shape: const RoundedRectangleBorder(
                       borderRadius: KiteRadius.allSm),
                 ),
-                child:
+                icon: const Icon(LucideIcons.shieldAlert, size: 12),
+                label:
                     const Text('Assign Role', style: TextStyle(fontSize: 11)),
               ),
               const SizedBox(width: 4),

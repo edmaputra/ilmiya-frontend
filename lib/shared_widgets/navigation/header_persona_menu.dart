@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/models/iam.dart';
 import '../../features/auth/presentation/login_dialog.dart';
+import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
 
 class HeaderPersonaMenu extends StatelessWidget {
@@ -28,9 +30,9 @@ class HeaderPersonaMenu extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         side: const BorderSide(color: AppColors.borderLight),
       ),
-      onSelected: (action) {
+      onSelected: (action) async {
         if (action == 'login') {
-          LoginDialog.show(context);
+          await LoginDialog.show(context);
         } else if (action == 'logout') {
           auth.logout();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -42,7 +44,14 @@ class HeaderPersonaMenu extends StatelessWidget {
             (k) => k.name == keyStr,
             orElse: () => DemoPersonaKey.superadmin,
           );
-          auth.loginAsPersona(personaKey);
+          await auth.loginAsPersona(personaKey);
+          if (context.mounted) {
+            if (auth.isPlatformSession) {
+              context.read<AppState>().setTab(8);
+            } else {
+              context.read<AppState>().setTab(0);
+            }
+          }
         }
       },
       itemBuilder: (context) => [

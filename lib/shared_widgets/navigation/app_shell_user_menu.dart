@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/models/iam.dart';
 import '../../features/auth/presentation/login_dialog.dart';
+import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
 
 class AppShellUserMenu extends StatelessWidget {
@@ -24,9 +26,9 @@ class AppShellUserMenu extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: c.border),
       ),
-      onSelected: (action) {
+      onSelected: (action) async {
         if (action == 'login') {
-          LoginDialog.show(context);
+          await LoginDialog.show(context);
         } else if (action == 'logout') {
           auth.logout();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -38,7 +40,14 @@ class AppShellUserMenu extends StatelessWidget {
             (k) => k.name == keyStr,
             orElse: () => DemoPersonaKey.superadmin,
           );
-          auth.loginAsPersona(personaKey);
+          await auth.loginAsPersona(personaKey);
+          if (context.mounted) {
+            if (auth.isPlatformSession) {
+              context.read<AppState>().setTab(8);
+            } else {
+              context.read<AppState>().setTab(0);
+            }
+          }
         }
       },
       itemBuilder: (context) => [

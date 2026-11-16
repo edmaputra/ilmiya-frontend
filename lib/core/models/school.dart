@@ -153,6 +153,9 @@ class RegisterSchoolRequest {
   final String address;
   final String contactEmail;
   final String contactPhone;
+  final String? adminEmail;
+  final String? adminName;
+  final String? adminPassword;
 
   RegisterSchoolRequest({
     required this.tenantId,
@@ -161,6 +164,9 @@ class RegisterSchoolRequest {
     required this.address,
     required this.contactEmail,
     required this.contactPhone,
+    this.adminEmail,
+    this.adminName,
+    this.adminPassword,
   });
 
   Map<String, dynamic> toJson() => {
@@ -170,6 +176,9 @@ class RegisterSchoolRequest {
         'address': address,
         'contactEmail': contactEmail,
         'contactPhone': contactPhone,
+        if (adminEmail != null) 'adminEmail': adminEmail,
+        if (adminName != null) 'adminName': adminName,
+        if (adminPassword != null) 'adminPassword': adminPassword,
       };
 }
 

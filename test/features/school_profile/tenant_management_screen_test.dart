@@ -272,7 +272,7 @@ void main() {
       await tester.pumpWidget(buildTestableTenantScreen());
       await tester.pumpAndSettle();
 
-      final switchBtns = find.text('Switch');
+      final switchBtns = find.text('Switch Session');
       expect(switchBtns, findsWidgets);
       await tester.tap(switchBtns.first);
       await tester.pumpAndSettle();

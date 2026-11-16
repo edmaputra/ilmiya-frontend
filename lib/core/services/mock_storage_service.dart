@@ -15,6 +15,7 @@ class MockStorageService {
   late List<RoleResponse> _roles;
   late List<GroupResponse> _groups;
   late List<ScopeTreeNode> _scopes;
+  late Map<String, List<ScopeTreeNode>> _tenantScopes;
   late List<UserRoleAssignmentResponse> _userRoleAssignments;
 
   MockStorageService._internal() {
@@ -246,6 +247,15 @@ class MockStorageService {
         createdAt: '2026-07-10T11:30:00Z',
         updatedAt: '2026-07-10T11:30:00Z',
       ),
+      UserResponse(
+        id: 'u-66666666-6666-6666-6666-666666666666',
+        email: 'admin.yayasan@darussalam.org',
+        fullName: 'Ustadz Ahmad Fauzi (Foundation Admin)',
+        status: 'ACTIVE',
+        isPlatformSuperAdmin: false,
+        createdAt: '2026-01-01T08:00:00Z',
+        updatedAt: '2026-01-01T08:00:00Z',
+      ),
     ];
 
     _roles = [
@@ -257,6 +267,44 @@ class MockStorageService {
         description:
             'Full institutional and multi-tenant rights across all bounded contexts.',
         permissions: ['*'],
+        isSystemRole: true,
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      ),
+      RoleResponse(
+        id: 'role-tenant-admin',
+        tenantId: DEFAULT_TENANT_ID,
+        code: 'TENANT_ADMIN',
+        name: 'Tenant Administrator',
+        description:
+            'Foundation and tenant-wide governance, unit school provisioning, and IAM administration.',
+        permissions: [
+          'tenant:profile:*',
+          'tenant:school:*',
+          'school:*',
+          'academic:*',
+          'student:*',
+          'attendance:*',
+          'timetable:*',
+          'exam:*',
+          'finance:*',
+          'hr:*',
+          'iam:*',
+          'iam:user:read',
+          'iam:user:create',
+          'iam:user:status',
+          'iam:user:assign-role',
+          'iam:user:delete',
+          'iam:role:read',
+          'iam:role:create',
+          'iam:role:update',
+          'iam:role:delete',
+          'iam:group:read',
+          'iam:group:create',
+          'iam:scope:read',
+          'iam:scope:create',
+          'audit:log:*',
+        ],
         isSystemRole: true,
         createdAt: '2026-01-01T00:00:00Z',
         updatedAt: '2026-01-01T00:00:00Z',
@@ -405,6 +453,10 @@ class MockStorageService {
       ),
     ];
 
+    _tenantScopes = {
+      DEFAULT_TENANT_ID: _scopes,
+    };
+
     _userRoleAssignments = [
       UserRoleAssignmentResponse(
         id: 'ura-1',
@@ -437,6 +489,14 @@ class MockStorageService {
         tenantId: DEFAULT_TENANT_ID,
         scopeNodeId: 'scope-class-10a',
         assignedAt: '2026-07-10T11:00:00Z',
+      ),
+      UserRoleAssignmentResponse(
+        id: 'ura-5',
+        userId: 'u-66666666-6666-6666-6666-666666666666',
+        roleId: 'role-tenant-admin',
+        tenantId: DEFAULT_TENANT_ID,
+        scopeNodeId: 'scope-root',
+        assignedAt: '2026-01-01T08:00:00Z',
       ),
     ];
   }
@@ -564,6 +624,98 @@ class MockStorageService {
     } else {
       _schools.add(newSchool);
     }
+
+    // 1. Provision root scope for the newly created tenant
+    final rootScope = ScopeTreeNode(
+      id: 'scope-${req.tenantId}-root',
+      code: 'ROOT',
+      name: '${req.name} (Root Scope)',
+      path: '/ROOT',
+      depth: 0,
+      parentId: null,
+      children: [],
+    );
+    _tenantScopes[req.tenantId] = [rootScope];
+
+    // 2. Ensure TENANT_ADMIN system role exists
+    final tenantAdminRole = _roles.firstWhere(
+      (r) => r.code == 'TENANT_ADMIN',
+      orElse: () {
+        final r = RoleResponse(
+          id: 'role-tenant-admin',
+          tenantId: req.tenantId,
+          code: 'TENANT_ADMIN',
+          name: 'Tenant Administrator',
+          description:
+              'Full administration rights for the tenant and its schools',
+          permissions: [
+            'tenant:profile:*',
+            'tenant:school:*',
+            'school:*',
+            'academic:*',
+            'student:*',
+            'attendance:*',
+            'timetable:*',
+            'exam:*',
+            'finance:*',
+            'hr:*',
+            'iam:*',
+            'iam:user:read',
+            'iam:user:create',
+            'iam:user:status',
+            'iam:user:assign-role',
+            'iam:user:delete',
+            'iam:role:read',
+            'iam:role:create',
+            'iam:role:update',
+            'iam:role:delete',
+            'iam:group:read',
+            'iam:group:create',
+            'iam:scope:read',
+            'iam:scope:create',
+            'audit:log:*',
+          ],
+          isSystemRole: true,
+          createdAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now().toIso8601String(),
+        );
+        _roles.add(r);
+        return r;
+      },
+    );
+
+    // 3. Provision tenant admin user account
+    final adminEmail = req.adminEmail?.trim().isNotEmpty == true
+        ? req.adminEmail!.trim()
+        : req.contactEmail.trim().isNotEmpty == true
+            ? req.contactEmail.trim()
+            : 'admin@${req.tenantId}.edu';
+    final adminName = req.adminName?.trim().isNotEmpty == true
+        ? req.adminName!.trim()
+        : '${req.name} Admin';
+
+    var adminUser = getUserByEmail(adminEmail);
+    if (adminUser == null) {
+      adminUser = UserResponse(
+        id: 'u-${DateTime.now().millisecondsSinceEpoch}',
+        email: adminEmail,
+        fullName: adminName,
+        status: 'ACTIVE',
+        isPlatformSuperAdmin: false,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+      _users.add(adminUser);
+    }
+
+    // 4. Assign the root scope of the newly created tenant to this user account
+    assignUserRole(
+      userId: adminUser.id,
+      roleId: tenantAdminRole.id,
+      tenantId: req.tenantId,
+      scopeNodeId: rootScope.id,
+    );
+
     return newSchool;
   }
 
@@ -683,7 +835,18 @@ class MockStorageService {
   }
 
   // --- IAM Users ---
-  List<UserResponse> listUsers() => List.unmodifiable(_users);
+  List<UserResponse> listUsers({String? tenantId}) {
+    if (tenantId != null && tenantId.isNotEmpty && tenantId != 'platform') {
+      final assignedUserIds = _userRoleAssignments
+          .where((a) => a.tenantId == tenantId)
+          .map((a) => a.userId)
+          .toSet();
+      final filtered =
+          _users.where((u) => assignedUserIds.contains(u.id)).toList();
+      if (filtered.isNotEmpty) return filtered;
+    }
+    return List.unmodifiable(_users);
+  }
 
   UserResponse? getUserByEmail(String email) {
     try {
@@ -694,7 +857,7 @@ class MockStorageService {
     }
   }
 
-  UserResponse createUser(CreateUserRequest req) {
+  UserResponse createUser(CreateUserRequest req, {String? tenantId}) {
     final newUser = UserResponse(
       id: 'u-${DateTime.now().millisecondsSinceEpoch}',
       email: req.email,
@@ -705,6 +868,19 @@ class MockStorageService {
       updatedAt: DateTime.now().toIso8601String(),
     );
     _users.add(newUser);
+    if (tenantId != null && tenantId.isNotEmpty && tenantId != 'platform') {
+      final rootScope = getScopeTree(tenantId).firstOrNull;
+      final defaultRole = _roles.firstWhere(
+        (r) => r.code == 'STUDENT' || r.code == 'TEACHER',
+        orElse: () => _roles.first,
+      );
+      assignUserRole(
+        userId: newUser.id,
+        roleId: defaultRole.id,
+        tenantId: tenantId,
+        scopeNodeId: rootScope?.id,
+      );
+    }
     return newUser;
   }
 
@@ -734,7 +910,11 @@ class MockStorageService {
   }
 
   // --- IAM Roles & Assignments ---
-  List<RoleResponse> listRoles(String tenantId) => List.unmodifiable(_roles);
+  List<RoleResponse> listRoles(String tenantId) {
+    return _roles
+        .where((r) => r.isSystemRole || r.tenantId == tenantId)
+        .toList();
+  }
 
   RoleResponse createRole(String tenantId, CreateRoleRequest req) {
     final newRole = RoleResponse(
@@ -752,12 +932,50 @@ class MockStorageService {
     return newRole;
   }
 
+  RoleResponse updateRole(
+      String tenantId, String roleId, UpdateRoleRequest req) {
+    final idx = _roles.indexWhere((r) => r.id == roleId);
+    if (idx == -1) throw Exception('Role $roleId not found');
+    final existing = _roles[idx];
+    final updated = existing.copyWith(
+      name: req.name,
+      description: req.description,
+      permissions: req.permissions,
+      updatedAt: DateTime.now().toIso8601String(),
+    );
+    _roles[idx] = updated;
+    return updated;
+  }
+
+  bool deleteRole(String tenantId, String roleId) {
+    final idx = _roles.indexWhere((r) => r.id == roleId);
+    if (idx == -1) throw Exception('Role $roleId not found');
+    final role = _roles[idx];
+    if (role.isSystemRole) {
+      throw Exception('System roles cannot be deleted.');
+    }
+    _roles.removeAt(idx);
+    _userRoleAssignments.removeWhere((a) => a.roleId == roleId);
+    return true;
+  }
+
   UserRoleAssignmentResponse assignUserRole({
     required String userId,
     required String roleId,
     required String tenantId,
     String? scopeNodeId,
   }) {
+    final existingIdx = _userRoleAssignments.indexWhere(
+      (a) => a.userId == userId && a.tenantId == tenantId,
+    );
+    if (existingIdx != -1) {
+      final updated = _userRoleAssignments[existingIdx].copyWith(
+        roleId: roleId,
+        scopeNodeId: scopeNodeId,
+      );
+      _userRoleAssignments[existingIdx] = updated;
+      return updated;
+    }
     final assignment = UserRoleAssignmentResponse(
       id: 'ura-${DateTime.now().millisecondsSinceEpoch}',
       userId: userId,
@@ -797,7 +1015,25 @@ class MockStorageService {
   }
 
   // --- IAM Scopes ---
-  List<ScopeTreeNode> getScopeTree(String tenantId) => _scopes;
+  List<ScopeTreeNode> getScopeTree(String tenantId) {
+    if (_tenantScopes.containsKey(tenantId)) {
+      return _tenantScopes[tenantId]!;
+    }
+    if (tenantId == DEFAULT_TENANT_ID) {
+      return _scopes;
+    }
+    final root = ScopeTreeNode(
+      id: 'scope-$tenantId-root',
+      code: 'ROOT',
+      name: 'Root Scope',
+      path: '/ROOT',
+      depth: 0,
+      parentId: null,
+      children: [],
+    );
+    _tenantScopes[tenantId] = [root];
+    return [root];
+  }
 
   ScopeTreeNode createScope(String tenantId, CreateScopeRequest req) {
     final newNode = ScopeTreeNode(
@@ -810,12 +1046,14 @@ class MockStorageService {
       children: [],
     );
 
+    final currentScopes = getScopeTree(tenantId);
     if (req.parentId == null) {
-      _scopes.add(newNode);
+      currentScopes.add(newNode);
     } else {
-      final added = _addChildToScopeNode(_scopes, req.parentId!, newNode);
-      if (!added) _scopes.add(newNode);
+      final added = _addChildToScopeNode(currentScopes, req.parentId!, newNode);
+      if (!added) currentScopes.add(newNode);
     }
+    _tenantScopes[tenantId] = currentScopes;
     return newNode;
   }
 

@@ -41,6 +41,7 @@ class AuthNotifier extends ChangeNotifier {
   String? _error;
   void Function()? _unsubscribeAuthExpired;
   bool _lastMockMode = true;
+  bool _hasSwitchedTenant = true;
 
   AuthNotifier({ApiClient? apiClient, IamService? iamService})
       : _apiClient = apiClient ?? ApiClient(),
@@ -48,6 +49,7 @@ class AuthNotifier extends ChangeNotifier {
     _tenantId = _apiClient.tenantId;
     _token = _apiClient.token;
     _lastMockMode = _apiClient.isMockMode;
+    _hasSwitchedTenant = _apiClient.tenantId != 'platform';
     _unsubscribeAuthExpired = _apiClient.onAuthExpired(([reason]) {
       _user = null;
       _token = null;
@@ -92,6 +94,12 @@ class AuthNotifier extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  bool get isSuperAdmin =>
+      hasRole('SUPERADMIN') || (_user?.isPlatformSuperAdmin ?? false);
+  bool get isTenantAdmin => hasRole('TENANT_ADMIN');
+  bool get hasSwitchedTenant => _hasSwitchedTenant;
+  bool get isPlatformSession => isSuperAdmin && !_hasSwitchedTenant;
+
   void clearError() {
     _error = null;
     notifyListeners();
@@ -112,10 +120,18 @@ class AuthNotifier extends ChangeNotifier {
       notifyListeners();
       final profile = await _iamService.getMe();
       _user = profile;
-      _tenantId =
-          profile.tenantId.isNotEmpty ? profile.tenantId : _apiClient.tenantId;
       _roles = profile.roles;
       _permissions = profile.permissions;
+      final isSuper = _roles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
+          (_user?.isPlatformSuperAdmin ?? false);
+      if (isSuper && !_hasSwitchedTenant) {
+        _tenantId = 'platform';
+      } else {
+        _tenantId =
+            _apiClient.tenantId.isNotEmpty && _apiClient.tenantId != 'platform'
+                ? _apiClient.tenantId
+                : (profile.tenantId.isNotEmpty ? profile.tenantId : _tenantId);
+      }
       _token = _apiClient.token;
       _error = null;
     } catch (e) {
@@ -137,12 +153,21 @@ class AuthNotifier extends ChangeNotifier {
     try {
       final resp = await _iamService.login(req);
       _token = resp.accessToken;
-      _tenantId =
-          resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
       _roles = resp.roles;
       _permissions = resp.permissions;
       if (resp.user != null) {
         _user = resp.user;
+      }
+      final isSuper = _roles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
+          (_user?.isPlatformSuperAdmin ?? false);
+      if (isSuper) {
+        _hasSwitchedTenant = false;
+        _tenantId = 'platform';
+        _apiClient.tenantId = 'platform';
+      } else {
+        _hasSwitchedTenant = true;
+        _tenantId =
+            resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
       }
       await refreshProfile();
     } catch (e) {
@@ -158,11 +183,16 @@ class AuthNotifier extends ChangeNotifier {
   Future<void> loginAsPersona(DemoPersonaKey personaKey) async {
     final persona = DEMO_PERSONAS[personaKey];
     if (persona == null) return;
+    final tId = personaKey == DemoPersonaKey.superadmin
+        ? 'platform'
+        : _apiClient.tenantId.isNotEmpty && _apiClient.tenantId != 'platform'
+            ? _apiClient.tenantId
+            : 'tenant-lincoln-high-001';
     await login(LoginRequest(
       email: persona.email,
       password:
           '${persona.key.name[0].toUpperCase()}${persona.key.name.substring(1)}@123',
-      tenantId: _apiClient.tenantId,
+      tenantId: tId,
     ));
   }
 
@@ -172,6 +202,8 @@ class AuthNotifier extends ChangeNotifier {
     _token = null;
     _roles = [];
     _permissions = [];
+    _hasSwitchedTenant = false;
+    _tenantId = 'platform';
     _error = null;
     notifyListeners();
   }
@@ -182,7 +214,9 @@ class AuthNotifier extends ChangeNotifier {
     notifyListeners();
     try {
       final resp = await _iamService.switchTenant(newTenantId);
+      _hasSwitchedTenant = true;
       _tenantId = resp.tenantId.isNotEmpty ? resp.tenantId : newTenantId;
+      _apiClient.tenantId = _tenantId;
       _roles = resp.roles;
       _permissions = resp.permissions;
       await refreshProfile();

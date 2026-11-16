@@ -151,45 +151,31 @@ void triggerAuthExpired() {
 
 ---
 
-## Step 4: Dynamic Tenant Switching
+## Step 4: Dynamic Tenant Switching & Superadmin Platform Isolation
 
-Campus administrators overseeing multiple institutions can switch tenants without logging out.
+Ilmiya enforces a dual-tier authorization scope separating **Platform Administration** (`GLOBAL`) from **Institutional Management** (`TENANT` / `SCHOOL`).
 
-1. Open the header navigation bar.
-2. Click the **Tenant Selector** dropdown:
-   - `Lincoln High School` (`tenant-lincoln-high-001`)
-   - `SMA Negeri 1 Ilmiya` (`tenant-sma1-ilmiya-002`)
-   - Or input a custom tenant ID.
-3. Confirm switch.
+### 1. Platform SuperAdmin Session & Menu Isolation
+When logging in as `SUPERADMIN` (or using the `admin.utama@ilmiya.edu` persona):
+- The session initializes in **Platform Mode** (`tenantId: 'platform'`, `auth.isPlatformSession: true`).
+- The sidebar navigation and mobile bottom bar **only display the "Tenant Console" menu**, preventing accidental modification of specific school partitions from a platform-wide context.
+- Directly accessing tenant-scoped views (School Profile, Academic Years, IAM Console) renders `TenantSessionRequiredView`, prompting the administrator to select an active tenant.
 
-### Behind the Scenes: `AuthNotifier.switchTenant`
-```dart
-// lib/state/auth_notifier.dart
-Future<void> switchTenant(String newTenantId) async {
-  if (isMockMode) {
-    _tenantId = newTenantId;
-    apiClient.tenantId = newTenantId;
-    notifyListeners();
-    return;
-  }
+### 2. Switching Session from Tenant Rows
+To manage an individual school tenant:
+1. Open the **Tenant Console** (`tab 8`).
+2. In the **Tenants Directory**, locate the target school (e.g. `Lincoln High School` or `SMA Negeri 1 Ilmiya`).
+3. Click the **"Switch Session"** button on the tenant row.
+4. `auth.switchTenant(targetTenantId)` executes:
+   - `auth.isPlatformSession` transitions to `false`.
+   - `auth.tenantId` is set to the selected tenant ID.
+   - The navigation sidebar **immediately re-loads all menus** with full unrestricted administrative access across the selected tenant's domain (School Profile, Dashboard, Academic Years, Courses & Grades, IAM Console, Feature Previews, Messages, and Notifications).
 
-  final response = await apiClient.request(
-    endpoint: '/api/v1/auth/switch-tenant',
-    method: 'POST',
-    body: {'tenantId': newTenantId},
-  );
-
-  _tenantId = newTenantId;
-  apiClient.tenantId = newTenantId;
-  if (response != null && response is Map<String, dynamic>) {
-    if (response['accessToken'] != null) {
-      apiClient.token = response['accessToken'] as String;
-    }
-    // Update tenant-scoped roles and permissions
-  }
-  notifyListeners();
-}
-```
+### 3. Tenant Admin (`TENANT_ADMIN`) Isolation
+In contrast to platform superadmins:
+- Foundation Tenant Admins operate strictly within their assigned foundation organization (`/ROOT` scope).
+- Tenant Admins are eligible to manage the **IAM Console** for their own tenant.
+- Tenant Admins cannot view the **Tenant Console** (`tab 8`) and are blocked from switching to other tenants.
 
 ---
 
@@ -235,3 +221,18 @@ await context.read<AuthNotifier>().logout();
 2. Clears in-memory tokens (`apiClient.token = null`, `apiClient.refreshToken = null`).
 3. Reverts permissions back to the unauthenticated guest or default student profile.
 4. Updates UI indicators.
+
+---
+
+## Step 7: Local Development & Mock User Accounts Reference
+
+When running the application in **Mock Simulation Mode** (`isMockMode = true`), use the following accounts for testing and verification:
+
+| Role / Persona | Display Name | Email Address | Manual Password | Initial Scope & Menu Capabilities |
+| :--- | :--- | :--- | :--- | :--- |
+| **Platform SuperAdmin** | **Dr. Sarah Jenkins** | `admin.utama@ilmiya.edu` | `Superadmin@123` *(or any)* | **Platform Scope**: Starts with **only "Tenant Console"** visible in the menu. Click **"Switch Session"** in the tenant directory to unlock full access across that tenant. |
+| **Foundation Tenant Admin** | **Ustadz Ahmad Fauzi** | `admin.yayasan@darussalam.org` | `TenantAdmin@123` | **Tenant Scope (`/ROOT`)**: Eligible for **IAM Console** (manage users, roles, groups, scopes). Isolated from Tenant Console and cannot switch tenants. |
+| **School Principal** | **Prof. Marcus Chen** | `principal@ilmiya.edu` | `Principal@123` | **School Scope**: Institutional profile, operational hours, terms, and academic calendars. |
+| **Senior Faculty / Teacher** | **Dr. Eleanor Vance** | `eleanor.vance@ilmiya.edu` | `Teacher@123` | **Academics Scope**: Grading matrix, course records, student progress. |
+| **Student (Class 10-A)** | **Alex Rivera** | `alex.rivera@student.ilmiya.edu` | `Student@123` | **Self Scope**: Student portal, timetable, grade cards. |
+| **Parent / Guardian** | **Elena Rivera** | `elena.rivera@parent.ilmiya.edu` | `Parent@123` | **Ward Scope**: Child attendance records and semester report cards. |

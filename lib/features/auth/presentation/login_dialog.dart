@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
 import '../../../core/services/api_client.dart';
+import '../../../state/app_state.dart';
 import '../../../state/auth_notifier.dart';
 import '../widgets/credentials_form.dart';
 import '../widgets/demo_personas_section.dart';
@@ -101,6 +102,14 @@ class _LoginDialogState extends State<LoginDialog> {
         tenantId: tenantTrimmed,
       ));
       if (mounted) {
+        try {
+          final appState = Provider.of<AppState>(context, listen: false);
+          if (auth.isPlatformSession) {
+            appState.setTab(8);
+          } else {
+            appState.setTab(0);
+          }
+        } catch (_) {}
         widget.onSuccess?.call();
         if (!widget.isStandalone) Navigator.of(context).pop();
       }
@@ -124,6 +133,14 @@ class _LoginDialogState extends State<LoginDialog> {
     try {
       await auth.loginAsPersona(key);
       if (mounted) {
+        try {
+          final appState = Provider.of<AppState>(context, listen: false);
+          if (auth.isPlatformSession) {
+            appState.setTab(8);
+          } else {
+            appState.setTab(0);
+          }
+        } catch (_) {}
         widget.onSuccess?.call();
         if (!widget.isStandalone) Navigator.of(context).pop();
       }

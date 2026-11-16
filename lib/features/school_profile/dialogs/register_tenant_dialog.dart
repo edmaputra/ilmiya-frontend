@@ -37,6 +37,9 @@ class _RegisterTenantDialogState extends State<RegisterTenantDialog> {
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _npsnCtrl = TextEditingController();
+  final _adminEmailCtrl = TextEditingController();
+  final _adminNameCtrl = TextEditingController();
+  final _adminPasswordCtrl = TextEditingController();
   String _accredStatus = 'ACCREDITED_A';
   String _grading = 'STANDARD_LETTER_GRADE';
   String _termLayout = 'SEMESTER';
@@ -50,6 +53,9 @@ class _RegisterTenantDialogState extends State<RegisterTenantDialog> {
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
     _npsnCtrl.dispose();
+    _adminEmailCtrl.dispose();
+    _adminNameCtrl.dispose();
+    _adminPasswordCtrl.dispose();
     super.dispose();
   }
 
@@ -79,6 +85,15 @@ class _RegisterTenantDialogState extends State<RegisterTenantDialog> {
       contactPhone: _phoneCtrl.text.trim().isNotEmpty
           ? _phoneCtrl.text.trim()
           : '+1 555 0100',
+      adminEmail: _adminEmailCtrl.text.trim().isNotEmpty
+          ? _adminEmailCtrl.text.trim()
+          : (email.isNotEmpty ? email : 'admin@$tId.edu'),
+      adminName: _adminNameCtrl.text.trim().isNotEmpty
+          ? _adminNameCtrl.text.trim()
+          : '$name Admin',
+      adminPassword: _adminPasswordCtrl.text.trim().isNotEmpty
+          ? _adminPasswordCtrl.text.trim()
+          : 'Password123!',
     ));
 
     if (mounted) {
@@ -269,6 +284,63 @@ class _RegisterTenantDialogState extends State<RegisterTenantDialog> {
                           setState(() => _termLayout = v);
                         }
                       },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              const Row(
+                children: [
+                  Icon(LucideIcons.userCheck,
+                      size: 16, color: AppColors.forestSage),
+                  SizedBox(width: 8),
+                  Text(
+                    'Tenant Administrator Provisioning',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.forestSage,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'A TENANT_ADMIN user will be provisioned with the root scope of this tenant to manage its IAM entities.',
+                style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _adminEmailCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Admin Email',
+                  hintText:
+                      'e.g. admin@darussalam.org (defaults to contact email)',
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _adminNameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Admin Full Name',
+                        hintText: 'e.g. Yayasan Admin',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _adminPasswordCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Initial Password',
+                        hintText: 'Defaults to Password123!',
+                      ),
+                      obscureText: true,
                     ),
                   ),
                 ],

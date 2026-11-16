@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../features/search/ilmiya_command_palette.dart';
 import '../state/app_state.dart';
+import '../state/auth_notifier.dart';
 import 'navigation/app_shell_sidebar.dart';
 import 'navigation/app_shell_top_bar.dart';
 import 'toast_popover.dart';
@@ -23,6 +24,7 @@ class IlmiyaAppShell extends StatelessWidget {
     final c = KiteColors.of(context);
     final isDesktop = MediaQuery.of(context).size.width >= 960;
     final state = context.watch<AppState>();
+    final auth = context.watch<AuthNotifier>();
 
     return CallbackShortcuts(
       bindings: {
@@ -44,30 +46,43 @@ class IlmiyaAppShell extends StatelessWidget {
                 )
               : null,
           bottomNavigationBar: !isDesktop
-              ? NavigationBar(
-                  selectedIndex: state.currentTab.clamp(0, 3),
-                  onDestinationSelected: (index) => state.setTab(index),
-                  backgroundColor: c.card,
-                  indicatorColor: c.primary.withOpacity(0.18),
-                  destinations: const [
-                    NavigationDestination(
-                      icon: Icon(LucideIcons.school, size: 20),
-                      label: 'School',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(LucideIcons.calendarDays, size: 20),
-                      label: 'Calendar',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(LucideIcons.shieldCheck, size: 20),
-                      label: 'IAM Console',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(LucideIcons.flaskConical, size: 20),
-                      label: 'Previews',
-                    ),
-                  ],
-                )
+              ? (auth.isSuperAdmin && auth.isPlatformSession
+                  ? NavigationBar(
+                      selectedIndex: 0,
+                      onDestinationSelected: (_) => state.setTab(8),
+                      backgroundColor: c.card,
+                      indicatorColor: c.primary.withOpacity(0.18),
+                      destinations: const [
+                        NavigationDestination(
+                          icon: Icon(LucideIcons.building2, size: 20),
+                          label: 'Tenants',
+                        ),
+                      ],
+                    )
+                  : NavigationBar(
+                      selectedIndex: state.currentTab.clamp(0, 3),
+                      onDestinationSelected: (index) => state.setTab(index),
+                      backgroundColor: c.card,
+                      indicatorColor: c.primary.withOpacity(0.18),
+                      destinations: const [
+                        NavigationDestination(
+                          icon: Icon(LucideIcons.school, size: 20),
+                          label: 'School',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(LucideIcons.calendarDays, size: 20),
+                          label: 'Calendar',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(LucideIcons.shieldCheck, size: 20),
+                          label: 'IAM Console',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(LucideIcons.flaskConical, size: 20),
+                          label: 'Previews',
+                        ),
+                      ],
+                    ))
               : null,
           body: SafeArea(
             child: Stack(

@@ -21,14 +21,19 @@ class AppShellSidebar extends StatelessWidget {
     final state = context.watch<AppState>();
     final auth = context.watch<AuthNotifier>();
 
-    final tenantDisplayName = auth.tenantId == 'tenant-lincoln-high-001'
-        ? 'Lincoln High School'
-        : auth.tenantId == 'tenant-sma1-ilmiya-002'
-            ? 'SMAN 1 Ilmiya'
-            : auth.tenantId
-                .replaceAll('tenant-', '')
-                .replaceAll('-', ' ')
-                .toUpperCase();
+    final tenantDisplayName = auth.isPlatformSession
+        ? 'Platform Management'
+        : auth.tenantId == 'tenant-lincoln-high-001'
+            ? 'Lincoln High School'
+            : auth.tenantId == 'tenant-sma1-ilmiya-002'
+                ? 'SMAN 1 Ilmiya'
+                : auth.tenantId
+                    .replaceAll('tenant-', '')
+                    .replaceAll('-', ' ')
+                    .toUpperCase();
+
+    final tenantSubtitle =
+        auth.isPlatformSession ? 'Manage Tenants (Global)' : auth.tenantId;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,7 +97,9 @@ class AppShellSidebar extends StatelessWidget {
               // Active Tenant Selector Card
               InkWell(
                 borderRadius: BorderRadius.circular(10),
-                onTap: () => AppShellTenantDialog.show(context, auth),
+                onTap: auth.isTenantAdmin
+                    ? null
+                    : () => AppShellTenantDialog.show(context, auth),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -123,7 +130,7 @@ class AppShellSidebar extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              auth.tenantId,
+                              tenantSubtitle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -154,71 +161,83 @@ class AppShellSidebar extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             children: [
-              _buildSectionHeader('Institution & Control'),
-              AppShellNavTile(
-                title: 'School Profile',
-                icon: LucideIcons.school,
-                tabIndex: 0,
-                isActive: state.currentTab == 0,
-              ),
-              AppShellNavTile(
-                title: 'Executive Dashboard',
-                icon: LucideIcons.layoutDashboard,
-                tabIndex: 4,
-                isActive: state.currentTab == 4,
-              ),
-              const SizedBox(height: 12),
-              _buildSectionHeader('Academics'),
-              AppShellNavTile(
-                title: 'Academic Years',
-                icon: LucideIcons.calendarDays,
-                tabIndex: 1,
-                isActive: state.currentTab == 1,
-              ),
-              AppShellNavTile(
-                title: 'Courses & Grades',
-                icon: LucideIcons.graduationCap,
-                tabIndex: 5,
-                isActive: state.currentTab == 5,
-              ),
-              const SizedBox(height: 12),
-              _buildSectionHeader('Administration'),
-              AppShellNavTile(
-                title: 'IAM Console',
-                icon: LucideIcons.shieldCheck,
-                tabIndex: 2,
-                isActive: state.currentTab == 2,
-              ),
-              AppShellNavTile(
-                title: 'Tenant Console',
-                icon: LucideIcons.building2,
-                tabIndex: 8,
-                isActive: state.currentTab == 8,
-                badgeText: 'Admin',
-              ),
-              const SizedBox(height: 12),
-              _buildSectionHeader('Communications & Labs'),
-              AppShellNavTile(
-                title: 'Feature Previews',
-                icon: LucideIcons.flaskConical,
-                tabIndex: 3,
-                isActive: state.currentTab == 3,
-                badgeText: 'Labs',
-              ),
-              AppShellNavTile(
-                title: 'Messages',
-                icon: LucideIcons.messageSquare,
-                tabIndex: 6,
-                isActive: state.currentTab == 6,
-                unreadCount: state.unreadMessagesCount,
-              ),
-              AppShellNavTile(
-                title: 'Notifications',
-                icon: LucideIcons.bell,
-                tabIndex: 7,
-                isActive: state.currentTab == 7,
-                unreadCount: state.unreadNotifsCount,
-              ),
+              if (auth.isSuperAdmin && auth.isPlatformSession) ...[
+                _buildSectionHeader('Platform Operations'),
+                AppShellNavTile(
+                  title: 'Tenant Console',
+                  icon: LucideIcons.building2,
+                  tabIndex: 8,
+                  isActive: state.currentTab == 8,
+                  badgeText: 'Admin',
+                ),
+              ] else ...[
+                _buildSectionHeader('Institution & Control'),
+                AppShellNavTile(
+                  title: 'School Profile',
+                  icon: LucideIcons.school,
+                  tabIndex: 0,
+                  isActive: state.currentTab == 0,
+                ),
+                AppShellNavTile(
+                  title: 'Executive Dashboard',
+                  icon: LucideIcons.layoutDashboard,
+                  tabIndex: 4,
+                  isActive: state.currentTab == 4,
+                ),
+                const SizedBox(height: 12),
+                _buildSectionHeader('Academics'),
+                AppShellNavTile(
+                  title: 'Academic Years',
+                  icon: LucideIcons.calendarDays,
+                  tabIndex: 1,
+                  isActive: state.currentTab == 1,
+                ),
+                AppShellNavTile(
+                  title: 'Courses & Grades',
+                  icon: LucideIcons.graduationCap,
+                  tabIndex: 5,
+                  isActive: state.currentTab == 5,
+                ),
+                const SizedBox(height: 12),
+                _buildSectionHeader('Administration'),
+                AppShellNavTile(
+                  title: 'IAM Console',
+                  icon: LucideIcons.shieldCheck,
+                  tabIndex: 2,
+                  isActive: state.currentTab == 2,
+                ),
+                if (auth.isSuperAdmin)
+                  AppShellNavTile(
+                    title: 'Tenant Console',
+                    icon: LucideIcons.building2,
+                    tabIndex: 8,
+                    isActive: state.currentTab == 8,
+                    badgeText: 'Admin',
+                  ),
+                const SizedBox(height: 12),
+                _buildSectionHeader('Communications & Labs'),
+                AppShellNavTile(
+                  title: 'Feature Previews',
+                  icon: LucideIcons.flaskConical,
+                  tabIndex: 3,
+                  isActive: state.currentTab == 3,
+                  badgeText: 'Labs',
+                ),
+                AppShellNavTile(
+                  title: 'Messages',
+                  icon: LucideIcons.messageSquare,
+                  tabIndex: 6,
+                  isActive: state.currentTab == 6,
+                  unreadCount: state.unreadMessagesCount,
+                ),
+                AppShellNavTile(
+                  title: 'Notifications',
+                  icon: LucideIcons.bell,
+                  tabIndex: 7,
+                  isActive: state.currentTab == 7,
+                  unreadCount: state.unreadNotifsCount,
+                ),
+              ],
             ],
           ),
         ),

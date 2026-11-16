@@ -41,6 +41,38 @@ class IamService {
         roles = ['SUPERADMIN'];
         permissions = ['*'];
         fullName = 'Dr. Sarah Jenkins (Head Administrator)';
+      } else if (email.contains('admin.yayasan') ||
+          email.contains('tenant.admin') ||
+          email.contains('darussalam')) {
+        roles = ['TENANT_ADMIN'];
+        permissions = [
+          'tenant:profile:*',
+          'tenant:school:*',
+          'school:*',
+          'academic:*',
+          'student:*',
+          'attendance:*',
+          'timetable:*',
+          'exam:*',
+          'finance:*',
+          'hr:*',
+          'iam:*',
+          'iam:user:read',
+          'iam:user:create',
+          'iam:user:status',
+          'iam:user:assign-role',
+          'iam:user:delete',
+          'iam:role:read',
+          'iam:role:create',
+          'iam:role:update',
+          'iam:role:delete',
+          'iam:group:read',
+          'iam:group:create',
+          'iam:scope:read',
+          'iam:scope:create',
+          'audit:log:*',
+        ];
+        fullName = 'Ustadz Ahmad Fauzi (Foundation Admin)';
       } else if (email.contains('principal')) {
         roles = ['SCHOOL_ADMIN'];
         permissions = _mockStorage
@@ -210,9 +242,10 @@ class IamService {
 
   // ================= User Management Endpoints =================
 
-  Future<List<UserResponse>> listUsers() async {
+  Future<List<UserResponse>> listUsers({String? tenantId}) async {
+    final tId = tenantId ?? _apiClient.tenantId;
     if (_apiClient.isMockMode) {
-      return _mockStorage.listUsers();
+      return _mockStorage.listUsers(tenantId: tId);
     }
     final json =
         await _apiClient.request(endpoint: '/api/v1/users', method: 'GET');
@@ -221,9 +254,11 @@ class IamService {
         .toList();
   }
 
-  Future<UserResponse> createUser(CreateUserRequest req) async {
+  Future<UserResponse> createUser(CreateUserRequest req,
+      {String? tenantId}) async {
+    final tId = tenantId ?? _apiClient.tenantId;
     if (_apiClient.isMockMode) {
-      return _mockStorage.createUser(req);
+      return _mockStorage.createUser(req, tenantId: tId);
     }
     final json = await _apiClient.request(
       endpoint: '/api/v1/users',
@@ -318,9 +353,10 @@ class IamService {
 
   // ================= Roles Endpoints =================
 
-  Future<List<RoleResponse>> listRoles() async {
+  Future<List<RoleResponse>> listRoles({String? tenantId}) async {
+    final tId = tenantId ?? _apiClient.tenantId;
     if (_apiClient.isMockMode) {
-      return _mockStorage.listRoles(_apiClient.tenantId);
+      return _mockStorage.listRoles(tId);
     }
     final json =
         await _apiClient.request(endpoint: '/api/v1/roles', method: 'GET');
@@ -339,6 +375,29 @@ class IamService {
       body: req.toJson(),
     );
     return RoleResponse.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<RoleResponse> updateRole(String roleId, UpdateRoleRequest req) async {
+    if (_apiClient.isMockMode) {
+      return _mockStorage.updateRole(_apiClient.tenantId, roleId, req);
+    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/roles/$roleId',
+      method: 'PUT',
+      body: req.toJson(),
+    );
+    return RoleResponse.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<void> deleteRole(String roleId) async {
+    if (_apiClient.isMockMode) {
+      _mockStorage.deleteRole(_apiClient.tenantId, roleId);
+      return;
+    }
+    await _apiClient.request(
+      endpoint: '/api/v1/roles/$roleId',
+      method: 'DELETE',
+    );
   }
 
   // ================= Groups Endpoints =================
@@ -368,9 +427,10 @@ class IamService {
 
   // ================= Scopes Endpoints =================
 
-  Future<List<ScopeTreeNode>> getScopeTree() async {
+  Future<List<ScopeTreeNode>> getScopeTree({String? tenantId}) async {
+    final tId = tenantId ?? _apiClient.tenantId;
     if (_apiClient.isMockMode) {
-      return _mockStorage.getScopeTree(_apiClient.tenantId);
+      return _mockStorage.getScopeTree(tId);
     }
     final json = await _apiClient.request(
         endpoint: '/api/v1/scopes/tree', method: 'GET');
