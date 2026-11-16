@@ -53,12 +53,12 @@ void main() {
         'expiresIn': 3600,
         'user': {
           'id': '01a0b50c-d444-7c66-ad6a-0b7e94ab20ca',
-          'email': 'admin@springfield.local',
-          'fullName': 'Springfield Admin',
+          'email': 'admin@ilmiya.edu',
+          'fullName': 'Campus Admin',
           'tenantId': '01940000-0000-7000-8000-000000000001',
           'roles': ['SCHOOL_ADMIN'],
           'permissions': ['school:*', 'attendance:*'],
-          'accessibleScopePaths': ['/SPRINGFIELD'],
+          'accessibleScopePaths': ['/CAMPUS_MAIN'],
         },
       };
 
@@ -70,9 +70,9 @@ void main() {
       expect(tokenResponse.roles, contains('SCHOOL_ADMIN'));
       expect(tokenResponse.permissions, contains('school:*'));
       expect(tokenResponse.user, isNotNull);
-      expect(tokenResponse.user!.fullName, equals('Springfield Admin'));
-      expect(tokenResponse.user!.email, equals('admin@springfield.local'));
-      expect(tokenResponse.user!.scopes, contains('/SPRINGFIELD'));
+      expect(tokenResponse.user!.fullName, equals('Campus Admin'));
+      expect(tokenResponse.user!.email, equals('admin@ilmiya.edu'));
+      expect(tokenResponse.user!.scopes, contains('/CAMPUS_MAIN'));
     });
   });
 }

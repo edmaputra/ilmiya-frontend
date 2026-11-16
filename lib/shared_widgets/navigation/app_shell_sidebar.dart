@@ -26,7 +26,9 @@ class AppShellSidebar extends StatelessWidget {
     final state = context.watch<AppState>();
     final auth = context.watch<AuthNotifier>();
 
-    final tenantDisplayName = auth.schoolName;
+    final tenantDisplayName = auth.tenantId.isEmpty
+        ? 'No Tenant Selected'
+        : (auth.schoolName.isNotEmpty ? auth.schoolName : auth.tenantName);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -121,7 +123,9 @@ class AppShellSidebar extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              'Active Institution',
+                              auth.tenantId.isEmpty
+                                  ? 'Select school tenant'
+                                  : 'Active Institution',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(

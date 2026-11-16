@@ -60,20 +60,30 @@ class SchoolService {
 
   Future<SchoolResponse> getProfile({String? tenantId}) async {
     final effectiveTenant = tenantId ?? _apiClient.tenantId;
+    if (effectiveTenant.isEmpty) {
+      return SchoolResponse.empty();
+    }
     if (_apiClient.isMockMode) {
       return _mockStorage.getSchoolProfile(effectiveTenant);
     }
 
-    final headers = <String, String>{
-      if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
-    };
+    try {
+      final headers = <String, String>{
+        if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
+      };
 
-    final json = await _apiClient.request(
-      endpoint: '/api/v1/schools/profile',
-      method: 'GET',
-      headers: headers.isNotEmpty ? headers : null,
-    );
-    return SchoolResponse.fromJson(json as Map<String, dynamic>);
+      final json = await _apiClient.request(
+        endpoint: '/api/v1/schools/profile',
+        method: 'GET',
+        headers: headers.isNotEmpty ? headers : null,
+      );
+      return SchoolResponse.fromJson(json as Map<String, dynamic>);
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) {
+        return SchoolResponse.empty();
+      }
+      rethrow;
+    }
   }
 
   Future<SchoolResponse> updateProfile(UpdateSchoolRequest req,

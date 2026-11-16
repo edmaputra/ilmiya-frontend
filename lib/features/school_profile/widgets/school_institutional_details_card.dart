@@ -35,27 +35,39 @@ class SchoolInstitutionalDetailsCard extends StatelessWidget {
             ],
           ),
           Divider(height: 24, color: c.border),
-          _infoRow(context, LucideIcons.mapPin, 'Address', profile.address),
-          const SizedBox(height: 12),
-          _infoRow(
-              context, LucideIcons.mail, 'Contact Email', profile.contactEmail),
-          const SizedBox(height: 12),
-          _infoRow(context, LucideIcons.phone, 'Contact Phone',
-              profile.contactPhone),
-          const SizedBox(height: 12),
-          _infoRow(
-            context,
-            LucideIcons.badgeCheck,
-            'Govt Registration (NPSN)',
-            profile.governmentRegistrationNumber ?? '-',
-          ),
-          const SizedBox(height: 12),
-          _infoRow(
-            context,
-            LucideIcons.award,
-            'Accreditation',
-            '${profile.accreditationStatus ?? '-'} (${profile.accreditationBody ?? ''})',
-          ),
+          if (profile.name.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  'No school profile available. Select or create a tenant context.',
+                  style: t.muted,
+                ),
+              ),
+            )
+          else ...[
+            _infoRow(context, LucideIcons.mapPin, 'Address', profile.address),
+            const SizedBox(height: 12),
+            _infoRow(context, LucideIcons.mail, 'Contact Email',
+                profile.contactEmail),
+            const SizedBox(height: 12),
+            _infoRow(context, LucideIcons.phone, 'Contact Phone',
+                profile.contactPhone),
+            const SizedBox(height: 12),
+            _infoRow(
+              context,
+              LucideIcons.badgeCheck,
+              'Govt Registration (NPSN)',
+              profile.governmentRegistrationNumber ?? '-',
+            ),
+            const SizedBox(height: 12),
+            _infoRow(
+              context,
+              LucideIcons.award,
+              'Accreditation',
+              '${profile.accreditationStatus ?? '-'} (${profile.accreditationBody ?? ''})',
+            ),
+          ],
         ],
       ),
     );

@@ -49,6 +49,12 @@ class _AssignRoleDialogState extends State<AssignRoleDialog> {
   String? _selectedScopeId;
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _selectedRoleId = widget.roles.first.id;
+  }
+
   List<ScopeTreeNode> _flattenScopes(List<ScopeTreeNode> nodes) {
     final list = <ScopeTreeNode>[];
     for (final node in nodes) {
@@ -56,12 +62,6 @@ class _AssignRoleDialogState extends State<AssignRoleDialog> {
       list.addAll(_flattenScopes(node.children));
     }
     return list;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedRoleId = widget.roles.first.id;
   }
 
   Future<void> _submit() async {
@@ -77,12 +77,13 @@ class _AssignRoleDialogState extends State<AssignRoleDialog> {
       if (mounted) {
         Navigator.of(context).pop();
         widget.onRoleAssigned?.call();
-        AppToast.showSuccess(context, 'Role successfully assigned to user');
+        AppToast.showSuccess(
+            context, 'Role & Scope successfully assigned to user');
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        AppToast.showError(context, 'Failed to assign role: $e');
+        AppToast.showError(context, 'Failed to assign role & scope: $e');
       }
     }
   }
@@ -110,7 +111,7 @@ class _AssignRoleDialogState extends State<AssignRoleDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Assign Role: ${widget.user.fullName}',
+                  'Assign Role & Scope: ${widget.user.fullName}',
                   style: const TextStyle(
                     fontFamily: 'serif',
                     fontSize: 16,
@@ -233,7 +234,7 @@ class _AssignRoleDialogState extends State<AssignRoleDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Text('Assign Role'),
+              : const Text('Assign Role & Scope'),
         ),
       ],
     );

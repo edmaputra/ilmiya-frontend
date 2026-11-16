@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ilmiya_app/core/services/api_client.dart';
+import 'package:ilmiya_app/core/services/iam_service.dart';
+import 'package:ilmiya_app/core/services/mock_storage_service.dart';
 import 'package:ilmiya_app/core/theme/app_theme.dart';
 import 'package:ilmiya_app/features/school_profile/presentation/school_profile_screen.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
@@ -187,6 +190,44 @@ void main() {
       expect(find.text('Operational Rules'), findsOneWidget);
       expect(find.text('Active Working Days'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+        'when logged in as superadmin with no tenant, school profile title is empty',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final client = ApiClient()..isMockMode = true;
+      final storage = MockStorageService();
+      final iam = IamService(apiClient: client, mockStorage: storage);
+      final auth = AuthNotifier(iamService: iam, apiClient: client);
+      await auth.switchTenant('');
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AuthNotifier>.value(
+          value: auth,
+          child: ShadTheme(
+            data: AppTheme.shadLightTheme,
+            child: const MaterialApp(
+              home: Scaffold(
+                body: SchoolProfileScreen(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SchoolProfileScreen), findsOneWidget);
+      expect(
+          find.text('SMA Negeri 1 Ilmiya (Lincoln High Campus)'), findsNothing);
+      expect(
+          find.text(
+              'No school profile available. Select or create a tenant context.'),
+          findsOneWidget);
     });
   });
 }

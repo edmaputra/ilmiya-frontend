@@ -312,7 +312,7 @@ void main() {
       await tester.tap(find.text('Schools & Campuses'));
       await tester.pumpAndSettle();
 
-      // Active tenant is DEFAULT_TENANT_ID (Springfield)
+      // Active tenant is DEFAULT_TENANT_ID (Lincoln High)
       expect(find.textContaining('Lincoln High Campus'), findsWidgets);
       expect(find.textContaining('Al-Azhar Islamic Academy'), findsNothing);
 

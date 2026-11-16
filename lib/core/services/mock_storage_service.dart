@@ -649,6 +649,9 @@ class MockStorageService {
   }
 
   SchoolResponse getSchoolProfile(String targetId) {
+    if (targetId.isEmpty || _schools.isEmpty) {
+      return SchoolResponse.empty();
+    }
     final byId = _schools.where((s) => s.id == targetId);
     if (byId.isNotEmpty) {
       return byId.first;

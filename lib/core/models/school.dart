@@ -72,6 +72,24 @@ class SchoolResponse {
     );
   }
 
+  factory SchoolResponse.empty() {
+    return SchoolResponse(
+      id: '',
+      tenantId: '',
+      name: '',
+      institutionCode: '',
+      address: '',
+      contactEmail: '',
+      contactPhone: '',
+      status: '',
+      workingDays: const [],
+      gradingPreference: '',
+      termLayout: '',
+      createdAt: '',
+      updatedAt: '',
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

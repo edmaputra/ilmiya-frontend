@@ -195,7 +195,7 @@ class IamUserTile extends StatelessWidget {
                         shape: const RoundedRectangleBorder(
                             borderRadius: KiteRadius.allSm),
                       ),
-                      child: const Text('Assign Role',
+                      child: const Text('Assign Role & Scope',
                           style: TextStyle(fontSize: 11)),
                     ),
                     IconButton(
@@ -330,8 +330,8 @@ class IamUserTile extends StatelessWidget {
                   shape: const RoundedRectangleBorder(
                       borderRadius: KiteRadius.allSm),
                 ),
-                child:
-                    const Text('Assign Role', style: TextStyle(fontSize: 11)),
+                child: const Text('Assign Role & Scope',
+                    style: TextStyle(fontSize: 11)),
               ),
               const SizedBox(width: 4),
               IconButton(
