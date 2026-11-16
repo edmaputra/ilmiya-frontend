@@ -90,10 +90,12 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
           _schools = list;
           _isLoading = false;
           final auth = context.read<AuthNotifier>();
-          _inspectedSchool = list.firstWhere(
-            (s) => s.id == auth.schoolId || s.tenantId == auth.tenantId,
-            orElse: () => list.isNotEmpty ? list.first : _schools.first,
-          );
+          _inspectedSchool = list.isNotEmpty
+              ? list.firstWhere(
+                  (s) => s.id == auth.schoolId || s.tenantId == auth.tenantId,
+                  orElse: () => list.first,
+                )
+              : null;
         });
       }
     } catch (_) {

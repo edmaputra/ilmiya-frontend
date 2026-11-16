@@ -93,8 +93,8 @@ void main() {
 
       expect(reloaded, isTrue);
 
-      // Assign Role button
-      await tester.tap(find.text('Assign Role'));
+      // Assign Role & Scope button
+      await tester.tap(find.text('Assign Role & Scope'));
       await tester.pumpAndSettle();
       expect(assigned, isTrue);
 

@@ -227,7 +227,7 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
     });
 
-    testWidgets('Assign Role button opens dialog and can be cancelled',
+    testWidgets('Assign Role & Scope button opens dialog and can be cancelled',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -237,14 +237,15 @@ void main() {
       await tester.pumpWidget(buildTestableWidget());
       await tester.pumpAndSettle();
 
-      // Tap 'Assign Role' OutlinedButton on the first user
-      final assignRoleBtn = find.widgetWithText(OutlinedButton, 'Assign Role');
+      // Tap 'Assign Role & Scope' OutlinedButton on the first user
+      final assignRoleBtn =
+          find.widgetWithText(OutlinedButton, 'Assign Role & Scope');
       expect(assignRoleBtn, findsWidgets);
       await tester.tap(assignRoleBtn.first);
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.textContaining('Assign Role:'), findsOneWidget);
+      expect(find.textContaining('Assign Role & Scope:'), findsOneWidget);
 
       // Tap Cancel
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));

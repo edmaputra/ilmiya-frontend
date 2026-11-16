@@ -115,7 +115,7 @@ class AuthNotifier extends ChangeNotifier {
       _permissions = [];
       _isLoading = false;
       _sessionStorage.clearAuthSession();
-      _tenantName = 'Springfield Educational Foundation';
+      _tenantName = 'Ilmiya Educational Foundation';
       _schoolName = 'SMA Negeri 1 Ilmiya';
       _schoolId = null;
       _sessionId = DateTime.now().microsecondsSinceEpoch.toString();
@@ -158,6 +158,9 @@ class AuthNotifier extends ChangeNotifier {
   UserProfileResponse? get user => _user;
   String get tenantId => _tenantId;
   String get tenantName {
+    if (_tenantId.isEmpty) {
+      return '';
+    }
     if (_tenantName != null && _tenantName!.isNotEmpty) {
       return _tenantName!;
     }
@@ -173,9 +176,14 @@ class AuthNotifier extends ChangeNotifier {
     return 'Yayasan Pendidikan Ilmiya';
   }
 
+  String get tenantDisplayName => tenantName;
+
   String? get schoolId => _schoolId;
 
   String get schoolName {
+    if (_tenantId.isEmpty) {
+      return '';
+    }
     if (_schoolName != null && _schoolName!.isNotEmpty) {
       return _schoolName!;
     }
@@ -238,8 +246,27 @@ class AuthNotifier extends ChangeNotifier {
       }
       final profile = await _iamService.getMe();
       _user = profile;
-      _tenantId =
-          profile.tenantId.isNotEmpty ? profile.tenantId : _apiClient.tenantId;
+      final isSuper =
+          profile.roles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
+              profile.permissions.contains('*');
+      if (isSuper && profile.tenantId.isEmpty) {
+        try {
+          final schools = await schoolService.listSchools();
+          if (schools.isEmpty || _tenantId.isEmpty) {
+            _tenantId = '';
+          } else if (schools.any((s) => s.tenantId == _tenantId)) {
+            // Keep active valid tenant
+          } else {
+            _tenantId = '';
+          }
+        } catch (_) {
+          _tenantId = '';
+        }
+      } else {
+        _tenantId = profile.tenantId.isNotEmpty
+            ? profile.tenantId
+            : _apiClient.tenantId;
+      }
       _roles = profile.roles;
       _permissions = profile.permissions;
       _token = _apiClient.token;
@@ -275,8 +302,25 @@ class AuthNotifier extends ChangeNotifier {
     try {
       final resp = await _iamService.login(req);
       _token = resp.accessToken;
-      _tenantId =
-          resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
+      final isSuper = resp.roles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
+          resp.permissions.contains('*');
+      if (isSuper && resp.tenantId.isEmpty) {
+        try {
+          final schools = await schoolService.listSchools();
+          if (schools.isEmpty || _tenantId.isEmpty) {
+            _tenantId = '';
+          } else if (schools.any((s) => s.tenantId == _tenantId)) {
+            // Keep active valid tenant
+          } else {
+            _tenantId = '';
+          }
+        } catch (_) {
+          _tenantId = '';
+        }
+      } else {
+        _tenantId =
+            resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
+      }
       _roles = resp.roles;
       _permissions = resp.permissions;
       if (resp.user != null) {
@@ -334,7 +378,7 @@ class AuthNotifier extends ChangeNotifier {
     _error = null;
     _isLoading = false;
     _tenantId = _apiClient.tenantId;
-    _tenantName = 'Springfield Educational Foundation';
+    _tenantName = 'Ilmiya Educational Foundation';
     _schoolName = 'SMA Negeri 1 Ilmiya';
     _schoolId = null;
     _sessionId = DateTime.now().microsecondsSinceEpoch.toString();

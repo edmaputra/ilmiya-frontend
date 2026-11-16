@@ -244,7 +244,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Assign Role: ${sampleUser.fullName}'), findsOneWidget);
+      expect(find.text('Assign Role & Scope: ${sampleUser.fullName}'),
+          findsOneWidget);
 
       // Select Scope
       expect(find.text('Entire Tenant (Root Scope)'), findsOneWidget);
@@ -254,8 +255,9 @@ void main() {
       await tester.tap(find.text('Main Campus (/CAMPUS)').last);
       await tester.pumpAndSettle();
 
-      // Tap Assign Role
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Assign Role'));
+      // Tap Assign Role & Scope
+      await tester
+          .tap(find.widgetWithText(ElevatedButton, 'Assign Role & Scope'));
       await tester.pumpAndSettle();
 
       expect(assigned, isTrue);

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ilmiya_app/core/models/school.dart';
 import 'package:ilmiya_app/core/services/api_client.dart';
 import 'package:ilmiya_app/core/services/iam_service.dart';
 import 'package:ilmiya_app/core/services/mock_storage_service.dart';
+import 'package:ilmiya_app/core/services/school_service.dart';
 import 'package:ilmiya_app/core/theme/app_theme.dart';
 import 'package:ilmiya_app/features/search/ilmiya_command_palette.dart';
 import 'package:ilmiya_app/shared_widgets/ilmiya_app_shell.dart';
@@ -40,6 +42,11 @@ AuthNotifier _makeAuth() {
 }
 
 void main() {
+  setUp(() {
+    ApiClient().isMockMode = true;
+    MockStorageService().reset();
+  });
+
   testWidgets('IlmiyaAppShell renders desktop sidebar, top bar, and body',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1280, 900);
@@ -204,5 +211,64 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(find.text('Switch School Tenant'), findsNothing);
+  });
+
+  testWidgets('AppShellTenantDialog displays newly created tenant in chip list',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    // Register a brand new tenant into mock storage
+    await schoolService.registerSchool(RegisterSchoolRequest(
+      tenantId: 'tenant-stellar-academy-999',
+      name: 'Stellar Academy',
+      institutionCode: 'STA-999',
+      address: '77 Nebula Way',
+      contactEmail: 'admin@stellar.edu',
+      contactPhone: '+1-555-0999',
+    ));
+
+    final appState = _makeAppState();
+    final auth = _makeAuth();
+
+    await tester.pumpWidget(_buildShellHost(appState: appState, auth: auth));
+    await tester.pumpAndSettle();
+
+    // Open tenant dialog in sidebar
+    final tenantSelector = find.byIcon(LucideIcons.chevronsUpDown);
+    await tester.tap(tenantSelector.first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Switch School Tenant'), findsOneWidget);
+    // Newly created tenant MUST be found in the list!
+    expect(find.text('Stellar Academy'), findsOneWidget);
+
+    // Cancel tenant dialog
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets(
+      'when auth tenantId is empty, top bar options under page title are empty',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final appState = _makeAppState();
+    final auth = _makeAuth();
+    await auth.switchTenant('');
+
+    await tester.pumpWidget(_buildShellHost(appState: appState, auth: auth));
+    await tester.pumpAndSettle();
+
+    // Page title exists
+    expect(find.text('School Profile'), findsWidgets);
+    // Under page title, schoolDisplayName is not rendered
+    expect(find.text('Lincoln High School'), findsNothing);
+    expect(find.text('SMA Negeri 1 Ilmiya'), findsNothing);
   });
 }

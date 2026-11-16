@@ -38,7 +38,17 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
     });
 
     try {
-      final profile = await schoolService.getProfile();
+      final auth = context.read<AuthNotifier>();
+      if (auth.tenantId.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _profile = SchoolResponse.empty();
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+      final profile = await schoolService.getProfile(tenantId: auth.tenantId);
       if (mounted) {
         setState(() {
           _profile = profile;
@@ -47,16 +57,26 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _error = 'Failed to load school profile: $e';
-          _isLoading = false;
-        });
+        final auth = context.read<AuthNotifier>();
+        final isSuperAdmin =
+            auth.hasRole('SUPERADMIN') || auth.hasPermission('*');
+        if (isSuperAdmin) {
+          setState(() {
+            _profile = SchoolResponse.empty();
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _error = 'Failed to load school profile: $e';
+            _isLoading = false;
+          });
+        }
       }
     }
   }
 
   void _showEditProfileDialog() {
-    if (_profile == null) return;
+    if (_profile == null || _profile!.name.isEmpty) return;
     EditInstitutionalProfileDialog.show(
       context,
       profile: _profile!,
@@ -67,7 +87,7 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
   }
 
   void _showSettingsDialog() {
-    if (_profile == null) return;
+    if (_profile == null || _profile!.name.isEmpty) return;
     OperationalSettingsDialog.show(
       context,
       profile: _profile!,
@@ -82,8 +102,11 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
     final auth = context.watch<AuthNotifier>();
-    final canEditProfile = auth.hasPermission('school:profile:write');
-    final canManageSettings = auth.hasPermission('school:settings:manage');
+    final p = _profile ?? SchoolResponse.empty();
+    final canEditProfile =
+        p.name.isNotEmpty && auth.hasPermission('school:profile:write');
+    final canManageSettings =
+        p.name.isNotEmpty && auth.hasPermission('school:settings:manage');
     final isSuperAdmin = auth.hasRole('SUPERADMIN') || auth.hasPermission('*');
 
     if (_isLoading) {
@@ -106,8 +129,6 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
         ),
       );
     }
-
-    final p = _profile!;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -172,14 +193,20 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
                         p.name,
                         style: t.h2.copyWith(fontWeight: FontWeight.bold),
                       ),
-                      KiteBadge(p.status, tone: KiteTone.success),
+                      if (p.status.isNotEmpty)
+                        KiteBadge(p.status, tone: KiteTone.success),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Code: ${p.institutionCode}',
-                    style: t.muted,
-                  ),
+                  if (p.tenantId.isNotEmpty ||
+                      p.institutionCode.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      p.tenantId.isNotEmpty
+                          ? 'Tenant ID: ${p.tenantId} • Code: ${p.institutionCode}'
+                          : 'Code: ${p.institutionCode}',
+                      style: t.muted,
+                    ),
+                  ],
                 ],
               ),
               OutlinedButton.icon(
