@@ -26,9 +26,17 @@ class AppShellSidebar extends StatelessWidget {
     final state = context.watch<AppState>();
     final auth = context.watch<AuthNotifier>();
 
-    final tenantDisplayName = auth.tenantId.isEmpty
-        ? 'No Tenant Selected'
-        : (auth.schoolName.isNotEmpty ? auth.schoolName : auth.tenantName);
+    final tenantDisplayName = auth.isPlatformSession
+        ? 'Platform Management'
+        : (auth.tenantId.isEmpty
+            ? 'No Tenant Selected'
+            : (auth.schoolName.isNotEmpty ? auth.schoolName : auth.tenantName));
+
+    final tenantSubtitle = auth.isPlatformSession
+        ? 'Manage Tenants (Global)'
+        : (auth.tenantId.isEmpty
+            ? 'Select school tenant'
+            : 'Active Institution');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,7 +100,9 @@ class AppShellSidebar extends StatelessWidget {
               // Active Tenant Selector Card
               InkWell(
                 borderRadius: BorderRadius.circular(10),
-                onTap: () => AppShellTenantDialog.show(context, auth),
+                onTap: (auth.isPlatformSession || auth.isTenantAdmin)
+                    ? null
+                    : () => AppShellTenantDialog.show(context, auth),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -117,30 +127,30 @@ class AppShellSidebar extends StatelessWidget {
                               tenantDisplayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: c.foreground,
                               ),
                             ),
                             Text(
-                              auth.tenantId.isEmpty
-                                  ? 'Select school tenant'
-                                  : 'Active Institution',
+                              tenantSubtitle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 9,
+                                fontSize: 10,
                                 color: c.mutedForeground,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      Icon(
-                        LucideIcons.chevronsUpDown,
-                        size: 14,
-                        color: c.mutedForeground,
-                      ),
+                      if (!auth.isPlatformSession && !auth.isTenantAdmin)
+                        Icon(
+                          LucideIcons.chevronsUpDown,
+                          size: 14,
+                          color: c.mutedForeground,
+                        ),
                     ],
                   ),
                 ),
@@ -153,36 +163,54 @@ class AppShellSidebar extends StatelessWidget {
 
         // Navigation Sections
         Expanded(
-          child: Builder(
-            builder: (context) {
-              final canViewSchoolProfile =
-                  auth.hasPermission('school:profile:read') ||
-                      auth.hasRole('SUPERADMIN') ||
-                      auth.hasRole('SCHOOL_ADMIN');
-              const canViewDashboard = true;
+          child: AnimatedBuilder(
+            animation: auth,
+            builder: (context, _) {
+              if (auth.isSuperAdmin && auth.isPlatformSession) {
+                return ListView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  children: [
+                    _buildSectionHeader('Platform Operations'),
+                    AppShellNavTile(
+                      title: 'Tenant Console',
+                      icon: LucideIcons.building2,
+                      tabIndex: 8,
+                      isActive: state.currentTab == 8,
+                      badgeText: 'Admin',
+                    ),
+                  ],
+                );
+              }
+
+              final canViewSchoolProfile = auth.hasPermission('school:read') ||
+                  auth.hasPermission('*') ||
+                  auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN') ||
+                  auth.hasRole('SCHOOL_ADMIN');
+              final canViewDashboard = auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN') ||
+                  auth.hasRole('PRINCIPAL') ||
+                  auth.hasRole('SCHOOL_ADMIN');
               final canViewAcademicYears =
-                  auth.hasPermission('academic:year:read') ||
+                  auth.hasPermission('academic-year:read') ||
+                      auth.hasPermission('*') ||
                       auth.hasRole('SUPERADMIN') ||
+                      auth.hasRole('TENANT_ADMIN') ||
                       auth.hasRole('SCHOOL_ADMIN');
-              final canViewGrades =
-                  auth.hasPermission('academic:course:read') ||
-                      auth.hasPermission('attendance:record:read') ||
-                      auth.hasPermission('student:profile:read') ||
-                      auth.roles.any((r) => [
-                            'TEACHER',
-                            'STUDENT',
-                            'PARENT',
-                            'SUPERADMIN',
-                            'SCHOOL_ADMIN'
-                          ].contains(r.toUpperCase()));
+              final canViewGrades = auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN') ||
+                  auth.hasRole('TEACHER') ||
+                  auth.hasRole('STUDENT');
               final canViewIam = auth.hasPermission('iam:user:read') ||
                   auth.hasPermission('iam:role:read') ||
                   auth.hasPermission('iam:group:read') ||
                   auth.hasPermission('iam:scope:read') ||
-                  auth.hasRole('SUPERADMIN');
-              final canViewTenants =
-                  auth.hasRole('SUPERADMIN') || auth.hasPermission('*');
+                  auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN');
+              final canViewTenants = auth.isSuperAdmin;
               final canViewPreviews = auth.hasRole('SUPERADMIN') ||
+                  auth.hasRole('TENANT_ADMIN') ||
                   auth.hasRole('SCHOOL_ADMIN') ||
                   !auth.isAuthenticated;
 
@@ -199,13 +227,20 @@ class AppShellSidebar extends StatelessWidget {
                 children: [
                   if (showInstitutionSection) ...[
                     _buildSectionHeader('Institution & Control'),
-                    if (canViewSchoolProfile)
+                    if (canViewSchoolProfile) ...[
                       AppShellNavTile(
                         title: 'School Profile',
                         icon: LucideIcons.school,
                         tabIndex: 0,
                         isActive: state.currentTab == 0,
                       ),
+                      AppShellNavTile(
+                        title: 'Schools & Campuses',
+                        icon: LucideIcons.building,
+                        tabIndex: 9,
+                        isActive: state.currentTab == 9,
+                      ),
+                    ],
                     if (showExecutiveDashboard && canViewDashboard)
                       AppShellNavTile(
                         title: 'Executive Dashboard',

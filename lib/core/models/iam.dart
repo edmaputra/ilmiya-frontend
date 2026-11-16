@@ -23,7 +23,9 @@ class UserResponse {
       email: json['email'] as String? ?? '',
       fullName: json['fullName'] as String? ?? '',
       status: json['status'] as String? ?? 'ACTIVE',
-      isPlatformSuperAdmin: json['isPlatformSuperAdmin'] as bool? ?? false,
+      isPlatformSuperAdmin: (json['isPlatformSuperAdmin'] as bool?) ??
+          (json['platformSuperAdmin'] as bool?) ??
+          false,
       createdAt:
           json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
       updatedAt:
@@ -113,6 +115,24 @@ class UserRoleAssignmentResponse {
     );
   }
 
+  UserRoleAssignmentResponse copyWith({
+    String? id,
+    String? userId,
+    String? roleId,
+    String? tenantId,
+    String? scopeNodeId,
+    String? assignedAt,
+  }) {
+    return UserRoleAssignmentResponse(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      roleId: roleId ?? this.roleId,
+      tenantId: tenantId ?? this.tenantId,
+      scopeNodeId: scopeNodeId ?? this.scopeNodeId,
+      assignedAt: assignedAt ?? this.assignedAt,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'userId': userId,
@@ -165,6 +185,30 @@ class RoleResponse {
     );
   }
 
+  RoleResponse copyWith({
+    String? id,
+    String? tenantId,
+    String? code,
+    String? name,
+    String? description,
+    List<String>? permissions,
+    bool? isSystemRole,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return RoleResponse(
+      id: id ?? this.id,
+      tenantId: tenantId ?? this.tenantId,
+      code: code ?? this.code,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      permissions: permissions ?? this.permissions,
+      isSystemRole: isSystemRole ?? this.isSystemRole,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'tenantId': tenantId,
@@ -175,6 +219,24 @@ class RoleResponse {
         'isSystemRole': isSystemRole,
         'createdAt': createdAt,
         'updatedAt': updatedAt,
+      };
+}
+
+class UpdateRoleRequest {
+  final String name;
+  final String? description;
+  final List<String> permissions;
+
+  UpdateRoleRequest({
+    required this.name,
+    this.description,
+    required this.permissions,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        if (description != null) 'description': description,
+        'permissions': permissions,
       };
 }
 
@@ -429,6 +491,7 @@ class TokenResponse {
         json['tenantId'] as String? ?? userJson?['tenantId'] as String? ?? '';
     final roles =
         (json['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            parsedUser?.roles ??
             (userJson?['roles'] as List<dynamic>?)
                 ?.map((e) => e.toString())
                 .toList() ??
@@ -436,6 +499,7 @@ class TokenResponse {
     final permissions = (json['permissions'] as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
+        parsedUser?.permissions ??
         (userJson?['permissions'] as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
@@ -473,6 +537,7 @@ class UserProfileResponse {
   final List<String> roles;
   final List<String> permissions;
   final List<String> scopes;
+  final bool isPlatformSuperAdmin;
 
   UserProfileResponse({
     required this.id,
@@ -482,6 +547,7 @@ class UserProfileResponse {
     required this.roles,
     required this.permissions,
     required this.scopes,
+    this.isPlatformSuperAdmin = false,
   });
 
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
@@ -492,20 +558,42 @@ class UserProfileResponse {
                 .toList() ??
             [];
 
+    final rawRoles =
+        (json['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            [];
+
+    final bool isSuper = (json['platformSuperAdmin'] as bool?) ??
+        (json['isPlatformSuperAdmin'] as bool?) ??
+        rawRoles.any((r) =>
+            r.toUpperCase() == 'SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_SUPERADMIN');
+
+    final effectiveRoles = List<String>.from(rawRoles);
+    if (isSuper &&
+        !effectiveRoles.any((r) =>
+            r.toUpperCase() == 'SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_SUPERADMIN')) {
+      effectiveRoles.add('SUPERADMIN');
+    }
+
+    final rawPerms = (json['permissions'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+    final effectivePerms = List<String>.from(rawPerms);
+    if (isSuper && !effectivePerms.contains('*')) {
+      effectivePerms.add('*');
+    }
+
     return UserProfileResponse(
       id: json['id'] as String? ?? '',
       email: json['email'] as String? ?? '',
       fullName: json['fullName'] as String? ?? '',
       tenantId: json['tenantId'] as String? ?? '',
-      roles: (json['roles'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-      permissions: (json['permissions'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+      roles: effectiveRoles,
+      permissions: effectivePerms,
       scopes: scopesList,
+      isPlatformSuperAdmin: isSuper,
     );
   }
 
@@ -517,6 +605,8 @@ class UserProfileResponse {
         'roles': roles,
         'permissions': permissions,
         'scopes': scopes,
+        'isPlatformSuperAdmin': isPlatformSuperAdmin,
+        'platformSuperAdmin': isPlatformSuperAdmin,
       };
 
   UserProfileResponse copyWith({
@@ -527,6 +617,7 @@ class UserProfileResponse {
     List<String>? roles,
     List<String>? permissions,
     List<String>? scopes,
+    bool? isPlatformSuperAdmin,
   }) {
     return UserProfileResponse(
       id: id ?? this.id,
@@ -536,8 +627,13 @@ class UserProfileResponse {
       roles: roles ?? this.roles,
       permissions: permissions ?? this.permissions,
       scopes: scopes ?? this.scopes,
+      isPlatformSuperAdmin: isPlatformSuperAdmin ?? this.isPlatformSuperAdmin,
     );
   }
+
+  bool get isTenantAdmin => roles.any((r) =>
+      r.toUpperCase() == 'TENANT_ADMIN' ||
+      r.toUpperCase() == 'ROLE_TENANT_ADMIN');
 }
 
 class LoginRequest {
@@ -558,7 +654,14 @@ class LoginRequest {
       };
 }
 
-enum DemoPersonaKey { superadmin, principal, teacher, student, parent }
+enum DemoPersonaKey {
+  superadmin,
+  tenantAdmin,
+  principal,
+  teacher,
+  student,
+  parent
+}
 
 class DemoPersona {
   final DemoPersonaKey key;
@@ -584,6 +687,14 @@ const Map<DemoPersonaKey, DemoPersona> DEMO_PERSONAS = {
     email: 'admin.utama@ilmiya.edu',
     description:
         'Unrestricted master access across all bounded contexts, scopes, and tenants.',
+  ),
+  DemoPersonaKey.tenantAdmin: DemoPersona(
+    key: DemoPersonaKey.tenantAdmin,
+    name: 'Ustadz Ahmad Fauzi',
+    roleLabel: 'Foundation Tenant Admin',
+    email: 'admin.yayasan@darussalam.org',
+    description:
+        'Foundation tenant management, school unit oversight, and tenant-wide IAM administration.',
   ),
   DemoPersonaKey.principal: DemoPersona(
     key: DemoPersonaKey.principal,

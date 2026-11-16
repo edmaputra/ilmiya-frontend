@@ -10,7 +10,7 @@ class TenantSchoolCard extends StatelessWidget {
   final SchoolResponse school;
   final TenantResponse? parentTenant;
   final bool isCurrentTenant;
-  final ValueChanged<String> onSwitchTenant;
+  final ValueChanged<String>? onSwitchTenant;
   final ValueChanged<SchoolResponse> onEditProfile;
   final ValueChanged<SchoolResponse> onSettings;
   final ValueChanged<SchoolResponse> onToggleStatus;
@@ -21,7 +21,7 @@ class TenantSchoolCard extends StatelessWidget {
     required this.school,
     this.parentTenant,
     required this.isCurrentTenant,
-    required this.onSwitchTenant,
+    this.onSwitchTenant,
     required this.onEditProfile,
     required this.onSettings,
     required this.onToggleStatus,
@@ -127,17 +127,6 @@ class TenantSchoolCard extends StatelessWidget {
           runSpacing: 6,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            if (!isCurrentTenant)
-              OutlinedButton.icon(
-                onPressed: () => onSwitchTenant(school.tenantId),
-                icon: const Icon(LucideIcons.arrowRightLeft, size: 13),
-                label: const Text('Switch', style: TextStyle(fontSize: 11)),
-                style: OutlinedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  foregroundColor: AppColors.forestSage,
-                ),
-              ),
             if (onAddCampus != null)
               IconButton(
                 iconSize: 16,

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/models/iam.dart';
 import '../../core/utils/app_toast.dart';
 import '../../features/auth/presentation/login_dialog.dart';
+import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
 import 'header_tenant_switcher_dialog.dart';
 
@@ -32,14 +35,30 @@ class HeaderPersonaMenu extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.borderLight),
       ),
-      onSelected: (action) {
+      onSelected: (action) async {
         if (action == 'switch_tenant') {
-          HeaderTenantSwitcherDialog.show(context, auth);
+          await HeaderTenantSwitcherDialog.show(context, auth);
         } else if (action == 'login') {
-          LoginDialog.show(context);
+          await LoginDialog.show(context);
         } else if (action == 'logout') {
           auth.logout();
-          AppToast.showSuccess(context, 'Signed out successfully.');
+          if (context.mounted) {
+            AppToast.showSuccess(context, 'Signed out successfully.');
+          }
+        } else if (action.startsWith('persona:')) {
+          final keyStr = action.replaceFirst('persona:', '');
+          final personaKey = DemoPersonaKey.values.firstWhere(
+            (k) => k.name == keyStr,
+            orElse: () => DemoPersonaKey.superadmin,
+          );
+          await auth.loginAsPersona(personaKey);
+          if (context.mounted) {
+            if (auth.isPlatformSession) {
+              context.read<AppState>().setTab(8);
+            } else {
+              context.read<AppState>().setTab(0);
+            }
+          }
         }
       },
       itemBuilder: (context) => [

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
 import '../../../core/utils/app_toast.dart';
+import '../../../state/app_state.dart';
 import '../../../state/auth_notifier.dart';
 import '../widgets/credentials_form.dart';
 import '../widgets/login_dialog_header.dart';
@@ -70,6 +71,14 @@ class _LoginDialogState extends State<LoginDialog> {
         password: _passwordController.text,
       ));
       if (mounted) {
+        try {
+          final appState = Provider.of<AppState>(context, listen: false);
+          if (auth.isPlatformSession) {
+            appState.setTab(8);
+          } else {
+            appState.setTab(0);
+          }
+        } catch (_) {}
         AppToast.showSuccess(
           context,
           'Signed in successfully as ${auth.user?.fullName ?? emailTrimmed}',

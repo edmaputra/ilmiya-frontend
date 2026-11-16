@@ -19,6 +19,8 @@ class DemoPersonasSection extends StatelessWidget {
     switch (key) {
       case DemoPersonaKey.superadmin:
         return Icons.security_rounded;
+      case DemoPersonaKey.tenantAdmin:
+        return Icons.admin_panel_settings_rounded;
       case DemoPersonaKey.principal:
         return Icons.account_balance_rounded;
       case DemoPersonaKey.teacher:

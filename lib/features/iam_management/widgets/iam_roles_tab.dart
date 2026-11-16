@@ -9,12 +9,20 @@ class IamRolesTab extends StatefulWidget {
   final List<RoleResponse> roles;
   final bool canCreateRole;
   final VoidCallback onCreateRole;
+  final ValueChanged<RoleResponse>? onEditRole;
+  final ValueChanged<RoleResponse>? onDeleteRole;
+  final bool canEditRole;
+  final bool canDeleteRole;
 
   const IamRolesTab({
     super.key,
     required this.roles,
     required this.canCreateRole,
     required this.onCreateRole,
+    this.onEditRole,
+    this.onDeleteRole,
+    this.canEditRole = true,
+    this.canDeleteRole = true,
   });
 
   @override
@@ -51,7 +59,6 @@ class _IamRolesTabState extends State<IamRolesTab> {
     showDialog(
       context: context,
       builder: (ctx) {
-        final summary = _summarizePermissions(role.permissions);
         return Dialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -114,19 +121,18 @@ class _IamRolesTabState extends State<IamRolesTab> {
                                       fontSize: 9,
                                       fontWeight: FontWeight.bold,
                                       color: role.isSystemRole
-                                          ? const Color(0xFF2563EB)
-                                          : const Color(0xFF9333EA),
+                                          ? const Color(0xFF1D4ED8)
+                                          : const Color(0xFF7E22CE),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 2),
                             Text(
                               'Code: ${role.code} • ${role.permissions.length} permissions configured',
                               style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textMuted,
-                              ),
+                                  fontSize: 11, color: AppColors.textMuted),
                             ),
                           ],
                         ),
@@ -138,71 +144,64 @@ class _IamRolesTabState extends State<IamRolesTab> {
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: summary.entries.map((e) {
-                      return Chip(
-                        label: Text('${e.key}: ${e.value}',
-                            style: const TextStyle(
-                                fontSize: 10, fontWeight: FontWeight.w600)),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                        backgroundColor: AppColors.warmSandHover,
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const Divider(),
                 Expanded(
-                  child: ListView.separated(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    itemCount: role.permissions.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 6),
-                    itemBuilder: (c, idx) {
-                      final p = role.permissions[idx];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFAFAFA),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.borderLight),
+                  child: ListView(
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      if (role.description != null &&
+                          role.description!.isNotEmpty) ...[
+                        const Text(
+                          'Description',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.bold),
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(LucideIcons.check,
-                                color: AppColors.forestSage, size: 14),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                p,
-                                style: const TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
+                        const SizedBox(height: 4),
+                        Text(
+                          role.description!,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      const Text(
+                        'Assigned Permissions',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: role.permissions.map((p) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.warmSandHover,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.borderLight),
                             ),
-                          ],
-                        ),
-                      );
-                    },
+                            child: Text(
+                              p,
+                              style: const TextStyle(
+                                  fontSize: 11, fontFamily: 'monospace'),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Close'),
-                    ),
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Close'),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -221,138 +220,81 @@ class _IamRolesTabState extends State<IamRolesTab> {
     final filtered = widget.roles.where((r) {
       if (_filterType == 'SYSTEM' && !r.isSystemRole) return false;
       if (_filterType == 'CUSTOM' && r.isSystemRole) return false;
-      if (_searchQuery.isEmpty) return true;
-      return r.name.toLowerCase().contains(_searchQuery) ||
-          r.code.toLowerCase().contains(_searchQuery) ||
-          (r.description?.toLowerCase().contains(_searchQuery) ?? false) ||
-          r.permissions.any((p) => p.toLowerCase().contains(_searchQuery));
+      if (_searchQuery.isNotEmpty) {
+        final q = _searchQuery.toLowerCase();
+        return r.name.toLowerCase().contains(q) ||
+            r.code.toLowerCase().contains(q) ||
+            (r.description ?? '').toLowerCase().contains(q);
+      }
+      return true;
     }).toList();
 
     return KiteCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Row
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 12,
-            runSpacing: 10,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Roles & RBAC Matrix',
-                    style: t.large.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'serif',
-                    ),
-                  ),
-                  Text(
-                    'Define role access boundaries and organizational authority rules',
-                    style: t.small.copyWith(color: c.mutedForeground),
-                  ),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: widget.canCreateRole ? widget.onCreateRole : null,
-                icon: Icon(
-                  widget.canCreateRole ? LucideIcons.plus : LucideIcons.lock,
-                  size: 16,
-                ),
-                label: const Text('Create Custom Role'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.forestSage,
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Search and Filters Bar
           Row(
             children: [
               Expanded(
                 child: TextField(
-                  style: const TextStyle(fontSize: 12),
-                  onChanged: (v) =>
-                      setState(() => _searchQuery = v.trim().toLowerCase()),
                   decoration: InputDecoration(
-                    hintText: 'Search roles by name, code or permission...',
-                    prefixIcon: const Icon(LucideIcons.search, size: 16),
+                    prefixIcon: Icon(LucideIcons.search,
+                        size: 18, color: c.mutedForeground),
+                    hintText: 'Search roles by name, code...',
+                    hintStyle: t.small.copyWith(color: c.mutedForeground),
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    fillColor: c.card,
+                    border: const OutlineInputBorder(
+                        borderRadius: KiteRadius.allMd),
                   ),
+                  onChanged: (v) => setState(() => _searchQuery = v),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               SegmentedButton<String>(
                 segments: const [
-                  ButtonSegment(
-                    value: 'ALL',
-                    label: Text('All', style: TextStyle(fontSize: 11)),
-                  ),
-                  ButtonSegment(
-                    value: 'SYSTEM',
-                    label: Text('System', style: TextStyle(fontSize: 11)),
-                  ),
-                  ButtonSegment(
-                    value: 'CUSTOM',
-                    label: Text('Custom', style: TextStyle(fontSize: 11)),
-                  ),
+                  ButtonSegment(value: 'ALL', label: Text('All')),
+                  ButtonSegment(value: 'SYSTEM', label: Text('System')),
+                  ButtonSegment(value: 'CUSTOM', label: Text('Custom')),
                 ],
                 selected: {_filterType},
-                onSelectionChanged: (val) {
-                  setState(() => _filterType = val.first);
+                onSelectionChanged: (set) {
+                  setState(() => _filterType = set.first);
                 },
                 style: const ButtonStyle(
                   visualDensity: VisualDensity.compact,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: widget.canCreateRole ? widget.onCreateRole : null,
+                icon: Icon(
+                    widget.canCreateRole ? LucideIcons.plus : LucideIcons.lock,
+                    size: 16),
+                label: const Text('Create Custom Role'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: c.primary,
+                  foregroundColor: c.primaryForeground,
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: KiteRadius.allMd),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-
-          // Role Grid / Directory
+          const SizedBox(height: 14),
           Expanded(
             child: filtered.isEmpty
                 ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(LucideIcons.shieldOff,
-                            size: 40, color: c.mutedForeground),
-                        const SizedBox(height: 10),
-                        Text(
-                          'No roles match your search criteria',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: c.mutedForeground,
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: Text('No roles found',
+                        style: t.small.copyWith(color: c.mutedForeground)),
                   )
                 : GridView.builder(
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 440,
-                      mainAxisExtent: 220,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
+                      maxCrossAxisExtent: 380,
+                      mainAxisExtent: 180,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                     ),
                     itemCount: filtered.length,
                     itemBuilder: (ctx, i) {
@@ -360,43 +302,17 @@ class _IamRolesTabState extends State<IamRolesTab> {
                       final summary = _summarizePermissions(r.permissions);
 
                       return Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: c.card,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: c.border),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.02),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: r.isSystemRole
-                                        ? const Color(0xFFEFF6FF)
-                                        : AppColors.forestSage.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    r.isSystemRole
-                                        ? LucideIcons.shieldCheck
-                                        : LucideIcons.shield,
-                                    size: 18,
-                                    color: r.isSystemRole
-                                        ? const Color(0xFF2563EB)
-                                        : AppColors.forestSage,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -404,19 +320,18 @@ class _IamRolesTabState extends State<IamRolesTab> {
                                     children: [
                                       Text(
                                         r.name,
-                                        style: const TextStyle(
-                                          fontSize: 13.5,
+                                        style: t.small.copyWith(
                                           fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: c.foreground,
                                         ),
-                                        maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       Text(
                                         r.code,
                                         style: TextStyle(
-                                          fontSize: 10.5,
+                                          fontSize: 10,
                                           fontFamily: 'monospace',
-                                          fontWeight: FontWeight.w600,
                                           color: c.mutedForeground,
                                         ),
                                       ),
@@ -473,7 +388,7 @@ class _IamRolesTabState extends State<IamRolesTab> {
                                   child: Wrap(
                                     spacing: 4,
                                     runSpacing: 4,
-                                    children: summary.entries.take(3).map((e) {
+                                    children: summary.entries.take(2).map((e) {
                                       return Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 6, vertical: 2),
@@ -494,7 +409,7 @@ class _IamRolesTabState extends State<IamRolesTab> {
                                     }).toList(),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 4),
                                 OutlinedButton.icon(
                                   onPressed: () =>
                                       _inspectRolePermissions(context, r),
@@ -506,12 +421,36 @@ class _IamRolesTabState extends State<IamRolesTab> {
                                   style: OutlinedButton.styleFrom(
                                     visualDensity: VisualDensity.compact,
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 8),
+                                        horizontal: 8, vertical: 6),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                   ),
                                 ),
+                                if (!r.isSystemRole &&
+                                    widget.canEditRole &&
+                                    widget.onEditRole != null) ...[
+                                  const SizedBox(width: 2),
+                                  IconButton(
+                                    tooltip: 'Edit Role',
+                                    icon: const Icon(LucideIcons.pencil,
+                                        size: 14),
+                                    onPressed: () => widget.onEditRole!(r),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                ],
+                                if (!r.isSystemRole &&
+                                    widget.canDeleteRole &&
+                                    widget.onDeleteRole != null) ...[
+                                  const SizedBox(width: 2),
+                                  IconButton(
+                                    tooltip: 'Delete Role',
+                                    icon: Icon(LucideIcons.trash2,
+                                        size: 14, color: c.destructive),
+                                    onPressed: () => widget.onDeleteRole!(r),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                ],
                               ],
                             ),
                           ],

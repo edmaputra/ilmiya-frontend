@@ -7,6 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/models/school.dart';
 import '../../../core/services/school_service.dart';
 import '../../../state/auth_notifier.dart';
+import '../../../shared_widgets/tenant_session_required_view.dart';
 import '../dialogs/edit_institutional_profile_dialog.dart';
 import '../dialogs/operational_settings_dialog.dart';
 import '../widgets/school_institutional_details_card.dart';
@@ -108,6 +109,12 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
     final canManageSettings =
         p.name.isNotEmpty && auth.hasPermission('school:settings:manage');
     final isSuperAdmin = auth.hasRole('SUPERADMIN') || auth.hasPermission('*');
+
+    if (auth.isPlatformSession) {
+      return const TenantSessionRequiredView(
+        sectionName: 'Institutional School Profile',
+      );
+    }
 
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));

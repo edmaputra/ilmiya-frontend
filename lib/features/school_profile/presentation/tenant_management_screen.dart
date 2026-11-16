@@ -11,15 +11,10 @@ import '../../../core/services/tenant_service.dart';
 import '../../../core/utils/app_toast.dart';
 import '../../../state/auth_notifier.dart';
 import '../dialogs/edit_foundation_dialog.dart';
-import '../dialogs/edit_tenant_dialog.dart';
 import '../dialogs/register_foundation_dialog.dart';
 import '../dialogs/register_school_dialog.dart';
-import '../dialogs/tenant_settings_dialog.dart';
-import '../dialogs/tenant_status_confirmation_dialog.dart';
 import '../widgets/foundations_directory_tab.dart';
 import '../widgets/tenant_access_restricted_view.dart';
-import '../widgets/tenant_directory_tab.dart';
-import '../widgets/tenant_inspector_tab.dart';
 import '../widgets/tenant_quotas_tab.dart';
 
 class TenantManagementScreen extends StatefulWidget {
@@ -41,36 +36,11 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
   String _foundationSearchQuery = '';
   String _foundationStatusFilter = 'ALL';
 
-  // Schools tab state
-  String _searchQuery = '';
-  String _selectedStatusFilter = 'ALL';
-  String _selectedFoundationFilter = 'ALL';
-  String? _selectedAccreditationFilter;
-  SchoolResponse? _inspectedSchool;
-  String? _lastObservedTenantId;
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    final auth = context.read<AuthNotifier>();
-    _selectedFoundationFilter =
-        auth.tenantId.isNotEmpty ? auth.tenantId : 'ALL';
-    _lastObservedTenantId = auth.tenantId;
-    _loadSchools();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final currentTenant = context.read<AuthNotifier>().tenantId;
-    if (_lastObservedTenantId != null &&
-        _lastObservedTenantId != currentTenant &&
-        currentTenant.isNotEmpty) {
-      _selectedFoundationFilter = currentTenant;
-      _loadSchools();
-    }
-    _lastObservedTenantId = currentTenant;
+    _tabController = TabController(length: 2, vsync: this);
+    _loadData();
   }
 
   @override
@@ -79,7 +49,7 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     super.dispose();
   }
 
-  Future<void> _loadSchools() async {
+  Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
       final tenantsList = await tenantService.listTenants();
@@ -89,13 +59,6 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
           _tenants = tenantsList;
           _schools = list;
           _isLoading = false;
-          final auth = context.read<AuthNotifier>();
-          _inspectedSchool = list.isNotEmpty
-              ? list.firstWhere(
-                  (s) => s.id == auth.schoolId || s.tenantId == auth.tenantId,
-                  orElse: () => list.first,
-                )
-              : null;
         });
       }
     } catch (_) {
@@ -106,25 +69,15 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
   void _showRegisterFoundationDialog() {
     RegisterFoundationDialog.show(
       context,
-      onFoundationRegistered: _loadSchools,
+      onFoundationRegistered: _loadData,
     );
   }
 
   void _showRegisterSchoolDialog([String? tenantId]) {
-    final effectiveTenantId = (tenantId != null && tenantId.isNotEmpty)
-        ? tenantId
-        : (_selectedFoundationFilter != 'ALL'
-            ? _selectedFoundationFilter
-            : null);
     RegisterSchoolDialog.show(
       context,
-      initialTenantId: effectiveTenantId,
-      onSchoolRegistered: () async {
-        await _loadSchools();
-        if (effectiveTenantId != null && mounted) {
-          setState(() => _selectedFoundationFilter = effectiveTenantId);
-        }
-      },
+      initialTenantId: tenantId,
+      onSchoolRegistered: _loadData,
     );
   }
 
@@ -132,23 +85,7 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     EditFoundationDialog.show(
       context,
       tenant: tenant,
-      onUpdated: _loadSchools,
-    );
-  }
-
-  void _showEditProfileDialog(SchoolResponse school) {
-    EditTenantDialog.show(
-      context,
-      school: school,
-      onUpdated: _loadSchools,
-    );
-  }
-
-  void _showSettingsDialog(SchoolResponse school) {
-    TenantSettingsDialog.show(
-      context,
-      school: school,
-      onSaved: _loadSchools,
+      onUpdated: _loadData,
     );
   }
 
@@ -157,7 +94,7 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
         tenant.status.toUpperCase() == 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
     try {
       await tenantService.updateTenantStatus(tenant.id, newStatus);
-      await _loadSchools();
+      await _loadData();
       if (mounted) {
         AppToast.showSuccess(
           context,
@@ -171,49 +108,22 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     }
   }
 
-  Future<void> _toggleSchoolStatus(SchoolResponse school) async {
-    final newStatus = school.status == 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    final confirm = await TenantStatusConfirmationDialog.show(
-      context,
-      school: school,
-      newStatus: newStatus,
-    );
-
-    if (confirm == true) {
-      try {
-        await schoolService.updateSchoolStatus(school.id, newStatus);
-        await _loadSchools();
-        if (mounted) {
-          AppToast.showSuccess(
-            context,
-            'School ${school.name} is now ${newStatus.toLowerCase()}.',
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          AppToast.showError(context, 'Failed to update status: $e');
-        }
-      }
-    }
-  }
-
   Future<void> _switchActiveTenant(String tenantId) async {
     final auth = context.read<AuthNotifier>();
+    if (auth.tenantId == tenantId) return;
+
     try {
       await auth.switchTenant(tenantId);
+      await _loadData();
       if (mounted) {
-        setState(() {
-          _selectedFoundationFilter = tenantId;
-        });
         AppToast.showSuccess(
           context,
           'Active session switched to tenant: $tenantId',
         );
-        await _loadSchools();
       }
     } catch (e) {
       if (mounted) {
-        AppToast.showError(context, 'Error switching tenant: $e');
+        AppToast.showError(context, 'Failed to switch tenant session: $e');
       }
     }
   }
@@ -225,8 +135,8 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     final auth = context.watch<AuthNotifier>();
 
     final isSuperAdmin = auth.hasRole('SUPERADMIN') ||
-        auth.hasPermission('school:profile:write') ||
-        auth.hasPermission('*');
+        auth.hasPermission('*') ||
+        auth.isSuperAdmin;
 
     if (!isSuperAdmin) {
       return const TenantAccessRestrictedView();
@@ -235,34 +145,6 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));
     }
-
-    final filteredSchools = _schools.where((s) {
-      if (_selectedFoundationFilter != 'ALL' &&
-          s.tenantId != _selectedFoundationFilter) {
-        return false;
-      }
-      if (_selectedStatusFilter != 'ALL' &&
-          s.status.toUpperCase() != _selectedStatusFilter) {
-        return false;
-      }
-      if (_selectedAccreditationFilter != null &&
-          _selectedAccreditationFilter!.isNotEmpty &&
-          _selectedAccreditationFilter != 'ALL') {
-        if (s.accreditationStatus != _selectedAccreditationFilter) {
-          return false;
-        }
-      }
-      if (_searchQuery.isNotEmpty) {
-        final q = _searchQuery.toLowerCase();
-        return s.name.toLowerCase().contains(q) ||
-            s.tenantId.toLowerCase().contains(q) ||
-            s.institutionCode.toLowerCase().contains(q) ||
-            (s.governmentRegistrationNumber?.toLowerCase().contains(q) ??
-                false) ||
-            s.contactEmail.toLowerCase().contains(q);
-      }
-      return true;
-    }).toList();
 
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 600;
@@ -279,7 +161,7 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
             runSpacing: 4,
             children: [
               Text(
-                'Tenant & School Profile Management',
+                'Tenant Governance & Platform Administration',
                 style: (isCompact ? t.h3 : t.h2)
                     .copyWith(fontWeight: FontWeight.bold),
               ),
@@ -303,7 +185,7 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
           ),
           const SizedBox(height: 2),
           Text(
-            'Multi-tenant Foundation (Yayasan) governance, school campus registry, and operational oversight.',
+            'Multi-tenant Foundation (Yayasan) governance, tenant session control, and platform-wide quotas.',
             style: t.muted,
           ),
           const SizedBox(height: 12),
@@ -318,22 +200,17 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
               unselectedLabelColor: c.mutedForeground,
               tabs: const [
                 Tab(
-                    icon: Icon(LucideIcons.landmark, size: 16),
-                    text: 'Foundations (Yayasan)'),
+                  icon: Icon(LucideIcons.landmark, size: 16),
+                  text: 'Foundations (Yayasan)',
+                ),
                 Tab(
-                    icon: Icon(LucideIcons.school, size: 16),
-                    text: 'Schools & Campuses'),
-                Tab(
-                    icon: Icon(LucideIcons.building2, size: 16),
-                    text: 'Institutional Inspector'),
-                Tab(
-                    icon: Icon(LucideIcons.sliders, size: 16),
-                    text: 'System & Quotas'),
+                  icon: Icon(LucideIcons.sliders, size: 16),
+                  text: 'System & Quotas',
+                ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          // Tab Views
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -354,39 +231,6 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
                   onToggleStatus: _toggleFoundationStatus,
                   onAddCampus: (tenantId) =>
                       _showRegisterSchoolDialog(tenantId),
-                ),
-                TenantDirectoryTab(
-                  allSchools: _schools,
-                  filteredSchools: filteredSchools,
-                  allTenants: _tenants,
-                  searchQuery: _searchQuery,
-                  selectedStatusFilter: _selectedStatusFilter,
-                  selectedFoundationFilter: _selectedFoundationFilter,
-                  currentTenantId: auth.tenantId,
-                  onSearchChanged: (v) => setState(() => _searchQuery = v),
-                  onStatusFilterChanged: (st) =>
-                      setState(() => _selectedStatusFilter = st),
-                  onFoundationFilterChanged: (val) =>
-                      setState(() => _selectedFoundationFilter = val ?? 'ALL'),
-                  onRegisterTenant: _showRegisterFoundationDialog,
-                  onSwitchTenant: _switchActiveTenant,
-                  onEditProfile: _showEditProfileDialog,
-                  onSettings: _showSettingsDialog,
-                  onToggleStatus: _toggleSchoolStatus,
-                  onAddCampus: (tenantId) => _showRegisterSchoolDialog(
-                      tenantId.isEmpty ? null : tenantId),
-                ),
-                TenantInspectorTab(
-                  schools: _schools,
-                  inspectedSchool: _inspectedSchool,
-                  onSelectSchool: (newId) {
-                    setState(() {
-                      _inspectedSchool = _schools.firstWhere(
-                          (s) => s.id == newId || s.tenantId == newId);
-                    });
-                  },
-                  onEditProfile: _showEditProfileDialog,
-                  onSettings: _showSettingsDialog,
                 ),
                 const TenantQuotasTab(),
               ],

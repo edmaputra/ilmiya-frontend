@@ -22,7 +22,11 @@ class AppShellTopBar extends StatelessWidget {
     final state = context.watch<AppState>();
     final auth = context.watch<AuthNotifier>();
 
-    final schoolDisplayName = auth.tenantId.isEmpty ? '' : auth.schoolName;
+    final schoolDisplayName = auth.isPlatformSession
+        ? 'Platform Tenant Management'
+        : (auth.tenantId.isEmpty
+            ? ''
+            : (auth.schoolName.isNotEmpty ? auth.schoolName : auth.tenantName));
 
     final pageTitles = [
       'School Profile',

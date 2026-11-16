@@ -50,6 +50,36 @@ These entities are managed through two dedicated screens:
 
 ---
 
+## Step 0: Tenant Registration & Tenant Admin Provisioning (Platform SuperAdmin)
+
+Before institutional branding or academic years can be established, the platform SuperAdmin registers the school partition via the **Tenant Console** (`RegisterTenantDialog`).
+
+### Provisioning Pipeline
+When a new tenant is registered:
+1. **School Profile**: School metadata (name, institutional code, physical address, email, phone) is saved.
+2. **Root Scope (`/ROOT`)**: A root scope hierarchy node is automatically generated with ID `scope-<tenantId>-root` and path `/ROOT`.
+3. **Tenant Administrator Account**: A designated tenant administrator (`adminEmail`, `adminName`, initial `adminPassword`) is created.
+4. **Root Scope Binding**: The tenant administrator is assigned the `role-tenant-admin` role scoped directly to `/ROOT`, granting complete administrative authority over the new school partition.
+
+### Registration Payload (`POST /api/v1/schools/register`):
+```json
+{
+  "schoolName": "Darussalam Islamic Academy",
+  "institutionCode": "DIA-001",
+  "motto": "Knowledge, Faith, and Virtue",
+  "address": "Jl. Raya Darussalam No. 10, Jakarta",
+  "contactEmail": "info@darussalam.org",
+  "contactPhone": "+62 21 555 1234",
+  "adminEmail": "admin.yayasan@darussalam.org",
+  "adminName": "H. Ahmad Dahlan",
+  "adminPassword": "TemporarySecurePassword123!"
+}
+```
+
+Once provisioned, the SuperAdmin switches session to the tenant using **"Switch Session"**, or the newly provisioned Tenant Admin logs in directly with full access to the tenant's profile, academic years, and IAM Console.
+
+---
+
 ## Step 1: Configure School Branding & Profile
 
 1. Select **"School Profile"** from the left navigation bar (Tab index 0).

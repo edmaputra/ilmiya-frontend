@@ -19,6 +19,9 @@ class IamUsersTab extends StatelessWidget {
   final ValueChanged<UserResponse>? onEditUser;
   final ValueChanged<UserResponse> onAssignRole;
   final Future<void> Function() onDataReload;
+  final Map<String, UserRoleAssignmentResponse> userAssignments;
+  final List<RoleResponse> roles;
+  final List<ScopeTreeNode> scopes;
 
   const IamUsersTab({
     super.key,
@@ -35,7 +38,20 @@ class IamUsersTab extends StatelessWidget {
     this.onEditUser,
     required this.onAssignRole,
     required this.onDataReload,
+    this.userAssignments = const {},
+    this.roles = const [],
+    this.scopes = const [],
   });
+
+  String? _findScopePath(List<ScopeTreeNode> nodes, String? scopeId) {
+    if (scopeId == null) return null;
+    for (final n in nodes) {
+      if (n.id == scopeId) return n.path;
+      final childPath = _findScopePath(n.children, scopeId);
+      if (childPath != null) return childPath;
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,9 +101,18 @@ class IamUsersTab extends StatelessWidget {
               separatorBuilder: (_, __) => Divider(height: 1, color: c.border),
               itemBuilder: (ctx, i) {
                 final u = users[i];
+                final assignment = userAssignments[u.id];
+                final role = assignment != null
+                    ? roles.where((r) => r.id == assignment.roleId).firstOrNull
+                    : null;
+                final scopePath =
+                    _findScopePath(scopes, assignment?.scopeNodeId);
+
                 return IamUserTile(
                   user: u,
-                  assignedRoles: userRoles[u.id] ?? const [],
+                  assignedRoles:
+                      userRoles[u.id] ?? (role != null ? [role] : const []),
+                  assignedScope: scopePath ?? assignment?.scopeNodeId,
                   canEdit: canEdit,
                   canUpdateStatus: canUpdateStatus,
                   canAssign: canAssign,

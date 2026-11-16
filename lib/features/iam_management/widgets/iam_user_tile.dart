@@ -10,6 +10,8 @@ import '../../../core/utils/app_toast.dart';
 class IamUserTile extends StatelessWidget {
   final UserResponse user;
   final List<RoleResponse> assignedRoles;
+  final String? assignedRole;
+  final String? assignedScope;
   final bool canEdit;
   final bool canUpdateStatus;
   final bool canAssign;
@@ -22,6 +24,8 @@ class IamUserTile extends StatelessWidget {
     super.key,
     required this.user,
     this.assignedRoles = const [],
+    this.assignedRole,
+    this.assignedScope,
     this.canEdit = true,
     required this.canUpdateStatus,
     required this.canAssign,
@@ -32,34 +36,80 @@ class IamUserTile extends StatelessWidget {
   });
 
   Widget _buildRoleBadges() {
-    if (assignedRoles.isEmpty) return const SizedBox.shrink();
+    final hasRoles = assignedRoles.isNotEmpty ||
+        (assignedRole != null && assignedRole!.isNotEmpty);
+    final hasScope = assignedScope != null && assignedScope!.isNotEmpty;
+    if (!hasRoles && !hasScope) return const SizedBox.shrink();
+
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Wrap(
         spacing: 4,
         runSpacing: 2,
-        children: assignedRoles.map((role) {
-          final label = role.name.isNotEmpty ? role.name : role.code;
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-            decoration: BoxDecoration(
-              color: AppColors.forestSage.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: AppColors.forestSage.withOpacity(0.3),
-                width: 0.8,
+        children: [
+          ...assignedRoles.map((role) {
+            final label = role.name.isNotEmpty ? role.name : role.code;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: AppColors.forestSage.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: AppColors.forestSage.withOpacity(0.3),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.forestSage,
+                ),
+              ),
+            );
+          }),
+          if (assignedRole != null && assignedRoles.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: AppColors.forestSage.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: AppColors.forestSage.withOpacity(0.3),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                assignedRole!,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.forestSage,
+                ),
               ),
             ),
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: AppColors.forestSage,
+          if (hasScope)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E40AF).withOpacity(0.10),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: const Color(0xFF1E40AF).withOpacity(0.25),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                'Scope: $assignedScope',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1E40AF),
+                ),
               ),
             ),
-          );
-        }).toList(),
+        ],
       ),
     );
   }
@@ -228,7 +278,7 @@ class IamUserTile extends StatelessWidget {
 
         return ListTile(
           contentPadding:
-              const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           leading: CircleAvatar(
             backgroundColor: c.accent,
             child: Text(

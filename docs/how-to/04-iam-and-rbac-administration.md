@@ -105,11 +105,27 @@ X-Tenant-ID: tenant-lincoln-high-001
 }
 ```
 
-### 3. Assign or Revoke Roles
-1. Open the user details drawer.
-2. Click **"Manage Roles"**.
-3. Toggle checkmarks for the desired roles (e.g. adding `DEPARTMENT_HEAD` to `TEACHER`).
-4. Click **Save Changes**.
+### 3. Assign Role and Boundary Scope
+1. In the **Users** tab, find the target user and click **"Assign Role"**.
+2. In the **Assign Role & Scope Dialog**:
+   - **Target Role**: Select from the tenant's available system or custom roles (e.g. `TEACHER`, `SCHOOL_ADMIN`).
+   - **Boundary Scope**: Select the user's data boundary from the hierarchical scope selector (e.g. root scope `/ROOT`, or child scopes like `/ROOT/CAMPUS_MAIN` or `/ROOT/CAMPUS_MAIN/HIGH_SCHOOL`).
+3. Click **"Assign Role & Scope"**.
+4. The user tile updates dynamically with badges indicating both the active assigned role and contextual scope path.
+
+**API Call Dispatched:**
+```http
+POST /api/v1/users/{userId}/roles HTTP/1.1
+Host: api.ilmiya.edu
+Content-Type: application/json
+X-Tenant-ID: tenant-lincoln-high-001
+
+{
+  "roleId": "role-teacher",
+  "tenantId": "tenant-lincoln-high-001",
+  "scopeNodeId": "scope-science"
+}
+```
 
 ---
 
@@ -139,21 +155,21 @@ Switch to the **Roles** tab and click **"Permission Scope Directory"** to inspec
 ```
 
 ### 2. Create a Custom Role
-1. In the **Roles** tab, click **"Create New Role"**.
+1. In the **Roles** tab, click **"Create Custom Role"**.
 2. Specify:
    - **Role Code**: `ACADEMIC_COORDINATOR`
    - **Display Name**: `Academic Coordinator`
    - **Description**: `Manages term scheduling, gradebook auditing, and calendars`
-3. Check the permitted scopes:
-   - `school:read`
-   - `academic:read`
-   - `academic:manage`
-   - `grades:view_all`
+3. Toggle the permitted permission chips:
+   - `school:profile:read`
+   - `academic:year:read`
+   - `academic:year:create`
+   - `exam:grade:read`
 4. Click **"Save Role"**.
 
 **API Call Dispatched:**
 ```http
-POST /api/v1/iam/roles HTTP/1.1
+POST /api/v1/roles HTTP/1.1
 Host: api.ilmiya.edu
 Content-Type: application/json
 X-Tenant-ID: tenant-lincoln-high-001
@@ -162,9 +178,15 @@ X-Tenant-ID: tenant-lincoln-high-001
   "code": "ACADEMIC_COORDINATOR",
   "name": "Academic Coordinator",
   "description": "Manages term scheduling, gradebook auditing, and calendars",
-  "scopes": ["school:read", "academic:read", "academic:manage", "grades:view_all"]
+  "permissions": ["school:profile:read", "academic:year:read", "academic:year:create", "exam:grade:read"]
 }
 ```
+
+### 3. Edit & Delete Custom Roles
+Each role card in the **Roles & RBAC** matrix provides lifecycle actions:
+- **Edit Role**: Click the pencil icon to open `EditRoleDialog`. Modify display name, description, or toggle fine-grained permission chips. Dispatches `PUT /api/v1/roles/{roleId}`.
+- **Delete Role**: Click the trash icon on any custom role. A confirmation dialog appears to prevent accidental removal. Dispatches `DELETE /api/v1/roles/{roleId}`.
+- **System Role Protection**: System roles (e.g. `SUPERADMIN`, `TENANT_ADMIN`, `SCHOOL_ADMIN`, `TEACHER`, `STUDENT`) display an immutable `SYSTEM` badge and cannot be deleted, preserving core institutional security invariants.
 
 ---
 
@@ -198,18 +220,20 @@ X-Tenant-ID: tenant-lincoln-high-001
 
 ## Step 5: Test Multi-Role Campus Perspectives
 
-During development and testing, you can preview the UI through the lens of any of the 4 campus personas without creating new browser sessions:
+During development and testing, you can preview the UI through the lens of any of the 6 demo personas without creating new browser sessions:
 
-1. Click the **Role Switcher Dropdown** in the header bar.
+1. Click the **User / Persona Menu** in the header or sidebar footer.
 2. Select the perspective you want to preview:
-   - **Student** (`Alex Chen`): Inspects student dashboard, grade tracking, What-If simulator, and assignment inquiries.
-   - **Teacher** (`Sarah Jenkins`): Inspects roster view, gradebook scoring, office hours scheduler, and announcements.
-   - **Parent** (`Michael Jenkins`): Inspects child progress reports, attendance summaries, and direct teacher messaging.
-   - **Administrator** (`Principal Martinez`): Unlocks IAM management, school profile configuration, and academic year administration.
+   - **Platform SuperAdmin** (`Dr. Sarah Jenkins` - `admin.utama@ilmiya.edu`): Global platform operations. Starts in platform mode (only Tenant Console visible); switch session to any tenant row to access full capabilities.
+   - **Foundation Tenant Admin** (`Ustadz Ahmad Fauzi` - `admin.yayasan@darussalam.org`): Foundation organizational governance and tenant-wide IAM administration under `/ROOT` scope.
+   - **School Principal** (`Prof. Marcus Chen` - `principal@ilmiya.edu`): School operational settings, academic years, calendars, and institutional administration.
+   - **Senior Faculty** (`Dr. Eleanor Vance` - `eleanor.vance@ilmiya.edu`): Course grading, gradebook evaluations, and student records.
+   - **Student (Class 10-A)** (`Alex Rivera` - `alex.rivera@student.ilmiya.edu`): Student portal, schedules, and grade tracking.
+   - **Parent / Guardian** (`Elena Rivera` - `elena.rivera@parent.ilmiya.edu`): Ward attendance oversight and semester report cards.
 
 ### Programmatic Switching
 In widget tests or integration flows:
 ```dart
-context.read<AppState>().setCurrentUser(MockData.teacherProfile);
+await context.read<AuthNotifier>().loginAsPersona(DemoPersonaKey.tenantAdmin);
 ```
 The UI reactively re-evaluates role-gated buttons, tabs, and action drawers.

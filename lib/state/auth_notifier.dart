@@ -7,8 +7,12 @@ import '../core/services/session_storage_service.dart';
 import '../core/services/tenant_service.dart';
 
 bool checkPermission(List<String> userPermissions, List<String> userRoles,
-    String targetPermission) {
-  if (userRoles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
+    String targetPermission,
+    {bool isSuperAdmin = false}) {
+  if (isSuperAdmin ||
+      userRoles.any((r) =>
+          r.toUpperCase() == 'SUPERADMIN' ||
+          r.toUpperCase() == 'ROLE_SUPERADMIN') ||
       userPermissions.contains('*')) {
     return true;
   }
@@ -50,6 +54,7 @@ class AuthNotifier extends ChangeNotifier {
   String? _error;
   void Function()? _unsubscribeAuthExpired;
   bool _lastMockMode = true;
+  bool _hasSwitchedTenant = true;
   String _sessionId = DateTime.now().microsecondsSinceEpoch.toString();
   final List<VoidCallback> _onLogoutListeners = [];
   final List<VoidCallback> _onLoginListeners = [];
@@ -108,6 +113,8 @@ class AuthNotifier extends ChangeNotifier {
       _schoolName = savedSchool;
     }
     _lastMockMode = _apiClient.isMockMode;
+    _hasSwitchedTenant = _apiClient.tenantId != 'platform';
+    _tenantId = _apiClient.tenantId;
     _unsubscribeAuthExpired = _apiClient.onAuthExpired(([reason]) {
       _user = null;
       _token = null;
@@ -224,18 +231,36 @@ class AuthNotifier extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  bool get isSuperAdmin =>
+      (_user?.isPlatformSuperAdmin ?? false) ||
+      _roles.any((r) =>
+          r.toUpperCase() == 'SUPERADMIN' ||
+          r.toUpperCase() == 'ROLE_SUPERADMIN');
+  bool get isTenantAdmin =>
+      !isSuperAdmin &&
+      _roles.any((r) =>
+          r.toUpperCase() == 'TENANT_ADMIN' ||
+          r.toUpperCase() == 'ROLE_TENANT_ADMIN');
+  bool get hasSwitchedTenant => _hasSwitchedTenant;
+  bool get isPlatformSession => isSuperAdmin && _tenantId == 'platform';
+
   void clearError() {
     _error = null;
     notifyListeners();
   }
 
   bool hasPermission(String targetPermission) {
-    return checkPermission(_permissions, _roles, targetPermission);
+    return checkPermission(_permissions, _roles, targetPermission,
+        isSuperAdmin: isSuperAdmin);
   }
 
   bool hasRole(String role) {
+    if (isSuperAdmin) return true;
     final normalized = role.toUpperCase();
-    return _roles.any((r) => r.toUpperCase() == normalized);
+    return _roles.any((r) =>
+        r.toUpperCase() == normalized ||
+        r.toUpperCase() == 'ROLE_$normalized' ||
+        'ROLE_${r.toUpperCase()}' == normalized);
   }
 
   Future<void> refreshProfile({bool showLoading = false}) async {
@@ -246,29 +271,20 @@ class AuthNotifier extends ChangeNotifier {
       }
       final profile = await _iamService.getMe();
       _user = profile;
-      final isSuper =
-          profile.roles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
-              profile.permissions.contains('*');
-      if (isSuper && profile.tenantId.isEmpty) {
-        try {
-          final schools = await schoolService.listSchools();
-          if (schools.isEmpty || _tenantId.isEmpty) {
-            _tenantId = '';
-          } else if (schools.any((s) => s.tenantId == _tenantId)) {
-            // Keep active valid tenant
-          } else {
-            _tenantId = '';
-          }
-        } catch (_) {
-          _tenantId = '';
-        }
-      } else {
-        _tenantId = profile.tenantId.isNotEmpty
-            ? profile.tenantId
-            : _apiClient.tenantId;
-      }
       _roles = profile.roles;
       _permissions = profile.permissions;
+      final isSuper = (_user?.isPlatformSuperAdmin ?? false) ||
+          _roles.any((r) =>
+              r.toUpperCase() == 'SUPERADMIN' ||
+              r.toUpperCase() == 'ROLE_SUPERADMIN');
+      if (isSuper && _apiClient.tenantId == 'platform') {
+        _tenantId = 'platform';
+      } else {
+        _tenantId =
+            _apiClient.tenantId.isNotEmpty && _apiClient.tenantId != 'platform'
+                ? _apiClient.tenantId
+                : (profile.tenantId.isNotEmpty ? profile.tenantId : _tenantId);
+      }
       _token = _apiClient.token;
       _error = null;
 
@@ -302,29 +318,23 @@ class AuthNotifier extends ChangeNotifier {
     try {
       final resp = await _iamService.login(req);
       _token = resp.accessToken;
-      final isSuper = resp.roles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
-          resp.permissions.contains('*');
-      if (isSuper && resp.tenantId.isEmpty) {
-        try {
-          final schools = await schoolService.listSchools();
-          if (schools.isEmpty || _tenantId.isEmpty) {
-            _tenantId = '';
-          } else if (schools.any((s) => s.tenantId == _tenantId)) {
-            // Keep active valid tenant
-          } else {
-            _tenantId = '';
-          }
-        } catch (_) {
-          _tenantId = '';
-        }
-      } else {
-        _tenantId =
-            resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
-      }
       _roles = resp.roles;
       _permissions = resp.permissions;
       if (resp.user != null) {
         _user = resp.user;
+      }
+      final isSuper = (_user?.isPlatformSuperAdmin ?? false) ||
+          _roles.any((r) =>
+              r.toUpperCase() == 'SUPERADMIN' ||
+              r.toUpperCase() == 'ROLE_SUPERADMIN');
+      if (isSuper) {
+        _hasSwitchedTenant = false;
+        _tenantId = 'platform';
+        _apiClient.tenantId = 'platform';
+      } else {
+        _hasSwitchedTenant = true;
+        _tenantId =
+            resp.tenantId.isNotEmpty ? resp.tenantId : _apiClient.tenantId;
       }
       await refreshProfile();
       await _sessionStorage.saveAuthSession(
@@ -353,11 +363,16 @@ class AuthNotifier extends ChangeNotifier {
   Future<void> loginAsPersona(DemoPersonaKey personaKey) async {
     final persona = DEMO_PERSONAS[personaKey];
     if (persona == null) return;
+    final tId = personaKey == DemoPersonaKey.superadmin
+        ? 'platform'
+        : _apiClient.tenantId.isNotEmpty && _apiClient.tenantId != 'platform'
+            ? _apiClient.tenantId
+            : 'tenant-lincoln-high-001';
     await login(LoginRequest(
       email: persona.email,
       password:
           '${persona.key.name[0].toUpperCase()}${persona.key.name.substring(1)}@123',
-      tenantId: _apiClient.tenantId,
+      tenantId: tId,
     ));
   }
 
@@ -375,6 +390,7 @@ class AuthNotifier extends ChangeNotifier {
     _token = null;
     _roles = [];
     _permissions = [];
+    _hasSwitchedTenant = false;
     _error = null;
     _isLoading = false;
     _tenantId = _apiClient.tenantId;
@@ -396,10 +412,34 @@ class AuthNotifier extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
+      if (newTenantId == 'platform') {
+        _hasSwitchedTenant = false;
+        _tenantId = 'platform';
+        _apiClient.tenantId = 'platform';
+        _schoolName = 'Platform Operations';
+        _tenantName = 'Platform Administration';
+        await refreshProfile();
+        await _sessionStorage.saveTenantId('platform');
+        if (_user != null) {
+          await _sessionStorage.saveUserProfile(_user, _schoolName);
+        }
+        _sessionId = DateTime.now().microsecondsSinceEpoch.toString();
+        for (final listener in List.of(_onLoginListeners)) {
+          try {
+            listener();
+          } catch (_) {}
+        }
+        return;
+      }
       final resp = await _iamService.switchTenant(newTenantId);
+      _hasSwitchedTenant = true;
       _tenantId = resp.tenantId.isNotEmpty ? resp.tenantId : newTenantId;
+      _apiClient.tenantId = _tenantId;
       _roles = resp.roles;
       _permissions = resp.permissions;
+      if (resp.user != null) {
+        _user = resp.user;
+      }
       try {
         final tenant = await _tenantService.getTenant(_tenantId);
         _tenantName = tenant.name;
