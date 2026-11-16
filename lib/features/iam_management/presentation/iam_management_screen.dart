@@ -4,8 +4,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/models/iam.dart';
+import '../../../core/models/school.dart';
 import '../../../core/services/api_client.dart';
 import '../../../core/services/iam_service.dart';
+import '../../../core/services/school_service.dart';
 import '../../../shared_widgets/tenant_session_required_view.dart';
 import '../../../state/auth_notifier.dart';
 import '../dialogs/assign_role_dialog.dart';
@@ -36,18 +38,28 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   List<RoleResponse> _roles = [];
   List<GroupResponse> _groups = [];
   List<ScopeTreeNode> _scopes = [];
+  List<SchoolResponse> _schools = [];
   Map<String, UserRoleAssignmentResponse> _userAssignments = {};
   Map<String, List<RoleResponse>> _userRolesMap = {};
   bool _isLoading = true;
   String _searchQuery = '';
 
+  String? _lastTenantId;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentTenantId = context.watch<AuthNotifier>().tenantId;
+    if (_lastTenantId != currentTenantId) {
+      _lastTenantId = currentTenantId;
       _loadAllIamData();
-    });
+    }
   }
 
   @override
@@ -96,15 +108,25 @@ class _IamManagementScreenState extends State<IamManagementScreen>
           debugPrint('Error loading scopes: $e');
           return <ScopeTreeNode>[];
         }),
+        schoolService
+            .listSchools(tenantId: tId, bypassTenantHeader: true)
+            .catchError((e) {
+          debugPrint('Error loading schools: $e');
+          return <SchoolResponse>[];
+        }),
       ]);
 
       final users = results[0] as List<UserResponse>;
       final roles = results[1] as List<RoleResponse>;
       final groups = results[2] as List<GroupResponse>;
       final scopes = results[3] as List<ScopeTreeNode>;
+      final schools = results[4] as List<SchoolResponse>;
+
+      _schools = schools;
 
       final userRolesMap = <String, List<RoleResponse>>{};
       final assignments = <String, UserRoleAssignmentResponse>{};
+      final displayUsers = <UserResponse>[];
 
       if (users.isNotEmpty) {
         try {
@@ -113,14 +135,36 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                 .getUserRoles(u.id)
                 .catchError((_) => <UserRoleAssignmentResponse>[])),
           );
+          final isSpecificTenant = tId.isNotEmpty && tId != 'platform';
+
           for (var i = 0; i < users.length; i++) {
-            final uId = users[i].id;
+            final user = users[i];
+            final uId = user.id;
             final userAssigns = assignmentsLists[i];
-            if (userAssigns.isNotEmpty) {
+
+            // In a tenant session, verify the user belongs to this tenant
+            final tenantAssigns = isSpecificTenant
+                ? userAssigns.where((a) => a.tenantId == tId).toList()
+                : userAssigns;
+
+            // In live REST mode, users from other tenants must be filtered out
+            if (isSpecificTenant &&
+                !apiClient.isMockMode &&
+                tenantAssigns.isEmpty) {
+              continue;
+            }
+
+            displayUsers.add(user);
+
+            if (tenantAssigns.isNotEmpty) {
+              assignments[uId] = tenantAssigns.first;
+            } else if (userAssigns.isNotEmpty) {
               assignments[uId] = userAssigns.first;
             }
+
             final assignedRoles = <RoleResponse>[];
-            for (final a in userAssigns) {
+            for (final a
+                in (tenantAssigns.isNotEmpty ? tenantAssigns : userAssigns)) {
               final role = roles.firstWhere(
                 (r) => r.id == a.roleId || r.code == a.roleId,
                 orElse: () => RoleResponse(
@@ -144,9 +188,13 @@ class _IamManagementScreenState extends State<IamManagementScreen>
         } catch (_) {}
       }
 
+      if (displayUsers.isEmpty && users.isNotEmpty && apiClient.isMockMode) {
+        displayUsers.addAll(users);
+      }
+
       if (mounted) {
         setState(() {
-          _users = users;
+          _users = displayUsers;
           _roles = roles;
           _groups = groups;
           _scopes = scopes;
@@ -161,8 +209,10 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   }
 
   void _showCreateUserDialog() {
+    final tId = context.read<AuthNotifier>().tenantId;
     CreateUserDialog.show(
       context,
+      tenantId: tId,
       onUserCreated: _loadAllIamData,
     );
   }
@@ -181,6 +231,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       context,
       user: user,
       roles: _roles,
+      groups: _groups,
       scopes: _scopes,
       tenantId: context.read<AuthNotifier>().tenantId,
       initialRoleId: currentAssignment?.roleId,
@@ -255,6 +306,91 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     }
   }
 
+  Future<void> _handleDeleteScope(ScopeTreeNode node) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final c = KiteColors.of(ctx);
+        final t = KiteText.of(ctx);
+        return AlertDialog(
+          title: Text('Delete Scope Node',
+              style: t.h4.copyWith(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete scope "${node.name}" (${node.code})? This action cannot be undone.',
+                style: t.small,
+              ),
+              if (node.children.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: c.destructive.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: c.destructive.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.alertTriangle,
+                          color: c.destructive, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Warning: This scope contains ${node.children.length} sub-scope(s). Deleting it will remove the entire branch.',
+                          style: t.small.copyWith(
+                            fontSize: 11,
+                            color: c.destructive,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: c.destructive,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await iamService.deleteScope(node.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Scope "${node.name}" deleted successfully.')),
+          );
+        }
+        await _loadAllIamData();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete scope: $e')),
+          );
+        }
+      }
+    }
+  }
+
   void _showCreateGroupDialog() {
     CreateGroupDialog.show(
       context,
@@ -262,10 +398,17 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     );
   }
 
-  void _showCreateScopeDialog({String? parentId}) {
+  void _showCreateScopeDialog({
+    String? parentId,
+    ScopeTreeNode? parentNode,
+    SchoolResponse? school,
+  }) {
     CreateScopeDialog.show(
       context,
       parentId: parentId,
+      parentNode: parentNode,
+      school: school,
+      tenantId: context.read<AuthNotifier>().tenantId,
       onScopeCreated: _loadAllIamData,
     );
   }
@@ -319,6 +462,9 @@ class _IamManagementScreenState extends State<IamManagementScreen>
         auth.hasRole('SUPERADMIN') ||
         auth.hasRole('TENANT_ADMIN');
     final canCreateScope = auth.hasPermission('iam:scope:create') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
+    final canDeleteScope = auth.hasPermission('iam:scope:delete') ||
         auth.hasRole('SUPERADMIN') ||
         auth.hasRole('TENANT_ADMIN');
 
@@ -447,11 +593,21 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                 ),
                 IamScopesTab(
                   scopes: _scopes,
+                  schools: _schools,
+                  tenantId: auth.tenantId,
                   canCreateScope: canCreateScope,
-                  onCreateRootScope: () =>
-                      _showCreateScopeDialog(parentId: null),
-                  onAddChildScope: (parentId) =>
-                      _showCreateScopeDialog(parentId: parentId),
+                  canDeleteScope: canDeleteScope,
+                  onCreateRootScope: (school) => _showCreateScopeDialog(
+                    parentId: null,
+                    school: school,
+                  ),
+                  onAddChildScope: (parentId, node, school) =>
+                      _showCreateScopeDialog(
+                    parentId: parentId,
+                    parentNode: node,
+                    school: school,
+                  ),
+                  onDeleteScope: _handleDeleteScope,
                 ),
               ],
             ),

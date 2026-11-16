@@ -130,6 +130,7 @@ class IamService {
         roles: roles,
         permissions: permissions,
         scopes: ['/CAMPUS_MAIN'],
+        isPlatformSuperAdmin: roles.contains('SUPERADMIN'),
       );
 
       return TokenResponse(
@@ -190,6 +191,7 @@ class IamService {
         roles: ['SUPERADMIN'],
         permissions: ['*'],
         scopes: ['/CAMPUS_MAIN'],
+        isPlatformSuperAdmin: true,
       );
     }
 
@@ -267,9 +269,8 @@ class IamService {
   // ================= User Management Endpoints =================
 
   Future<List<UserResponse>> listUsers({String? tenantId}) async {
-    final tId = tenantId ?? _apiClient.tenantId;
     if (_apiClient.isMockMode) {
-      return _mockStorage.listUsers(tenantId: tId);
+      return _mockStorage.listUsers(tenantId: tenantId);
     }
     final json =
         await _apiClient.request(endpoint: '/api/v1/users', method: 'GET');
@@ -294,7 +295,25 @@ class IamService {
       method: 'POST',
       body: req.toJson(),
     );
-    return UserResponse.fromJson(json as Map<String, dynamic>);
+    final user = UserResponse.fromJson(json as Map<String, dynamic>);
+    if (tId.isNotEmpty && tId != 'platform') {
+      try {
+        final roles = await listRoles(tenantId: tId);
+        final defaultRole = roles.firstWhere(
+          (r) => r.code == 'STUDENT' || r.code == 'TEACHER',
+          orElse: () => roles.first,
+        );
+        final scopes = await getScopeTree(tenantId: tId);
+        final rootScope = scopes.firstOrNull;
+        await assignRole(
+          userId: user.id,
+          roleId: defaultRole.id,
+          tenantId: tId,
+          scopeNodeId: rootScope?.id,
+        );
+      } catch (_) {}
+    }
+    return user;
   }
 
   Future<UserResponse> updateUser(String id, String fullName) async {
@@ -540,6 +559,22 @@ class IamService {
     );
   }
 
+  Future<List<GroupResponse>> getUserGroups(String userId) async {
+    if (_apiClient.isMockMode) {
+      return _mockStorage.getUserGroups(userId);
+    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/users/$userId/groups',
+      method: 'GET',
+    );
+    if (json is List) {
+      return json
+          .map((g) => GroupResponse.fromJson(g as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  }
+
   Future<List<GroupRoleAssignmentResponse>> getGroupRoles(
       String groupId) async {
     if (_apiClient.isMockMode) {
@@ -622,6 +657,18 @@ class IamService {
       body: req.toJson(),
     );
     return ScopeTreeNode.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<void> deleteScope(String scopeId, {String? tenantId}) async {
+    final tId = tenantId ?? _apiClient.tenantId;
+    if (_apiClient.isMockMode) {
+      _mockStorage.deleteScope(tId, scopeId);
+      return;
+    }
+    await _apiClient.request(
+      endpoint: '/api/v1/scopes/$scopeId',
+      method: 'DELETE',
+    );
   }
 }
 

@@ -241,20 +241,24 @@ const List<_PermCategory> _permissionCategories = [
 
 class CreateRoleDialog extends StatefulWidget {
   final Future<void> Function() onRoleCreated;
+  final RoleResponse? roleToEdit;
 
   const CreateRoleDialog({
     super.key,
     required this.onRoleCreated,
+    this.roleToEdit,
   });
 
   static Future<void> show(
     BuildContext context, {
     required Future<void> Function() onRoleCreated,
+    RoleResponse? roleToEdit,
   }) {
     return showDialog(
       context: context,
       builder: (ctx) => CreateRoleDialog(
         onRoleCreated: onRoleCreated,
+        roleToEdit: roleToEdit,
       ),
     );
   }
@@ -273,6 +277,21 @@ class _CreateRoleDialogState extends State<CreateRoleDialog> {
   final _selectedPerms = <String>{'school:profile:read'};
   bool _isLoading = false;
   String _searchQuery = '';
+
+  bool get _isEditing => widget.roleToEdit != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      final role = widget.roleToEdit!;
+      _codeCtrl.text = role.code;
+      _nameCtrl.text = role.name;
+      _descCtrl.text = role.description ?? '';
+      _selectedPerms.clear();
+      _selectedPerms.addAll(role.permissions);
+    }
+  }
 
   @override
   void dispose() {
@@ -306,24 +325,48 @@ class _CreateRoleDialogState extends State<CreateRoleDialog> {
 
     final roleName = _nameCtrl.text.trim();
     try {
-      await iamService.createRole(CreateRoleRequest(
-        tenantId: apiClient.tenantId,
-        code: _codeCtrl.text.trim().toUpperCase(),
-        name: roleName,
-        description:
-            _descCtrl.text.trim().isNotEmpty ? _descCtrl.text.trim() : null,
-        permissions: _selectedPerms.toList(),
-      ));
+      if (_isEditing) {
+        await iamService.updateRole(
+          widget.roleToEdit!.id,
+          UpdateRoleRequest(
+            name: roleName,
+            description:
+                _descCtrl.text.trim().isNotEmpty ? _descCtrl.text.trim() : null,
+            permissions: _selectedPerms.toList(),
+          ),
+        );
 
-      if (mounted) {
-        AppToast.showSuccess(context, "Role '$roleName' created successfully");
-        Navigator.of(context).pop();
-        await widget.onRoleCreated();
+        if (mounted) {
+          AppToast.showSuccess(
+              context, "Role '$roleName' updated successfully");
+          Navigator.of(context).pop();
+          await widget.onRoleCreated();
+        }
+      } else {
+        await iamService.createRole(CreateRoleRequest(
+          tenantId: apiClient.tenantId,
+          code: _codeCtrl.text.trim().toUpperCase(),
+          name: roleName,
+          description:
+              _descCtrl.text.trim().isNotEmpty ? _descCtrl.text.trim() : null,
+          permissions: _selectedPerms.toList(),
+        ));
+
+        if (mounted) {
+          AppToast.showSuccess(
+              context, "Role '$roleName' created successfully");
+          Navigator.of(context).pop();
+          await widget.onRoleCreated();
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        AppToast.showError(context, 'Failed to create role: $e');
+        AppToast.showError(
+            context,
+            _isEditing
+                ? 'Failed to update role: $e'
+                : 'Failed to create role: $e');
       }
     }
   }
@@ -360,17 +403,23 @@ class _CreateRoleDialogState extends State<CreateRoleDialog> {
                       color: AppColors.forestSage.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(LucideIcons.shieldPlus,
-                        color: AppColors.forestSage, size: 20),
+                    child: Icon(
+                        _isEditing
+                            ? LucideIcons.shieldCheck
+                            : LucideIcons.shieldPlus,
+                        color: AppColors.forestSage,
+                        size: 20),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Create Custom Role',
-                          style: TextStyle(
+                          _isEditing
+                              ? 'Edit Role: ${widget.roleToEdit!.code}'
+                              : 'Create Custom Role',
+                          style: const TextStyle(
                             fontFamily: 'serif',
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -378,8 +427,10 @@ class _CreateRoleDialogState extends State<CreateRoleDialog> {
                           ),
                         ),
                         Text(
-                          'Define role metadata and assign functional permission scopes',
-                          style: TextStyle(
+                          _isEditing
+                              ? 'Modify role metadata and assign functional permission scopes'
+                              : 'Define role metadata and assign functional permission scopes',
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.textMuted,
                           ),
@@ -422,11 +473,18 @@ class _CreateRoleDialogState extends State<CreateRoleDialog> {
                           flex: 2,
                           child: TextFormField(
                             controller: _codeCtrl,
-                            style: const TextStyle(
-                                fontSize: 13, fontFamily: 'monospace'),
+                            readOnly: _isEditing,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: 'monospace',
+                              color: _isEditing ? AppColors.textMuted : null,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Role Code *',
                               hintText: 'e.g. LAB_TECH',
+                              helperText: _isEditing
+                                  ? 'Role code identifier cannot be changed'
+                                  : null,
                               prefixIcon:
                                   const Icon(LucideIcons.keyRound, size: 16),
                               isDense: true,
@@ -813,7 +871,7 @@ class _CreateRoleDialogState extends State<CreateRoleDialog> {
                             ),
                           )
                         : const Icon(LucideIcons.check, size: 16),
-                    label: const Text('Create Role'),
+                    label: Text(_isEditing ? 'Save Changes' : 'Create Role'),
                   ),
                 ],
               ),

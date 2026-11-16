@@ -184,6 +184,7 @@ class TenantDirectoryTab extends StatelessWidget {
                     children: [
                       if (allTenants != null && allTenants!.isNotEmpty)
                         Container(
+                          constraints: const BoxConstraints(maxWidth: 180),
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           decoration: BoxDecoration(
                             border: Border.all(color: c.border),
@@ -193,16 +194,19 @@ class TenantDirectoryTab extends StatelessWidget {
                             child: DropdownButton<String>(
                               value: selectedFoundationFilter ?? 'ALL',
                               isDense: true,
+                              isExpanded: true,
                               style:
                                   TextStyle(fontSize: 12, color: c.foreground),
                               items: [
                                 const DropdownMenuItem(
                                   value: 'ALL',
-                                  child: Text('All Foundations'),
+                                  child: Text('All Foundations',
+                                      overflow: TextOverflow.ellipsis),
                                 ),
                                 ...allTenants!.map((t) => DropdownMenuItem(
                                       value: t.id,
-                                      child: Text(t.name),
+                                      child: Text(t.name,
+                                          overflow: TextOverflow.ellipsis),
                                     )),
                               ],
                               onChanged: onFoundationFilterChanged,

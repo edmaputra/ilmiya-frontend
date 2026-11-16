@@ -20,7 +20,7 @@ class TenantSessionRequiredView extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = KiteColors.of(context);
     final t = KiteText.of(context);
-    final state = context.read<AppState>();
+    final state = Provider.of<AppState?>(context, listen: false);
     final auth = context.read<AuthNotifier>();
 
     return Center(
@@ -86,7 +86,7 @@ class TenantSessionRequiredView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () => state.setTab(8),
+                  onPressed: () => state?.setTab(8),
                   icon: const Icon(LucideIcons.building2, size: 16),
                   label: const Text('Go to Tenant Console'),
                 ),

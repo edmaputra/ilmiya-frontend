@@ -6,6 +6,7 @@ import 'package:ilmiya_app/core/services/mock_storage_service.dart';
 import 'package:ilmiya_app/core/theme/app_theme.dart';
 import 'package:ilmiya_app/features/auth/presentation/login_dialog.dart';
 import 'package:ilmiya_app/features/school_profile/dialogs/register_foundation_dialog.dart';
+import 'package:ilmiya_app/features/school_profile/presentation/schools_campuses_screen.dart';
 import 'package:ilmiya_app/features/school_profile/presentation/tenant_management_screen.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
 import 'package:kite_ui/shadcn.dart';
@@ -25,6 +26,20 @@ Widget buildTestableTenantScreen({AuthNotifier? authNotifier}) {
   );
 }
 
+Widget buildTestableSchoolsCampusesScreen({AuthNotifier? authNotifier}) {
+  return ChangeNotifierProvider<AuthNotifier>(
+    create: (_) => authNotifier ?? AuthNotifier(),
+    child: ShadTheme(
+      data: AppTheme.shadLightTheme,
+      child: const MaterialApp(
+        home: Scaffold(
+          body: SchoolsCampusesScreen(),
+        ),
+      ),
+    ),
+  );
+}
+
 void main() {
   setUp(() {
     ApiClient().tenantId = 'tenant-lincoln-high-001';
@@ -33,7 +48,7 @@ void main() {
 
   group('TenantManagementScreen Tests', () {
     testWidgets(
-        'renders title, superadmin badge, and switches through all 4 tabs',
+        'renders title, superadmin badge, and switches through all tabs',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -44,30 +59,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // Main title and badge
-      expect(find.text('Tenant & School Profile Management'), findsOneWidget);
+      expect(find.text('Tenant Governance & Platform Administration'),
+          findsOneWidget);
       expect(find.text('SUPERADMIN'), findsWidgets);
 
       // Default tab: Foundations (Yayasan)
       expect(find.text('TOTAL FOUNDATIONS'), findsOneWidget);
       expect(find.text('ACTIVE FOUNDATIONS'), findsOneWidget);
       expect(find.text('Register Foundation / Tenant'), findsOneWidget);
-
-      // Switch to Schools & Campuses tab
-      final schoolsTab = find.text('Schools & Campuses');
-      await tester.ensureVisible(schoolsTab);
-      await tester.tap(schoolsTab);
-      await tester.pumpAndSettle();
-      expect(find.text('TOTAL CAMPUSES'), findsOneWidget);
-      expect(find.text('ACTIVE SCHOOLS'), findsOneWidget);
-      expect(find.text('Register School Campus'), findsOneWidget);
-
-      // Switch to Institutional Inspector tab
-      final inspectorTab = find.text('Institutional Inspector');
-      await tester.ensureVisible(inspectorTab);
-      await tester.tap(inspectorTab);
-      await tester.pumpAndSettle();
-      expect(find.text('Select Tenant to Inspect:'), findsOneWidget);
-      expect(find.text('Legal & Institutional Identity'), findsOneWidget);
 
       // Switch to System & Quotas tab
       final quotasTab = find.text('System & Quotas');
@@ -299,11 +298,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(buildTestableTenantScreen());
-      await tester.pumpAndSettle();
-
-      // Switch to Schools & Campuses tab
-      await tester.tap(find.text('Schools & Campuses'));
+      await tester.pumpWidget(buildTestableSchoolsCampusesScreen());
       await tester.pumpAndSettle();
 
       final searchField = find.byWidgetPredicate((w) =>
@@ -327,11 +322,8 @@ void main() {
 
       final auth = AuthNotifier();
 
-      await tester.pumpWidget(buildTestableTenantScreen(authNotifier: auth));
-      await tester.pumpAndSettle();
-
-      // Switch to Schools & Campuses tab
-      await tester.tap(find.text('Schools & Campuses'));
+      await tester
+          .pumpWidget(buildTestableSchoolsCampusesScreen(authNotifier: auth));
       await tester.pumpAndSettle();
 
       // Active tenant is DEFAULT_TENANT_ID (Lincoln High)
@@ -383,7 +375,8 @@ void main() {
       await tester.pumpWidget(buildTestableTenantScreen());
       await tester.pumpAndSettle();
 
-      expect(find.text('Tenant & School Profile Management'), findsOneWidget);
+      expect(find.text('Tenant Governance & Platform Administration'),
+          findsOneWidget);
       expect(find.text('TOTAL FOUNDATIONS'), findsOneWidget);
 
       final registerBtn = find.text('Register Foundation / Tenant');
@@ -426,7 +419,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(buildTestableTenantScreen());
+      await tester.pumpWidget(buildTestableSchoolsCampusesScreen());
       await tester.pumpAndSettle();
 
       final inspectorTab = find.text('Institutional Inspector');

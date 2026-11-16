@@ -27,7 +27,10 @@ class MockStorageService {
   }
 
   void reset() {
-    _groupMembers = {};
+    _groupMembers = {
+      'grp-stem-faculty': {'u-33333333-3333-3333-3333-333333333333'},
+      'grp-grade-10': {'u-44444444-4444-4444-4444-444444444444'},
+    };
     _groupRoleAssignments = [];
 
     _tenants = [
@@ -326,6 +329,15 @@ class MockStorageService {
         createdAt: '2026-01-01T08:00:00Z',
         updatedAt: '2026-01-01T08:00:00Z',
       ),
+      UserResponse(
+        id: 'u-77777777-7777-7777-7777-777777777777',
+        email: 'kepsek@sma1-ilmiya.sch.id',
+        fullName: 'Dra. Nurhayati (Kepala SMAN 1 Ilmiya)',
+        status: 'ACTIVE',
+        isPlatformSuperAdmin: false,
+        createdAt: '2026-01-01T08:00:00Z',
+        updatedAt: '2026-01-01T08:00:00Z',
+      ),
     ];
 
     _roles = [
@@ -566,6 +578,14 @@ class MockStorageService {
         roleId: 'role-tenant-admin',
         tenantId: DEFAULT_TENANT_ID,
         scopeNodeId: 'scope-root',
+        assignedAt: '2026-01-01T08:00:00Z',
+      ),
+      UserRoleAssignmentResponse(
+        id: 'ura-6',
+        userId: 'u-77777777-7777-7777-7777-777777777777',
+        roleId: 'role-school-admin',
+        tenantId: 'tenant-sma1-ilmiya-002',
+        scopeNodeId: 'scope-tenant-sma1-ilmiya-002-root',
         assignedAt: '2026-01-01T08:00:00Z',
       ),
     ];
@@ -1037,9 +1057,7 @@ class MockStorageService {
           .where((a) => a.tenantId == tenantId)
           .map((a) => a.userId)
           .toSet();
-      final filtered =
-          _users.where((u) => assignedUserIds.contains(u.id)).toList();
-      if (filtered.isNotEmpty) return filtered;
+      return _users.where((u) => assignedUserIds.contains(u.id)).toList();
     }
     return List.unmodifiable(_users);
   }
@@ -1247,6 +1265,14 @@ class MockStorageService {
     return _users.where((u) => memberIds.contains(u.id)).toList();
   }
 
+  List<GroupResponse> getUserGroups(String userId) {
+    final groupIds = _groupMembers.entries
+        .where((e) => e.value.contains(userId))
+        .map((e) => e.key)
+        .toSet();
+    return _groups.where((g) => groupIds.contains(g.id)).toList();
+  }
+
   void addUserToGroup(String userId, String groupId) {
     _groupMembers.putIfAbsent(groupId, () => <String>{}).add(userId);
   }
@@ -1301,18 +1327,55 @@ class MockStorageService {
     return [root];
   }
 
+  ScopeTreeNode? _findScopeNode(List<ScopeTreeNode> nodes, String? id) {
+    if (id == null) return null;
+    for (final n in nodes) {
+      if (n.id == id) return n;
+      final child = _findScopeNode(n.children, id);
+      if (child != null) return child;
+    }
+    return null;
+  }
+
   ScopeTreeNode createScope(String tenantId, CreateScopeRequest req) {
+    final currentScopes = getScopeTree(tenantId);
+    String computedPath;
+    int computedDepth = 0;
+
+    if (req.parentId == null) {
+      final school = _schools.where((s) => s.tenantId == tenantId).firstOrNull;
+      final schoolId = school?.id ?? 'school';
+      final cleanCode =
+          req.code.startsWith('/') ? req.code.substring(1) : req.code;
+      computedPath = (cleanCode == 'ROOT' || cleanCode == schoolId)
+          ? '/$tenantId/$schoolId'
+          : '/$tenantId/$schoolId/$cleanCode';
+      computedDepth = 0;
+    } else {
+      final parentNode = _findScopeNode(currentScopes, req.parentId);
+      if (parentNode != null) {
+        computedDepth = parentNode.depth + 1;
+        final p = parentNode.path.endsWith('/')
+            ? parentNode.path.substring(0, parentNode.path.length - 1)
+            : parentNode.path;
+        final cleanCode =
+            req.code.startsWith('/') ? req.code.substring(1) : req.code;
+        computedPath = '$p/$cleanCode';
+      } else {
+        computedPath = '/${req.code}';
+      }
+    }
+
     final newNode = ScopeTreeNode(
       id: 'scope-${DateTime.now().millisecondsSinceEpoch}',
       code: req.code,
       name: req.name,
-      path: '/${req.code}',
-      depth: 0,
+      path: computedPath,
+      depth: computedDepth,
       parentId: req.parentId,
       children: [],
     );
 
-    final currentScopes = getScopeTree(tenantId);
     if (req.parentId == null) {
       currentScopes.add(newNode);
     } else {
@@ -1340,6 +1403,37 @@ class MockStorageService {
         return true;
       }
       if (_addChildToScopeNode(nodes[i].children, parentId, child)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool deleteScope(String tenantId, String scopeId) {
+    final currentScopes = getScopeTree(tenantId);
+    final removed = _removeScopeNode(currentScopes, scopeId);
+    _tenantScopes[tenantId] = currentScopes;
+    return removed;
+  }
+
+  bool _removeScopeNode(List<ScopeTreeNode> nodes, String scopeId) {
+    final index = nodes.indexWhere((n) => n.id == scopeId);
+    if (index != -1) {
+      nodes.removeAt(index);
+      return true;
+    }
+    for (int i = 0; i < nodes.length; i++) {
+      final childList = List<ScopeTreeNode>.from(nodes[i].children);
+      if (_removeScopeNode(childList, scopeId)) {
+        nodes[i] = ScopeTreeNode(
+          id: nodes[i].id,
+          code: nodes[i].code,
+          name: nodes[i].name,
+          path: nodes[i].path,
+          depth: nodes[i].depth,
+          parentId: nodes[i].parentId,
+          children: childList,
+        );
         return true;
       }
     }

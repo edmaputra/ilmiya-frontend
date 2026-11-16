@@ -7,20 +7,24 @@ import '../../../core/utils/app_toast.dart';
 
 class CreateUserDialog extends StatefulWidget {
   final Future<void> Function() onUserCreated;
+  final String? tenantId;
 
   const CreateUserDialog({
     super.key,
     required this.onUserCreated,
+    this.tenantId,
   });
 
   static Future<void> show(
     BuildContext context, {
     required Future<void> Function() onUserCreated,
+    String? tenantId,
   }) {
     return showDialog(
       context: context,
       builder: (ctx) => CreateUserDialog(
         onUserCreated: onUserCreated,
+        tenantId: tenantId,
       ),
     );
   }
@@ -52,12 +56,15 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
 
     final fullName = _nameCtrl.text.trim();
     try {
-      await iamService.createUser(CreateUserRequest(
-        email: _emailCtrl.text.trim(),
-        fullName: fullName,
-        password: _passwordCtrl.text,
-        platformSuperAdmin: _isSuperAdmin,
-      ));
+      await iamService.createUser(
+        CreateUserRequest(
+          email: _emailCtrl.text.trim(),
+          fullName: fullName,
+          password: _passwordCtrl.text,
+          platformSuperAdmin: _isSuperAdmin,
+        ),
+        tenantId: widget.tenantId,
+      );
 
       if (mounted) {
         AppToast.showSuccess(context, "User '$fullName' created successfully");

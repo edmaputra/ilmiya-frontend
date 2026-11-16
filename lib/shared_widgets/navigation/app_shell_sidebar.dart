@@ -227,13 +227,20 @@ class AppShellSidebar extends StatelessWidget {
                 children: [
                   if (showInstitutionSection) ...[
                     _buildSectionHeader('Institution & Control'),
-                    if (canViewSchoolProfile)
+                    if (canViewSchoolProfile) ...[
                       AppShellNavTile(
                         title: 'School Profile',
                         icon: LucideIcons.school,
                         tabIndex: 0,
                         isActive: state.currentTab == 0,
                       ),
+                      AppShellNavTile(
+                        title: 'Schools & Campuses',
+                        icon: LucideIcons.building,
+                        tabIndex: 9,
+                        isActive: state.currentTab == 9,
+                      ),
+                    ],
                     if (showExecutiveDashboard && canViewDashboard)
                       AppShellNavTile(
                         title: 'Executive Dashboard',

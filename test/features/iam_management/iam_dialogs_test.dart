@@ -349,7 +349,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Add Child Scope'), findsOneWidget);
+      expect(find.text('Add Custom Scope'), findsOneWidget);
 
       // Attempt submit without filling
       await tester.tap(find.text('Save Scope'));

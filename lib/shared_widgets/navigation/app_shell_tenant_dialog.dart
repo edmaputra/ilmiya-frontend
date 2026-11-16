@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/models/school.dart';
 import '../../core/services/school_service.dart';
+import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
 
 class AppShellTenantDialog extends StatefulWidget {
@@ -156,6 +158,11 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
       await widget.auth.switchTenant(tenant);
       if (mounted) {
         Navigator.of(context).pop();
+        if (widget.auth.isPlatformSession) {
+          try {
+            Provider.of<AppState>(context, listen: false).setTab(8);
+          } catch (_) {}
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Switched tenant to $tenant')),
         );
@@ -238,7 +245,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
       ),
       content: SizedBox(
         width: 520,
-        height: 480,
+        height: 540,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -290,6 +297,101 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
               ),
             ),
             const SizedBox(height: 12),
+
+            if (widget.auth.isSuperAdmin) ...[
+              InkWell(
+                key: const Key('platform_operations_tenant_tile'),
+                onTap: () {
+                  setState(() {
+                    _selectedTenantId = 'platform';
+                    _customTenantCtrl.text = 'platform';
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _selectedTenantId == 'platform'
+                        ? AppColors.forestSage.withOpacity(isDark ? 0.2 : 0.08)
+                        : surfaceBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _selectedTenantId == 'platform'
+                          ? AppColors.forestSage
+                          : borderColor,
+                      width: _selectedTenantId == 'platform' ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: _selectedTenantId == 'platform'
+                              ? AppColors.forestSage.withOpacity(0.18)
+                              : (isDark
+                                  ? Colors.white12
+                                  : const Color(0xFFE2E8F0)),
+                        ),
+                        child: Icon(
+                          LucideIcons.building2,
+                          size: 18,
+                          color: _selectedTenantId == 'platform'
+                              ? AppColors.forestSage
+                              : secondaryTextColor,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Platform Operations (Global Console)',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: primaryTextColor,
+                              ),
+                            ),
+                            Text(
+                              'Root superadmin platform session • Manage all tenants',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (widget.auth.isPlatformSession)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.forestSage.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'CURRENT',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.forestSage,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
 
             // School List
             Expanded(

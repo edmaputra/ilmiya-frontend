@@ -14,6 +14,7 @@ import 'package:ilmiya_app/features/academic_years/presentation/academic_years_s
 import 'package:ilmiya_app/features/iam_management/dialogs/assign_role_dialog.dart';
 import 'package:ilmiya_app/features/iam_management/dialogs/edit_role_dialog.dart';
 import 'package:ilmiya_app/features/iam_management/presentation/iam_management_screen.dart';
+import 'package:ilmiya_app/features/iam_management/widgets/iam_scopes_tab.dart';
 import 'package:ilmiya_app/features/iam_management/widgets/iam_user_tile.dart';
 import 'package:ilmiya_app/features/school_profile/presentation/school_profile_screen.dart';
 import 'package:ilmiya_app/shared_widgets/navigation/app_shell_sidebar.dart';
@@ -133,6 +134,42 @@ void main() {
       expect(find.text('School Profile'), findsOneWidget);
       expect(find.text('Academic Years'), findsOneWidget);
       expect(find.text('IAM Console'), findsOneWidget);
+    });
+
+    testWidgets(
+        'Superadmin switched to specific tenant only sees users under that tenant in IAM Console',
+        (WidgetTester tester) async {
+      setUpViewport(tester);
+
+      // Login as Superadmin persona
+      await authNotifier.loginAsPersona(DemoPersonaKey.superadmin);
+
+      // Switch to tenant-sma1-ilmiya-002
+      await authNotifier.switchTenant('tenant-sma1-ilmiya-002');
+      await tester.pumpAndSettle();
+
+      // Render IAM Management Screen
+      await tester.pumpWidget(buildTestHost(const IamManagementScreen()));
+      await tester.pumpAndSettle();
+
+      // User List tab should only show users for tenant-sma1-ilmiya-002
+      expect(
+          find.text('Dra. Nurhayati (Kepala SMAN 1 Ilmiya)'), findsOneWidget);
+      expect(find.text('Prof. Marcus Chen (School Principal)'), findsNothing);
+      expect(find.text('Dr. Eleanor Vance (Computer Science Faculty)'),
+          findsNothing);
+      expect(find.text('Alex Rivera (Class 10-A)'), findsNothing);
+
+      // Now switch session to tenant-lincoln-high-001
+      await authNotifier.switchTenant('tenant-lincoln-high-001');
+      await tester.pumpWidget(buildTestHost(const IamManagementScreen()));
+      await tester.pumpAndSettle();
+
+      // User List tab should now show Lincoln High users and NOT Dra. Nurhayati
+      expect(find.text('Prof. Marcus Chen (School Principal)'), findsOneWidget);
+      expect(find.text('Dr. Eleanor Vance (Computer Science Faculty)'),
+          findsOneWidget);
+      expect(find.text('Dra. Nurhayati (Kepala SMAN 1 Ilmiya)'), findsNothing);
     });
   });
 
@@ -355,8 +392,13 @@ void main() {
       expect(find.text('Edit Role: CURRICULUM_EDITOR'), findsOneWidget);
 
       // Edit name
-      final textFields = find.byType(TextField);
-      await tester.enterText(textFields.at(0), 'Senior Curriculum Editor');
+      final nameField = find.widgetWithText(TextFormField, 'Role Name *');
+      if (nameField.evaluate().isNotEmpty) {
+        await tester.enterText(nameField, 'Senior Curriculum Editor');
+      } else {
+        final textFields = find.byType(TextField);
+        await tester.enterText(textFields.at(0), 'Senior Curriculum Editor');
+      }
 
       // Tap Save Changes
       await tester.tap(find.widgetWithText(ElevatedButton, 'Save Changes'));
@@ -396,6 +438,185 @@ void main() {
         () => iamService.deleteRole(systemRole.id),
         throwsA(isA<Exception>()),
       );
+    });
+
+    testWidgets('Scope removal deletes node from tree and calls deleteScope',
+        (WidgetTester tester) async {
+      // Create a scope
+      await iamService.createScope(CreateScopeRequest(
+        tenantId: 'tenant-lincoln-high-001',
+        code: 'TEMPORARY_SCOPE',
+        name: 'Temporary Scope',
+      ));
+
+      final scopesBefore = await iamService.getScopeTree();
+      expect(scopesBefore.any((s) => s.code == 'TEMPORARY_SCOPE'), isTrue);
+
+      final targetNode =
+          scopesBefore.firstWhere((s) => s.code == 'TEMPORARY_SCOPE');
+
+      // Verify service deletion
+      await iamService.deleteScope(targetNode.id);
+
+      final scopesAfter = await iamService.getScopeTree();
+      expect(scopesAfter.any((s) => s.code == 'TEMPORARY_SCOPE'), isFalse);
+    });
+  });
+
+  group('5. School-Anchored IAM Scope & Multi-Role/Group Assignment', () {
+    testWidgets(
+        'IamScopesTab displays school required notice and disables root scope button when schools list is empty',
+        (WidgetTester tester) async {
+      setUpViewport(tester);
+
+      bool createTapped = false;
+
+      await tester.pumpWidget(
+        buildTestHost(
+          IamScopesTab(
+            scopes: const [],
+            schools: const [],
+            tenantId: 'tenant-test-001',
+            canCreateScope: true,
+            onCreateRootScope: (_) => createTapped = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hierarchical Scope Tree'), findsOneWidget);
+      expect(find.text('School Required to Manage Scopes'), findsOneWidget);
+
+      final createBtn = find.byKey(const ValueKey('create_root_scope_btn'));
+      expect(createBtn, findsOneWidget);
+      await tester.tap(createBtn);
+      await tester.pumpAndSettle();
+
+      expect(createTapped, isFalse);
+    });
+
+    testWidgets(
+        'IamScopesTab shows school selector and displays school-scoped root path when schools are present',
+        (WidgetTester tester) async {
+      setUpViewport(tester);
+
+      final sampleSchools = <SchoolResponse>[
+        SchoolResponse(
+          id: 'school-sma-01',
+          tenantId: 'tenant-test-001',
+          name: 'SMA Al-Hikmah Primary',
+          institutionCode: 'SMA01',
+          status: 'ACTIVE',
+          address: 'Jl. Merdeka 10',
+          contactEmail: 'sma01@ilmiya.edu',
+          contactPhone: '08123456789',
+          workingDays: const ['MONDAY', 'TUESDAY'],
+          gradingPreference: 'PERCENTAGE',
+          termLayout: 'SEMESTER',
+          createdAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now().toIso8601String(),
+        ),
+      ];
+
+      SchoolResponse? createdForSchool;
+
+      await tester.pumpWidget(
+        buildTestHost(
+          IamScopesTab(
+            scopes: [
+              ScopeTreeNode(
+                id: 'scope-root-sma',
+                code: 'SMA01',
+                name: 'SMA Al-Hikmah Primary Root',
+                path: '/tenant-test-001/school-sma-01',
+                depth: 0,
+                children: [],
+              ),
+            ],
+            schools: sampleSchools,
+            tenantId: 'tenant-test-001',
+            canCreateScope: true,
+            onCreateRootScope: (s) => createdForSchool = s,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('School Required to Manage Scopes'), findsNothing);
+      expect(find.text('Select School:'), findsOneWidget);
+      expect(find.textContaining('/tenant-test-001/school-sma-01/'),
+          findsOneWidget);
+
+      final createBtn = find.byKey(const ValueKey('create_root_scope_btn'));
+      expect(createBtn, findsOneWidget);
+      await tester.tap(createBtn);
+      await tester.pumpAndSettle();
+
+      expect(createdForSchool, isNotNull);
+      expect(createdForSchool!.id, equals('school-sma-01'));
+    });
+
+    testWidgets(
+        'AssignRoleDialog supports multi-role listing, revoking, and groups tab',
+        (WidgetTester tester) async {
+      setUpViewport(tester);
+
+      final user = UserResponse(
+        id: 'u-multi-test',
+        email: 'multi.user@ilmiya.edu',
+        fullName: 'Dr. Multi Role',
+        status: 'ACTIVE',
+        isPlatformSuperAdmin: false,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+
+      final roles = [
+        RoleResponse(
+          id: 'role-teacher',
+          tenantId: 'tenant-lincoln-high-001',
+          code: 'TEACHER',
+          name: 'Teacher',
+          isSystemRole: false,
+          permissions: ['grade:write'],
+          createdAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now().toIso8601String(),
+        ),
+      ];
+
+      // Assign initial role
+      await iamService.assignRole(
+        userId: user.id,
+        roleId: 'role-teacher',
+        tenantId: 'tenant-lincoln-high-001',
+      );
+
+      await tester.pumpWidget(
+        buildTestHost(
+          AssignRoleDialog(
+            user: user,
+            roles: roles,
+            scopes: const [],
+            tenantId: 'tenant-lincoln-high-001',
+            iamService: iamService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Check Tabs
+      expect(find.text('Roles & Scopes'), findsOneWidget);
+      expect(find.text('Groups'), findsOneWidget);
+
+      // Check current assigned role is listed
+      expect(find.textContaining('Teacher'), findsAtLeastNWidgets(1));
+
+      // Switch to Groups tab
+      await tester.tap(find.text('Groups'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Group Memberships'), findsOneWidget);
+      expect(find.textContaining('Add to Group'), findsAtLeastNWidgets(1));
     });
   });
 }

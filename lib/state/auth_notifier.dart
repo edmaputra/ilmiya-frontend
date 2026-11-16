@@ -7,8 +7,12 @@ import '../core/services/session_storage_service.dart';
 import '../core/services/tenant_service.dart';
 
 bool checkPermission(List<String> userPermissions, List<String> userRoles,
-    String targetPermission) {
-  if (userRoles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
+    String targetPermission,
+    {bool isSuperAdmin = false}) {
+  if (isSuperAdmin ||
+      userRoles.any((r) =>
+          r.toUpperCase() == 'SUPERADMIN' ||
+          r.toUpperCase() == 'ROLE_SUPERADMIN') ||
       userPermissions.contains('*')) {
     return true;
   }
@@ -110,6 +114,7 @@ class AuthNotifier extends ChangeNotifier {
     }
     _lastMockMode = _apiClient.isMockMode;
     _hasSwitchedTenant = _apiClient.tenantId != 'platform';
+    _tenantId = _apiClient.tenantId;
     _unsubscribeAuthExpired = _apiClient.onAuthExpired(([reason]) {
       _user = null;
       _token = null;
@@ -227,10 +232,17 @@ class AuthNotifier extends ChangeNotifier {
   String? get error => _error;
 
   bool get isSuperAdmin =>
-      hasRole('SUPERADMIN') || (_user?.isPlatformSuperAdmin ?? false);
-  bool get isTenantAdmin => hasRole('TENANT_ADMIN');
+      (_user?.isPlatformSuperAdmin ?? false) ||
+      _roles.any((r) =>
+          r.toUpperCase() == 'SUPERADMIN' ||
+          r.toUpperCase() == 'ROLE_SUPERADMIN');
+  bool get isTenantAdmin =>
+      !isSuperAdmin &&
+      _roles.any((r) =>
+          r.toUpperCase() == 'TENANT_ADMIN' ||
+          r.toUpperCase() == 'ROLE_TENANT_ADMIN');
   bool get hasSwitchedTenant => _hasSwitchedTenant;
-  bool get isPlatformSession => isSuperAdmin && !_hasSwitchedTenant;
+  bool get isPlatformSession => isSuperAdmin && _tenantId == 'platform';
 
   void clearError() {
     _error = null;
@@ -238,12 +250,17 @@ class AuthNotifier extends ChangeNotifier {
   }
 
   bool hasPermission(String targetPermission) {
-    return checkPermission(_permissions, _roles, targetPermission);
+    return checkPermission(_permissions, _roles, targetPermission,
+        isSuperAdmin: isSuperAdmin);
   }
 
   bool hasRole(String role) {
+    if (isSuperAdmin) return true;
     final normalized = role.toUpperCase();
-    return _roles.any((r) => r.toUpperCase() == normalized);
+    return _roles.any((r) =>
+        r.toUpperCase() == normalized ||
+        r.toUpperCase() == 'ROLE_$normalized' ||
+        'ROLE_${r.toUpperCase()}' == normalized);
   }
 
   Future<void> refreshProfile({bool showLoading = false}) async {
@@ -256,9 +273,11 @@ class AuthNotifier extends ChangeNotifier {
       _user = profile;
       _roles = profile.roles;
       _permissions = profile.permissions;
-      final isSuper = _roles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
-          (_user?.isPlatformSuperAdmin ?? false);
-      if (isSuper && !_hasSwitchedTenant) {
+      final isSuper = (_user?.isPlatformSuperAdmin ?? false) ||
+          _roles.any((r) =>
+              r.toUpperCase() == 'SUPERADMIN' ||
+              r.toUpperCase() == 'ROLE_SUPERADMIN');
+      if (isSuper && _apiClient.tenantId == 'platform') {
         _tenantId = 'platform';
       } else {
         _tenantId =
@@ -304,8 +323,10 @@ class AuthNotifier extends ChangeNotifier {
       if (resp.user != null) {
         _user = resp.user;
       }
-      final isSuper = _roles.any((r) => r.toUpperCase() == 'SUPERADMIN') ||
-          (_user?.isPlatformSuperAdmin ?? false);
+      final isSuper = (_user?.isPlatformSuperAdmin ?? false) ||
+          _roles.any((r) =>
+              r.toUpperCase() == 'SUPERADMIN' ||
+              r.toUpperCase() == 'ROLE_SUPERADMIN');
       if (isSuper) {
         _hasSwitchedTenant = false;
         _tenantId = 'platform';
@@ -370,7 +391,6 @@ class AuthNotifier extends ChangeNotifier {
     _roles = [];
     _permissions = [];
     _hasSwitchedTenant = false;
-    _tenantId = 'platform';
     _error = null;
     _isLoading = false;
     _tenantId = _apiClient.tenantId;
@@ -392,12 +412,34 @@ class AuthNotifier extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
+      if (newTenantId == 'platform') {
+        _hasSwitchedTenant = false;
+        _tenantId = 'platform';
+        _apiClient.tenantId = 'platform';
+        _schoolName = 'Platform Operations';
+        _tenantName = 'Platform Administration';
+        await refreshProfile();
+        await _sessionStorage.saveTenantId('platform');
+        if (_user != null) {
+          await _sessionStorage.saveUserProfile(_user, _schoolName);
+        }
+        _sessionId = DateTime.now().microsecondsSinceEpoch.toString();
+        for (final listener in List.of(_onLoginListeners)) {
+          try {
+            listener();
+          } catch (_) {}
+        }
+        return;
+      }
       final resp = await _iamService.switchTenant(newTenantId);
       _hasSwitchedTenant = true;
       _tenantId = resp.tenantId.isNotEmpty ? resp.tenantId : newTenantId;
       _apiClient.tenantId = _tenantId;
       _roles = resp.roles;
       _permissions = resp.permissions;
+      if (resp.user != null) {
+        _user = resp.user;
+      }
       try {
         final tenant = await _tenantService.getTenant(_tenantId);
         _tenantName = tenant.name;
