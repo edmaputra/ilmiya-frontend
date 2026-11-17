@@ -45,21 +45,9 @@ class IlmiyaAppShell extends StatelessWidget {
                   ),
                 )
               : null,
-          bottomNavigationBar: !isDesktop
-              ? (auth.isSuperAdmin && auth.isPlatformSession
+          bottomNavigationBar:
+              !isDesktop && (!auth.isSuperAdmin || !auth.isPlatformSession)
                   ? NavigationBar(
-                      selectedIndex: 0,
-                      onDestinationSelected: (_) => state.setTab(8),
-                      backgroundColor: c.card,
-                      indicatorColor: c.primary.withOpacity(0.18),
-                      destinations: const [
-                        NavigationDestination(
-                          icon: Icon(LucideIcons.building2, size: 20),
-                          label: 'Tenants',
-                        ),
-                      ],
-                    )
-                  : NavigationBar(
                       selectedIndex: state.currentTab.clamp(0, 3),
                       onDestinationSelected: (index) => state.setTab(index),
                       backgroundColor: c.card,
@@ -82,8 +70,8 @@ class IlmiyaAppShell extends StatelessWidget {
                           label: 'Previews',
                         ),
                       ],
-                    ))
-              : null,
+                    )
+                  : null,
           body: SafeArea(
             child: Stack(
               children: [
