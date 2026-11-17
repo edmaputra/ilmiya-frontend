@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ilmiya_app/core/models/iam.dart';
 import 'package:ilmiya_app/core/models/school.dart';
 import 'package:ilmiya_app/core/services/api_client.dart';
 import 'package:ilmiya_app/core/services/iam_service.dart';
 import 'package:ilmiya_app/core/services/mock_storage_service.dart';
 import 'package:ilmiya_app/core/services/school_service.dart';
+import 'package:ilmiya_app/core/services/session_storage_service.dart';
 import 'package:ilmiya_app/core/theme/app_theme.dart';
 import 'package:ilmiya_app/features/search/ilmiya_command_palette.dart';
 import 'package:ilmiya_app/shared_widgets/ilmiya_app_shell.dart';
@@ -45,6 +47,8 @@ void main() {
   setUp(() {
     ApiClient().isMockMode = true;
     MockStorageService().reset();
+    SessionStorageService().resetForTesting();
+    ApiClient().resetTenantId();
   });
 
   testWidgets('IlmiyaAppShell renders desktop sidebar, top bar, and body',
@@ -178,6 +182,26 @@ void main() {
     await tester.tap(find.text('Calendar'));
     await tester.pumpAndSettle();
     expect(appState.currentTab, equals(1));
+  });
+
+  testWidgets(
+      'IlmiyaAppShell does not throw assertion on compact viewport for platform superadmin',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final appState = _makeAppState();
+    final auth = _makeAuth();
+    await auth.loginAsPersona(DemoPersonaKey.superadmin);
+
+    await tester.pumpWidget(_buildShellHost(appState: appState, auth: auth));
+    await tester.pumpAndSettle();
+
+    // NavigationBar with < 2 items is omitted on compact viewport, avoiding assertion error
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets(

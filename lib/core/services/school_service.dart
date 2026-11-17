@@ -60,7 +60,7 @@ class SchoolService {
 
   Future<SchoolResponse> getProfile({String? tenantId}) async {
     final effectiveTenant = tenantId ?? _apiClient.tenantId;
-    if (effectiveTenant.isEmpty) {
+    if (effectiveTenant.isEmpty || effectiveTenant == 'platform') {
       return SchoolResponse.empty();
     }
     if (_apiClient.isMockMode) {
@@ -89,13 +89,17 @@ class SchoolService {
   Future<SchoolResponse> updateProfile(UpdateSchoolRequest req,
       {String? tenantId}) async {
     final effectiveTenant = tenantId ?? _apiClient.tenantId;
+    if (effectiveTenant.isEmpty || effectiveTenant == 'platform') {
+      return SchoolResponse.empty();
+    }
     if (_apiClient.isMockMode) {
       return _mockStorage.updateSchoolProfile(req,
           targetTenantId: effectiveTenant);
     }
 
     final headers = <String, String>{
-      if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
+      if (effectiveTenant.isNotEmpty && effectiveTenant != 'platform')
+        'X-Tenant-ID': effectiveTenant,
     };
 
     final json = await _apiClient.request(
@@ -110,13 +114,17 @@ class SchoolService {
   Future<SchoolResponse> configureSettings(ConfigureSchoolSettingsRequest req,
       {String? tenantId}) async {
     final effectiveTenant = tenantId ?? _apiClient.tenantId;
+    if (effectiveTenant.isEmpty || effectiveTenant == 'platform') {
+      return SchoolResponse.empty();
+    }
     if (_apiClient.isMockMode) {
       return _mockStorage.configureSchoolSettings(req,
           targetTenantId: effectiveTenant);
     }
 
     final headers = <String, String>{
-      if (effectiveTenant.isNotEmpty) 'X-Tenant-ID': effectiveTenant,
+      if (effectiveTenant.isNotEmpty && effectiveTenant != 'platform')
+        'X-Tenant-ID': effectiveTenant,
     };
 
     final json = await _apiClient.request(

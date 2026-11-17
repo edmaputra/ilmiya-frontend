@@ -21,6 +21,27 @@ class FlattenedScopeItem {
   });
 }
 
+class StagedRoleAssignment {
+  final String roleId;
+  final String? scopeNodeId;
+
+  const StagedRoleAssignment({
+    required this.roleId,
+    this.scopeNodeId,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is StagedRoleAssignment &&
+          runtimeType == other.runtimeType &&
+          roleId == other.roleId &&
+          scopeNodeId == other.scopeNodeId;
+
+  @override
+  int get hashCode => roleId.hashCode ^ (scopeNodeId?.hashCode ?? 0);
+}
+
 class AssignRoleDialog extends StatefulWidget {
   final UserResponse user;
   final List<RoleResponse> roles;
@@ -92,6 +113,7 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
   List<UserRoleAssignmentResponse> _roleAssignments = [];
   List<GroupResponse> _userGroups = [];
   List<GroupResponse> _allGroups = [];
+  final List<StagedRoleAssignment> _stagedAssignments = [];
 
   bool _isLoading = true;
   bool _isAssigningRole = false;
@@ -141,6 +163,23 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
     return list;
   }
 
+  RoleResponse _findRole(String roleId) {
+    return widget.roles.firstWhere(
+      (r) => r.id == roleId || r.code == roleId,
+      orElse: () => RoleResponse(
+        id: roleId,
+        tenantId: widget.tenantId ?? '',
+        code: roleId,
+        name: roleId,
+        description: '',
+        permissions: [],
+        isSystemRole: false,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      ),
+    );
+  }
+
   String _findScopeLabel(String? scopeId) {
     if (scopeId == null || scopeId.isEmpty) {
       return 'Entire Tenant (Root Scope)';
@@ -152,6 +191,22 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
           : match.label;
     }
     return scopeId;
+  }
+
+  bool _isAssignmentAlreadyActive(String roleId, String? scopeId) {
+    return _roleAssignments.any((a) {
+      final matchesRole = a.roleId == roleId ||
+          widget.roles.any((r) =>
+              (r.id == roleId || r.code == roleId) &&
+              (r.id == a.roleId || r.code == a.roleId));
+      final matchesScope = (a.scopeNodeId ?? '') == (scopeId ?? '');
+      return matchesRole && matchesScope;
+    });
+  }
+
+  bool _isAssignmentAlreadyStaged(String roleId, String? scopeId) {
+    return _stagedAssignments.any(
+        (a) => a.roleId == roleId && (a.scopeNodeId ?? '') == (scopeId ?? ''));
   }
 
   Future<void> _loadData() async {
@@ -211,8 +266,69 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
     return _allGroups.where((g) => !assignedIds.contains(g.id)).toList();
   }
 
-  Future<void> _submitRole() async {
-    if (_selectedRoleId.isEmpty) return;
+  void _addToBatchQueue({String? specificRoleId, String? specificScopeId}) {
+    final roleId = specificRoleId ?? _selectedRoleId;
+    final scopeId = specificScopeId ?? _selectedScopeId;
+
+    if (roleId.isEmpty) return;
+
+    final role = _findRole(roleId);
+
+    if (_isAssignmentAlreadyActive(roleId, scopeId)) {
+      AppToast.showInfo(
+        context,
+        'Role "${role.name}" is already assigned to this scope.',
+      );
+      return;
+    }
+
+    if (_isAssignmentAlreadyStaged(roleId, scopeId)) {
+      AppToast.showInfo(
+        context,
+        'Role "${role.name}" is already staged in the batch queue.',
+      );
+      return;
+    }
+
+    setState(() {
+      _stagedAssignments.add(StagedRoleAssignment(
+        roleId: roleId,
+        scopeNodeId: scopeId,
+      ));
+    });
+
+    AppToast.showSuccess(
+      context,
+      'Staged "${role.name}" to batch queue',
+    );
+  }
+
+  void _removeFromBatchQueue(int index) {
+    setState(() {
+      _stagedAssignments.removeAt(index);
+    });
+  }
+
+  void _clearBatchQueue() {
+    setState(() {
+      _stagedAssignments.clear();
+    });
+  }
+
+  Future<void> _submitBatchAssignments() async {
+    final itemsToAssign = _stagedAssignments.isNotEmpty
+        ? List<StagedRoleAssignment>.from(_stagedAssignments)
+        : (_selectedRoleId.isNotEmpty
+            ? [
+                StagedRoleAssignment(
+                  roleId: _selectedRoleId,
+                  scopeNodeId: _selectedScopeId,
+                )
+              ]
+            : <StagedRoleAssignment>[]);
+
+    if (itemsToAssign.isEmpty) return;
+
     setState(() => _isAssigningRole = true);
     try {
       final effectiveTenantId =
@@ -220,22 +336,32 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
               ? widget.tenantId!
               : apiClient.tenantId;
 
-      await _effectiveIamService.assignRole(
+      final requests = itemsToAssign
+          .map((item) => AssignUserRoleRequest(
+                roleId: item.roleId,
+                tenantId: effectiveTenantId,
+                scopeNodeId: item.scopeNodeId,
+              ))
+          .toList();
+
+      await _effectiveIamService.assignRolesBatch(
         userId: widget.user.id,
-        roleId: _selectedRoleId,
-        tenantId: effectiveTenantId,
-        scopeNodeId: _selectedScopeId,
+        assignments: requests,
       );
 
       if (mounted) {
+        setState(() => _stagedAssignments.clear());
         widget.onRoleAssigned?.call();
+        final count = requests.length;
         AppToast.showSuccess(
-            context, 'Role & Scope successfully assigned to user');
+          context,
+          'Successfully assigned $count ${count == 1 ? "role & scope" : "roles in batch"} to user',
+        );
         await _loadData();
       }
     } catch (e) {
       if (mounted) {
-        AppToast.showError(context, 'Failed to assign role & scope: $e');
+        AppToast.showError(context, 'Failed to assign roles (batch): $e');
       }
     } finally {
       if (mounted) setState(() => _isAssigningRole = false);
@@ -419,8 +545,8 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
         ],
       ),
       content: SizedBox(
-        width: 540,
-        height: 480,
+        width: 560,
+        height: 520,
         child: _isLoading
             ? const Center(
                 child: CircularProgressIndicator(color: AppColors.forestSage),
@@ -444,7 +570,7 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Current Role Assignments
+          // Current Role Assignments Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -456,10 +582,24 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
                   color: AppColors.textPrimary,
                 ),
               ),
-              Text(
-                '${_roleAssignments.length} active',
-                style:
-                    const TextStyle(fontSize: 11, color: AppColors.textMuted),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _roleAssignments.isEmpty
+                      ? Colors.grey.shade200
+                      : AppColors.forestSage.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${_roleAssignments.length} active',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: _roleAssignments.isEmpty
+                        ? AppColors.textMuted
+                        : AppColors.forestSage,
+                  ),
+                ),
               ),
             ],
           ),
@@ -498,20 +638,7 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
               separatorBuilder: (_, __) => const SizedBox(height: 6),
               itemBuilder: (ctx, i) {
                 final a = _roleAssignments[i];
-                final role = widget.roles.firstWhere(
-                  (r) => r.id == a.roleId || r.code == a.roleId,
-                  orElse: () => RoleResponse(
-                    id: a.roleId,
-                    tenantId: a.tenantId,
-                    code: a.roleId,
-                    name: a.roleId,
-                    description: '',
-                    permissions: [],
-                    isSystemRole: false,
-                    createdAt: a.assignedAt,
-                    updatedAt: a.assignedAt,
-                  ),
-                );
+                final role = _findRole(a.roleId);
                 final scopeLabel = _findScopeLabel(a.scopeNodeId);
                 final isRevoking = _revokingAssignmentId == a.id;
 
@@ -590,25 +717,113 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
               },
             ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           const Divider(height: 1),
           const SizedBox(height: 16),
 
-          // Assign New Role & Scope Form
-          const Text(
-            'Assign New Role & Scope:',
-            style: TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Select RBAC role and target scope boundary for this user:',
-            style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+          // Batch Role Assignment Section Header
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: AppColors.forestSage.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(LucideIcons.layers,
+                    size: 14, color: AppColors.forestSage),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Batch Role Assignment',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        _BatchEndpointTag(),
+                      ],
+                    ),
+                    SizedBox(height: 1),
+                    Text(
+                      'Stage multiple roles and scopes, then apply all in one batch request.',
+                      style:
+                          TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
+
+          // Quick Role Chips
+          if (widget.roles.isNotEmpty) ...[
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: widget.roles.map((r) {
+                final isSelected = _selectedRoleId == r.id;
+                final isAssigned = _roleAssignments.any((a) =>
+                    a.roleId == r.id ||
+                    widget.roles.any((x) =>
+                        (x.id == r.id || x.code == r.id) &&
+                        (x.id == a.roleId || x.code == a.roleId)));
+
+                return ActionChip(
+                  visualDensity: VisualDensity.compact,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                  avatar: Icon(
+                    isAssigned
+                        ? LucideIcons.shieldCheck
+                        : (isSelected ? LucideIcons.check : LucideIcons.shield),
+                    size: 12,
+                    color: isSelected
+                        ? Colors.white
+                        : (isAssigned
+                            ? AppColors.forestSage
+                            : AppColors.textSecondary),
+                  ),
+                  label: Text(
+                    r.name,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? Colors.white : AppColors.textPrimary,
+                    ),
+                  ),
+                  backgroundColor: isSelected
+                      ? AppColors.forestSage
+                      : (isAssigned
+                          ? AppColors.forestSage.withOpacity(0.08)
+                          : Colors.grey.shade100),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppColors.forestSage
+                          : Colors.grey.shade300,
+                      width: 0.8,
+                    ),
+                  ),
+                  onPressed: () {
+                    setState(() => _selectedRoleId = r.id);
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 10),
+          ],
 
           // Role Dropdown
           DropdownButtonFormField<String>(
@@ -638,7 +853,7 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
               }
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Scope Dropdown
           DropdownButtonFormField<String?>(
@@ -675,33 +890,202 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
               setState(() => _selectedScopeId = v);
             },
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
-          // Submit Role & Scope Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.forestSage,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+          // Staged Queue Preview
+          if (_stagedAssignments.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.forestSage.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.forestSage.withOpacity(0.3),
+                  width: 1,
                 ),
               ),
-              onPressed: _isAssigningRole ? null : _submitRole,
-              icon: _isAssigningRole
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(LucideIcons.listPlus,
+                              size: 14, color: AppColors.forestSage),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Staged for Batch (${_stagedAssignments.length}):',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.forestSage,
+                            ),
+                          ),
+                        ],
                       ),
-                    )
-                  : const Icon(LucideIcons.plus, size: 16),
-              label: const Text('Assign Role & Scope'),
+                      InkWell(
+                        onTap: _clearBatchQueue,
+                        borderRadius: BorderRadius.circular(4),
+                        child: const Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          child: Text(
+                            'Clear Queue',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.earthyTerra,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _stagedAssignments.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 4),
+                    itemBuilder: (ctx, i) {
+                      final item = _stagedAssignments[i];
+                      final role = _findRole(item.roleId);
+                      final scopeLabel = _findScopeLabel(item.scopeNodeId);
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                              color: Colors.grey.shade200, width: 0.8),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: AppColors.forestSage.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '#${i + 1}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.forestSage,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${role.name} (${role.code})',
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    scopeLabel,
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      color: Color(0xFF1E40AF),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(LucideIcons.x,
+                                  size: 14, color: AppColors.earthyTerra),
+                              tooltip: 'Remove from batch queue',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () => _removeFromBatchQueue(i),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(height: 12),
+          ],
+
+          // Batch Action Buttons Row
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.forestSage,
+                    side: const BorderSide(color: AppColors.forestSage),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _isAssigningRole ? null : () => _addToBatchQueue(),
+                  icon: const Icon(LucideIcons.listPlus, size: 15),
+                  label: const Text(
+                    'Add to Batch',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.forestSage,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _isAssigningRole ? null : _submitBatchAssignments,
+                  icon: _isAssigningRole
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(
+                          _stagedAssignments.isEmpty
+                              ? LucideIcons.plus
+                              : LucideIcons.layers,
+                          size: 16,
+                        ),
+                  label: Text(
+                    _isAssigningRole
+                        ? 'Assigning...'
+                        : (_stagedAssignments.isEmpty
+                            ? 'Assign Role & Scope'
+                            : 'Assign ${_stagedAssignments.length} Roles (Batch)'),
+                    style: const TextStyle(
+                        fontSize: 12.5, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -930,6 +1314,34 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _BatchEndpointTag extends StatelessWidget {
+  const _BatchEndpointTag();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+      decoration: BoxDecoration(
+        color: AppColors.forestSage.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: AppColors.forestSage.withOpacity(0.3),
+          width: 0.8,
+        ),
+      ),
+      child: const Text(
+        'POST /roles/batch',
+        style: TextStyle(
+          fontSize: 9.5,
+          fontWeight: FontWeight.bold,
+          color: AppColors.forestSage,
+          fontFamily: 'monospace',
+        ),
       ),
     );
   }

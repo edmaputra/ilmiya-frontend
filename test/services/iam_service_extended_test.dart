@@ -126,6 +126,34 @@ void main() {
       expect(afterRevoke.any((r) => r.id == assigned.id), isFalse);
     });
 
+    test('assignRolesBatch assigns multiple roles in batch', () async {
+      final users = await service.listUsers();
+      final targetUser = users.first;
+      final roles = await service.listRoles();
+      expect(roles.length, greaterThanOrEqualTo(2));
+
+      final batch = await service.assignRolesBatch(
+        userId: targetUser.id,
+        assignments: [
+          AssignUserRoleRequest(
+            roleId: roles[0].id,
+            tenantId: 'tenant-lincoln-high-001',
+            scopeNodeId: 'scope-a',
+          ),
+          AssignUserRoleRequest(
+            roleId: roles[1].id,
+            tenantId: 'tenant-lincoln-high-001',
+            scopeNodeId: 'scope-b',
+          ),
+        ],
+      );
+
+      expect(batch.length, equals(2));
+      final userRoles = await service.getUserRoles(targetUser.id);
+      expect(userRoles.any((r) => r.roleId == roles[0].id), isTrue);
+      expect(userRoles.any((r) => r.roleId == roles[1].id), isTrue);
+    });
+
     test('createRole and createGroup and createScope', () async {
       final newRole = await service.createRole(CreateRoleRequest(
         tenantId: 'tenant-lincoln-high-001',

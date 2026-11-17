@@ -255,6 +255,12 @@ class ApiClient extends ChangeNotifier {
         headers!['X-Tenant-ID']!.isEmpty) {
       requestHeaders.remove('X-Tenant-ID');
     }
+    // Validate that X-Tenant-ID is never sent as 'platform' or empty
+    final headerTenant = requestHeaders['X-Tenant-ID'];
+    if (headerTenant != null &&
+        (headerTenant.isEmpty || headerTenant == 'platform')) {
+      requestHeaders.remove('X-Tenant-ID');
+    }
 
     try {
       http.Response response;
@@ -374,6 +380,9 @@ class ApiClient extends ChangeNotifier {
       throw ApiException(response.statusCode, message, errorData);
     } catch (e) {
       if (e is ApiException) rethrow;
+      if (kDebugMode) {
+        debugPrint('[ApiClient] Network error ($method $url): $e');
+      }
       throw ApiException(0, 'Network connection error: $e');
     }
   }

@@ -143,6 +143,54 @@ class UserRoleAssignmentResponse {
       };
 }
 
+class AssignUserRoleRequest {
+  final String roleId;
+  final String tenantId;
+  final String? scopeNodeId;
+
+  AssignUserRoleRequest({
+    required this.roleId,
+    required this.tenantId,
+    this.scopeNodeId,
+  });
+
+  factory AssignUserRoleRequest.fromJson(Map<String, dynamic> json) {
+    return AssignUserRoleRequest(
+      roleId: json['roleId'] as String? ?? '',
+      tenantId: json['tenantId'] as String? ?? '',
+      scopeNodeId: json['scopeNodeId'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'roleId': roleId,
+        'tenantId': tenantId,
+        if (scopeNodeId != null) 'scopeNodeId': scopeNodeId,
+      };
+}
+
+class AssignUserRolesBatchRequest {
+  final List<AssignUserRoleRequest> assignments;
+
+  AssignUserRolesBatchRequest({
+    required this.assignments,
+  });
+
+  factory AssignUserRolesBatchRequest.fromJson(Map<String, dynamic> json) {
+    return AssignUserRolesBatchRequest(
+      assignments: (json['assignments'] as List<dynamic>?)
+              ?.map((a) =>
+                  AssignUserRoleRequest.fromJson(a as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'assignments': assignments.map((a) => a.toJson()).toList(),
+      };
+}
+
 class RoleResponse {
   final String id;
   final String tenantId;
@@ -566,13 +614,17 @@ class UserProfileResponse {
         (json['isPlatformSuperAdmin'] as bool?) ??
         rawRoles.any((r) =>
             r.toUpperCase() == 'SUPERADMIN' ||
-            r.toUpperCase() == 'ROLE_SUPERADMIN');
+            r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+            r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN');
 
     final effectiveRoles = List<String>.from(rawRoles);
     if (isSuper &&
         !effectiveRoles.any((r) =>
             r.toUpperCase() == 'SUPERADMIN' ||
-            r.toUpperCase() == 'ROLE_SUPERADMIN')) {
+            r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+            r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN')) {
       effectiveRoles.add('SUPERADMIN');
     }
 
