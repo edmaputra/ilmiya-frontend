@@ -12,7 +12,9 @@ bool checkPermission(List<String> userPermissions, List<String> userRoles,
   if (isSuperAdmin ||
       userRoles.any((r) =>
           r.toUpperCase() == 'SUPERADMIN' ||
-          r.toUpperCase() == 'ROLE_SUPERADMIN') ||
+          r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+          r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+          r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN') ||
       userPermissions.contains('*')) {
     return true;
   }
@@ -235,7 +237,9 @@ class AuthNotifier extends ChangeNotifier {
       (_user?.isPlatformSuperAdmin ?? false) ||
       _roles.any((r) =>
           r.toUpperCase() == 'SUPERADMIN' ||
-          r.toUpperCase() == 'ROLE_SUPERADMIN');
+          r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+          r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+          r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN');
   bool get isTenantAdmin =>
       !isSuperAdmin &&
       _roles.any((r) =>
@@ -276,7 +280,9 @@ class AuthNotifier extends ChangeNotifier {
       final isSuper = (_user?.isPlatformSuperAdmin ?? false) ||
           _roles.any((r) =>
               r.toUpperCase() == 'SUPERADMIN' ||
-              r.toUpperCase() == 'ROLE_SUPERADMIN');
+              r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+              r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+              r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN');
       if (isSuper && _apiClient.tenantId == 'platform') {
         _tenantId = 'platform';
       } else {
@@ -289,9 +295,14 @@ class AuthNotifier extends ChangeNotifier {
       _error = null;
 
       try {
-        final school = await _schoolService.getProfile(tenantId: _tenantId);
-        _schoolId = school.id;
-        _schoolName = school.name;
+        if (_tenantId.isNotEmpty && _tenantId != 'platform') {
+          final school = await _schoolService.getProfile(tenantId: _tenantId);
+          _schoolId = school.id;
+          _schoolName = school.name;
+        } else {
+          _schoolId = null;
+          _schoolName = '';
+        }
       } catch (_) {}
       if (_user != null) {
         await _sessionStorage.saveUserProfile(_user, _schoolName);
@@ -326,7 +337,9 @@ class AuthNotifier extends ChangeNotifier {
       final isSuper = (_user?.isPlatformSuperAdmin ?? false) ||
           _roles.any((r) =>
               r.toUpperCase() == 'SUPERADMIN' ||
-              r.toUpperCase() == 'ROLE_SUPERADMIN');
+              r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+              r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+              r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN');
       if (isSuper) {
         _hasSwitchedTenant = false;
         _tenantId = 'platform';

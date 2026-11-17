@@ -614,13 +614,17 @@ class UserProfileResponse {
         (json['isPlatformSuperAdmin'] as bool?) ??
         rawRoles.any((r) =>
             r.toUpperCase() == 'SUPERADMIN' ||
-            r.toUpperCase() == 'ROLE_SUPERADMIN');
+            r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+            r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN');
 
     final effectiveRoles = List<String>.from(rawRoles);
     if (isSuper &&
         !effectiveRoles.any((r) =>
             r.toUpperCase() == 'SUPERADMIN' ||
-            r.toUpperCase() == 'ROLE_SUPERADMIN')) {
+            r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+            r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN')) {
       effectiveRoles.add('SUPERADMIN');
     }
 

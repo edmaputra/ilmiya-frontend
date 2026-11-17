@@ -72,11 +72,17 @@ void main() {
         final profileExplicit =
             await schoolService.getProfile(tenantId: 'custom-tenant');
         expect(profileExplicit.tenantId, equals('custom-tenant'));
+
+        // 'platform' tenant returns empty school profile immediately without calling network
+        final profilePlatform =
+            await schoolService.getProfile(tenantId: 'platform');
+        expect(profilePlatform.id, isEmpty);
       },
           () => http_testing.MockClient((request) async {
                 if (request.url.path == '/api/v1/schools/profile') {
                   final tenantHeader = request.headers['x-tenant-id'] ??
                       request.headers['X-Tenant-ID'];
+                  expect(tenantHeader, isNot(equals('platform')));
                   if (tenantHeader == 'custom-tenant') {
                     return http.Response(
                       jsonEncode({
@@ -105,6 +111,52 @@ void main() {
                   );
                 }
                 return http.Response('Not Found', 404);
+              }));
+    });
+
+    test(
+        'SchoolService methods return empty on platform tenant without network call',
+        () async {
+      final updated = await schoolService.updateProfile(
+        UpdateSchoolRequest(
+          name: 'Name',
+          address: 'Addr',
+          contactEmail: 'a@b.com',
+          contactPhone: '123',
+        ),
+        tenantId: 'platform',
+      );
+      expect(updated.id, isEmpty);
+
+      final configured = await schoolService.configureSettings(
+        ConfigureSchoolSettingsRequest(
+          workingDays: ['MONDAY'],
+          gradingPreference: 'DESCRIPTIVE_KURIKULUM_MERDEKA',
+          termLayout: 'SEMESTER',
+        ),
+        tenantId: 'platform',
+      );
+      expect(configured.id, isEmpty);
+    });
+
+    test(
+        'ApiClient request strips platform from X-Tenant-ID headers in live mode',
+        () async {
+      await http.runWithClient(() async {
+        final res = await apiClient.request(
+          endpoint: '/api/v1/test-header',
+          headers: {'X-Tenant-ID': 'platform'},
+        ) as Map<String, dynamic>;
+        expect(res['stripped'], isTrue);
+      },
+          () => http_testing.MockClient((request) async {
+                final hasPlatform =
+                    request.headers.containsKey('x-tenant-id') ||
+                        request.headers.containsKey('X-Tenant-ID');
+                return http.Response(
+                  jsonEncode({'stripped': !hasPlatform}),
+                  200,
+                );
               }));
     });
 
