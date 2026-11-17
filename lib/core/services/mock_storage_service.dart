@@ -1211,6 +1211,38 @@ class MockStorageService {
     return assignment;
   }
 
+  List<UserRoleAssignmentResponse> assignUserRolesBatch({
+    required String userId,
+    required List<AssignUserRoleRequest> assignments,
+  }) {
+    final results = <UserRoleAssignmentResponse>[];
+    for (int i = 0; i < assignments.length; i++) {
+      final req = assignments[i];
+      final existingIdx = _userRoleAssignments.indexWhere(
+        (a) =>
+            a.userId == userId &&
+            a.tenantId == req.tenantId &&
+            a.roleId == req.roleId &&
+            a.scopeNodeId == req.scopeNodeId,
+      );
+      if (existingIdx != -1) {
+        results.add(_userRoleAssignments[existingIdx]);
+        continue;
+      }
+      final assignment = UserRoleAssignmentResponse(
+        id: 'ura-${DateTime.now().millisecondsSinceEpoch}-$i',
+        userId: userId,
+        roleId: req.roleId,
+        tenantId: req.tenantId,
+        scopeNodeId: req.scopeNodeId,
+        assignedAt: DateTime.now().toIso8601String(),
+      );
+      _userRoleAssignments.add(assignment);
+      results.add(assignment);
+    }
+    return results;
+  }
+
   List<UserRoleAssignmentResponse> getUserRoles(String userId) {
     return _userRoleAssignments.where((a) => a.userId == userId).toList();
   }

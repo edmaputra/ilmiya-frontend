@@ -3,6 +3,7 @@ import 'package:kite_ui/shadcn.dart';
 import 'package:provider/provider.dart';
 
 import 'core/services/api_client.dart';
+import 'core/services/http_overrides.dart';
 import 'core/services/session_storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/academic_years/presentation/academic_years_screen.dart';
@@ -26,6 +27,7 @@ final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  setupHttpOverrides();
   await sessionStorageService.init();
   await apiClient.loadRuntimeConfig();
   runApp(

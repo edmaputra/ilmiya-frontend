@@ -615,6 +615,51 @@ void main() {
               }));
     });
 
+    test('User roles batch assign live call', () async {
+      await http.runWithClient(() async {
+        final assigned = await iamService.assignRolesBatch(
+          userId: 'u-1',
+          assignments: [
+            AssignUserRoleRequest(
+              roleId: 'role-01',
+              tenantId: 't-1',
+              scopeNodeId: 'scope-1',
+            ),
+            AssignUserRoleRequest(
+              roleId: 'role-02',
+              tenantId: 't-1',
+              scopeNodeId: 'scope-2',
+            ),
+          ],
+        );
+        expect(assigned.length, equals(2));
+        expect(assigned.first.roleId, equals('role-01'));
+        expect(assigned.last.roleId, equals('role-02'));
+      },
+          () => http_testing.MockClient((request) async {
+                if (request.url.path == '/api/v1/users/u-1/roles/batch' &&
+                    request.method == 'POST') {
+                  final body = jsonDecode(request.body) as Map<String, dynamic>;
+                  final list = body['assignments'] as List<dynamic>;
+                  return http.Response(
+                    jsonEncode(list.map((item) {
+                      final m = item as Map<String, dynamic>;
+                      return {
+                        'id': 'batch-${m['roleId']}',
+                        'userId': 'u-1',
+                        'roleId': m['roleId'],
+                        'tenantId': m['tenantId'],
+                        'scopeNodeId': m['scopeNodeId'],
+                        'assignedAt': '2026-01-01T00:00:00Z',
+                      };
+                    }).toList()),
+                    200,
+                  );
+                }
+                return http.Response('Not Found', 404);
+              }));
+    });
+
     test('Roles, Groups, Group Members, Group Roles live calls', () async {
       await http.runWithClient(() async {
         final roles = await iamService.listRoles();

@@ -398,6 +398,27 @@ class IamService {
     return UserRoleAssignmentResponse.fromJson(json as Map<String, dynamic>);
   }
 
+  Future<List<UserRoleAssignmentResponse>> assignRolesBatch({
+    required String userId,
+    required List<AssignUserRoleRequest> assignments,
+  }) async {
+    if (_apiClient.isMockMode) {
+      return _mockStorage.assignUserRolesBatch(
+        userId: userId,
+        assignments: assignments,
+      );
+    }
+    final json = await _apiClient.request(
+      endpoint: '/api/v1/users/$userId/roles/batch',
+      method: 'POST',
+      body: AssignUserRolesBatchRequest(assignments: assignments).toJson(),
+    );
+    return (json as List<dynamic>)
+        .map((r) =>
+            UserRoleAssignmentResponse.fromJson(r as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<UserRoleAssignmentResponse>> getUserRoles(String userId) async {
     if (_apiClient.isMockMode) {
       return _mockStorage.getUserRoles(userId);

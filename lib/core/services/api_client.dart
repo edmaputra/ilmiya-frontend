@@ -374,6 +374,9 @@ class ApiClient extends ChangeNotifier {
       throw ApiException(response.statusCode, message, errorData);
     } catch (e) {
       if (e is ApiException) rethrow;
+      if (kDebugMode) {
+        debugPrint('[ApiClient] Network error ($method $url): $e');
+      }
       throw ApiException(0, 'Network connection error: $e');
     }
   }
