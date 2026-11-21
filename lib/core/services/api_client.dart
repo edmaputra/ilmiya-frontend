@@ -196,14 +196,26 @@ class ApiClient extends ChangeNotifier {
     token = null;
     refreshToken = null;
     sessionStorageService.clearAuthSession();
+    final sanitizedReason = _sanitizeAuthReason(reason);
     for (final listener in List.of(_onAuthExpiredListeners)) {
       try {
-        (listener as dynamic)(reason);
+        (listener as dynamic)(sanitizedReason);
       } catch (_) {
         (listener as dynamic)();
       }
     }
     notifyListeners();
+  }
+
+  static String? _sanitizeAuthReason(String? reason) {
+    if (reason == null) return null;
+    final lower = reason.toLowerCase();
+    if (lower.contains('jwt') ||
+        lower.contains('clock skew') ||
+        lower.contains('milliseconds ago')) {
+      return 'Session expired (401). Please sign in again.';
+    }
+    return reason;
   }
 
   void Function() onAccessDenied(Function listener) {
@@ -361,7 +373,7 @@ class ApiClient extends ChangeNotifier {
       // 403 Forbidden    -> Access denied, keep session, stay on page, show error message
       if (!endpoint.contains('/api/v1/auth/login')) {
         if (response.statusCode == 401) {
-          triggerAuthExpired('Session expired (401): $message');
+          triggerAuthExpired('Session expired (401). Please sign in again.');
         } else if (response.statusCode == 403) {
           triggerAccessDenied('Access denied (403): $message');
         }

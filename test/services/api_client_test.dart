@@ -65,6 +65,27 @@ void main() {
       unsubscribe();
     });
 
+    test(
+        'triggerAuthExpired sanitizes raw JWT token expiry details into clean message',
+        () {
+      final client = ApiClient();
+      String? deliveredReason;
+      final unsubscribe = client.onAuthExpired(([reason]) {
+        deliveredReason = reason;
+      });
+
+      client.triggerAuthExpired(
+        'Session expired (401): Invalid or expired JWT token: JWT expired 425233800 milliseconds ago at 2026-11-16T05:01:55.000Z. Current time: 2026-11-21T03:09:08.800Z. Allowed clock skew: 0 milliseconds.',
+      );
+
+      expect(
+        deliveredReason,
+        equals('Session expired (401). Please sign in again.'),
+      );
+
+      unsubscribe();
+    });
+
     test('ApiException holds status, message, and RFC 9457 detail data', () {
       final ex = ApiException(
           403, 'Forbidden', {'detail': 'Requires school:profile:write'});
@@ -193,6 +214,40 @@ void main() {
               }));
 
       expect(expiredCalled, isTrue);
+      unsub();
+    });
+
+    test('401 response triggers sanitized auth expired notification', () async {
+      final client = ApiClient();
+      client.baseUrl = 'https://api.ilmiya.edu';
+      client.token = 'some-expired-jwt';
+      client.refreshToken = null;
+
+      String? authExpiredReason;
+      final unsub = client.onAuthExpired(([reason]) {
+        authExpiredReason = reason;
+      });
+
+      await http.runWithClient(() async {
+        await expectLater(
+          client.request(endpoint: '/api/v1/users/me'),
+          throwsA(isA<ApiException>()),
+        );
+      },
+          () => http_testing.MockClient((request) async {
+                return http.Response(
+                  jsonEncode({
+                    'detail':
+                        'Invalid or expired JWT token: JWT expired 425233800 milliseconds ago at 2026-11-16T05:01:55.000Z. Current time: 2026-11-21T03:09:08.800Z. Allowed clock skew: 0 milliseconds.'
+                  }),
+                  401,
+                );
+              }));
+
+      expect(
+        authExpiredReason,
+        equals('Session expired (401). Please sign in again.'),
+      );
       unsub();
     });
 
