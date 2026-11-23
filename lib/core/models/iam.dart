@@ -165,7 +165,8 @@ class AssignUserRoleRequest {
   Map<String, dynamic> toJson() => {
         'roleId': roleId,
         'tenantId': tenantId,
-        if (scopeNodeId != null) 'scopeNodeId': scopeNodeId,
+        if (scopeNodeId != null && scopeNodeId!.isNotEmpty)
+          'scopeNodeId': scopeNodeId,
       };
 }
 

@@ -147,10 +147,17 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                 ? userAssigns.where((a) => a.tenantId == tId).toList()
                 : userAssigns;
 
-            // In live REST mode, users from other tenants must be filtered out
+            // In live REST mode, only filter out a user if they explicitly belong
+            // to a different tenant. Users with no role assignments yet (e.g. freshly created)
+            // must remain visible so admins can assign them.
+            final hasOtherTenantAssignment = userAssigns.any((a) =>
+                a.tenantId != tId &&
+                a.tenantId.isNotEmpty &&
+                a.tenantId != 'platform');
             if (isSpecificTenant &&
                 !apiClient.isMockMode &&
-                tenantAssigns.isEmpty) {
+                tenantAssigns.isEmpty &&
+                hasOtherTenantAssignment) {
               continue;
             }
 
@@ -233,6 +240,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       roles: _roles,
       groups: _groups,
       scopes: _scopes,
+      schools: _schools,
       tenantId: context.read<AuthNotifier>().tenantId,
       initialRoleId: currentAssignment?.roleId,
       initialScopeId: currentAssignment?.scopeNodeId,
@@ -467,6 +475,13 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     final canDeleteScope = auth.hasPermission('iam:scope:delete') ||
         auth.hasRole('SUPERADMIN') ||
         auth.hasRole('TENANT_ADMIN');
+    final isTenantAdmin =
+        auth.hasRole('SUPERADMIN') || auth.hasRole('TENANT_ADMIN');
+    final isCampusAdmin =
+        !isTenantAdmin && auth.schoolId != null && auth.schoolId!.isNotEmpty;
+    final lockedSchoolId = isCampusAdmin ? auth.schoolId : null;
+    final canCreateRootScope = isTenantAdmin && canCreateScope;
+    final isTenantWideAdmin = isTenantAdmin;
 
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));
@@ -597,6 +612,9 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                   tenantId: auth.tenantId,
                   canCreateScope: canCreateScope,
                   canDeleteScope: canDeleteScope,
+                  canCreateRootScope: canCreateRootScope,
+                  isTenantWideAdmin: isTenantWideAdmin,
+                  lockedSchoolId: lockedSchoolId,
                   onCreateRootScope: (school) => _showCreateScopeDialog(
                     parentId: null,
                     school: school,
