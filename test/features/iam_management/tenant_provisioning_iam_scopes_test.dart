@@ -619,4 +619,283 @@ void main() {
       expect(find.textContaining('Add to Group'), findsAtLeastNWidgets(1));
     });
   });
+
+  group(
+      '6. Role Boundaries, Visual Badges, Search & Protection in IamScopesTab',
+      () {
+    final sampleSchools = <SchoolResponse>[
+      SchoolResponse(
+        id: 'school-sma-01',
+        tenantId: 'tenant-test-001',
+        name: 'SMA Al-Hikmah Primary',
+        institutionCode: 'SMA01',
+        status: 'ACTIVE',
+        address: 'Jl. Merdeka 10',
+        contactEmail: 'sma01@ilmiya.edu',
+        contactPhone: '08123456789',
+        workingDays: const ['MONDAY', 'TUESDAY'],
+        gradingPreference: 'PERCENTAGE',
+        termLayout: 'SEMESTER',
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      ),
+    ];
+
+    testWidgets(
+        'IamScopesTab restricts campus admin: locks school dropdown, shows Campus Jailed badge, and disables Create Root Scope button',
+        (WidgetTester tester) async {
+      setUpViewport(tester);
+
+      bool createTapped = false;
+
+      await tester.pumpWidget(
+        buildTestHost(
+          IamScopesTab(
+            scopes: [
+              ScopeTreeNode(
+                id: 'scope-root-sma',
+                code: 'SMA01',
+                name: 'SMA Al-Hikmah Primary Root',
+                path: '/tenant-test-001/school-sma-01',
+                depth: 0,
+                children: [],
+              ),
+            ],
+            schools: sampleSchools,
+            tenantId: 'tenant-test-001',
+            canCreateScope: true,
+            canCreateRootScope: false,
+            isTenantWideAdmin: false,
+            lockedSchoolId: 'school-sma-01',
+            onCreateRootScope: (_) => createTapped = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Campus Jailed'), findsOneWidget);
+      expect(find.text('Assigned Campus:'), findsOneWidget);
+      expect(find.text('Select School:'), findsNothing);
+
+      final createBtn = find.byKey(const ValueKey('create_root_scope_btn'));
+      expect(createBtn, findsOneWidget);
+      await tester.tap(createBtn);
+      await tester.pumpAndSettle();
+
+      expect(createTapped, isFalse);
+    });
+
+    testWidgets(
+        'IamScopesTab renders badges, search filtering, expand/collapse, copy path, and deletion protection',
+        (WidgetTester tester) async {
+      setUpViewport(tester);
+
+      ScopeTreeNode? deletedScope;
+
+      final testScopes = [
+        ScopeTreeNode(
+          id: 'scope-tenant-root',
+          code: 'ROOT',
+          name: 'Global Tenant Root',
+          path: '/tenant-test-001',
+          depth: 0,
+          children: [],
+        ),
+        ScopeTreeNode(
+          id: 'scope-root-sma',
+          code: 'SMA01',
+          name: 'SMA Al-Hikmah Primary Root',
+          path: '/tenant-test-001/school-sma-01',
+          depth: 0,
+          children: [
+            ScopeTreeNode(
+              id: 'scope-dept-cs',
+              code: 'DEPT_CS',
+              name: 'Computer Science Dept',
+              path: '/tenant-test-001/school-sma-01/DEPT_CS',
+              depth: 1,
+              parentId: 'scope-root-sma',
+              children: [
+                ScopeTreeNode(
+                  id: 'scope-lab-01',
+                  code: 'LAB_01',
+                  name: 'Lab 01',
+                  path: '/tenant-test-001/school-sma-01/DEPT_CS/LAB_01',
+                  depth: 2,
+                  parentId: 'scope-dept-cs',
+                  children: [],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ];
+
+      await tester.pumpWidget(
+        buildTestHost(
+          IamScopesTab(
+            scopes: testScopes,
+            schools: sampleSchools,
+            tenantId: 'tenant-test-001',
+            canCreateScope: true,
+            canDeleteScope: true,
+            canCreateRootScope: true,
+            isTenantWideAdmin: true,
+            onDeleteScope: (s) => deletedScope = s,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Badges
+      expect(find.text('TENANT ROOT'), findsOneWidget);
+      expect(find.text('CAMPUS ANCHOR'), findsOneWidget);
+      expect(find.text('L1'), findsOneWidget);
+      expect(find.text('L2'), findsOneWidget);
+
+      // Copy path button exists
+      final copyBtn =
+          find.byKey(const ValueKey('copy_scope_path_scope-root-sma'));
+      expect(copyBtn, findsOneWidget);
+      await tester.tap(copyBtn);
+      await tester.pumpAndSettle();
+
+      // Expand/Collapse
+      expect(find.text('Computer Science Dept'), findsOneWidget);
+      final toggleCollapseBtn =
+          find.byKey(const ValueKey('toggle_collapse_scope-root-sma'));
+      expect(toggleCollapseBtn, findsOneWidget);
+      await tester.tap(toggleCollapseBtn);
+      await tester.pumpAndSettle();
+
+      // After collapse, child should be hidden
+      expect(find.text('Computer Science Dept'), findsNothing);
+
+      // Re-expand
+      await tester.tap(toggleCollapseBtn);
+      await tester.pumpAndSettle();
+      expect(find.text('Computer Science Dept'), findsOneWidget);
+
+      // Search Filtering
+      final searchField = find.byKey(const ValueKey('scope_search_field'));
+      expect(searchField, findsOneWidget);
+      await tester.enterText(searchField, 'Computer');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Computer Science Dept'), findsOneWidget);
+      expect(find.text('Global Tenant Root'), findsNothing);
+
+      // Clear search
+      await tester.enterText(searchField, '');
+      await tester.pumpAndSettle();
+      expect(find.text('Global Tenant Root'), findsOneWidget);
+
+      // Deletion Protection: Campus anchor delete button is disabled
+      final anchorDeleteBtn =
+          find.byKey(const ValueKey('delete_scope_scope-root-sma'));
+      expect(anchorDeleteBtn, findsOneWidget);
+      await tester.tap(anchorDeleteBtn);
+      await tester.pumpAndSettle();
+      expect(deletedScope, isNull);
+
+      // Deletion confirmation for node with children
+      final childWithChildrenDeleteBtn =
+          find.byKey(const ValueKey('delete_scope_scope-dept-cs'));
+      expect(childWithChildrenDeleteBtn, findsOneWidget);
+      await tester.tap(childWithChildrenDeleteBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Scope Hierarchy?'), findsOneWidget);
+      expect(find.text('Delete Scope and Subtree'), findsOneWidget);
+
+      // Confirm deletion in dialog
+      await tester.tap(find.text('Delete Scope and Subtree'));
+      await tester.pumpAndSettle();
+
+      expect(deletedScope, isNotNull);
+      expect(deletedScope!.id, equals('scope-dept-cs'));
+    });
+
+    testWidgets(
+        'AssignRoleDialog lists campus anchor and nested child scopes with badges',
+        (WidgetTester tester) async {
+      setUpViewport(tester);
+
+      final user = UserResponse(
+        id: 'u-scope-select-test',
+        email: 'scope.select@ilmiya.edu',
+        fullName: 'Scope Select Tester',
+        status: 'ACTIVE',
+        isPlatformSuperAdmin: false,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+
+      final testRoles = [
+        RoleResponse(
+          id: 'role-teacher',
+          tenantId: 'tenant-test-001',
+          code: 'TEACHER',
+          name: 'Teacher',
+          description: '',
+          permissions: [],
+          isSystemRole: true,
+          createdAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now().toIso8601String(),
+        ),
+      ];
+
+      final testScopes = [
+        ScopeTreeNode(
+          id: 'scope-root-sma',
+          code: 'SMA01',
+          name: 'SMA Al-Hikmah Primary Root',
+          path: '/tenant-test-001/school-sma-01',
+          depth: 0,
+          children: [
+            ScopeTreeNode(
+              id: 'scope-dept-cs',
+              code: 'DEPT_CS',
+              name: 'Computer Science Dept',
+              path: '/tenant-test-001/school-sma-01/DEPT_CS',
+              depth: 1,
+              parentId: 'scope-root-sma',
+              children: [],
+            ),
+          ],
+        ),
+      ];
+
+      await tester.pumpWidget(
+        buildTestHost(
+          AssignRoleDialog(
+            user: user,
+            roles: testRoles,
+            scopes: testScopes,
+            schools: sampleSchools,
+            tenantId: 'tenant-test-001',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Open target scope dropdown
+      expect(find.text('Entire Tenant (Root Scope)'), findsOneWidget);
+      await tester.tap(find.text('Entire Tenant (Root Scope)'));
+      await tester.pumpAndSettle();
+
+      // Verify Campus badge and child scope L1 badge exist in the dropdown
+      expect(find.text('CAMPUS'), findsOneWidget);
+      expect(find.text('L1'), findsOneWidget);
+      expect(find.textContaining('SMA Al-Hikmah Primary Root'), findsWidgets);
+      expect(find.textContaining('Computer Science Dept'), findsWidgets);
+
+      // Select child scope
+      await tester.tap(find.textContaining('Computer Science Dept').last);
+      await tester.pumpAndSettle();
+
+      // Scope is selected and closed field displays target scope
+      expect(find.textContaining('Computer Science Dept'), findsOneWidget);
+    });
+  });
 }

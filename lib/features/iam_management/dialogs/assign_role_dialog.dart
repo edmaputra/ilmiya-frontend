@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/iam.dart';
+import '../../../core/models/school.dart';
 import '../../../core/services/api_client.dart';
 import '../../../core/services/iam_service.dart';
 import '../../../core/utils/app_toast.dart';
@@ -12,12 +13,18 @@ class FlattenedScopeItem {
   final String label;
   final String rawName;
   final String path;
+  final int depth;
+  final bool isCampus;
+  final bool isSelectable;
 
   const FlattenedScopeItem({
     required this.id,
     required this.label,
     required this.rawName,
     required this.path,
+    this.depth = 0,
+    this.isCampus = false,
+    this.isSelectable = true,
   });
 }
 
@@ -47,6 +54,7 @@ class AssignRoleDialog extends StatefulWidget {
   final List<RoleResponse> roles;
   final List<GroupResponse> groups;
   final List<ScopeTreeNode> scopes;
+  final List<SchoolResponse> schools;
   final String? tenantId;
   final String? initialRoleId;
   final String? initialScopeId;
@@ -59,6 +67,7 @@ class AssignRoleDialog extends StatefulWidget {
     required this.roles,
     this.groups = const [],
     this.scopes = const [],
+    this.schools = const [],
     this.tenantId,
     this.initialRoleId,
     this.initialScopeId,
@@ -72,6 +81,7 @@ class AssignRoleDialog extends StatefulWidget {
     required List<RoleResponse> roles,
     List<GroupResponse> groups = const [],
     List<ScopeTreeNode> scopes = const [],
+    List<SchoolResponse> schools = const [],
     String? tenantId,
     String? initialRoleId,
     String? initialScopeId,
@@ -86,6 +96,7 @@ class AssignRoleDialog extends StatefulWidget {
         roles: roles,
         groups: groups,
         scopes: scopes,
+        schools: schools,
         tenantId: tenantId,
         initialRoleId: initialRoleId,
         initialScopeId: initialScopeId,
@@ -130,7 +141,7 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
     });
     _selectedRoleId = widget.initialRoleId ??
         (widget.roles.isNotEmpty ? widget.roles.first.id : '');
-    _flattenedScopes = _flattenScopes(widget.scopes);
+    _flattenedScopes = _flattenScopes(widget.scopes, widget.schools);
     _selectedScopeId = widget.initialScopeId;
 
     _loadData();
@@ -142,24 +153,84 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
     super.dispose();
   }
 
-  List<FlattenedScopeItem> _flattenScopes(List<ScopeTreeNode> nodes,
+  List<FlattenedScopeItem> _flattenScopes(
+      List<ScopeTreeNode> nodes, List<SchoolResponse> schools,
       [int depth = 0]) {
     final list = <FlattenedScopeItem>[];
-    for (final node in nodes) {
-      final prefix = '  ' * depth;
-      final label = depth > 0
-          ? '$prefix└─ ${node.name} (${node.path})'
-          : '${node.name} (${node.path})';
-      list.add(FlattenedScopeItem(
-        id: node.id,
-        label: label,
-        rawName: node.name,
-        path: node.path,
-      ));
-      if (node.children.isNotEmpty) {
-        list.addAll(_flattenScopes(node.children, depth + 1));
+    final processedSchoolIds = <String>{};
+
+    bool isCampusScope(ScopeTreeNode node) {
+      if (node.depth == 0) {
+        final matchesSchool = schools.any((s) =>
+            node.path.contains(s.id) ||
+            (s.institutionCode.isNotEmpty &&
+                (node.code.toUpperCase() == s.institutionCode.toUpperCase() ||
+                    node.path
+                        .toUpperCase()
+                        .contains(s.institutionCode.toUpperCase()))) ||
+            node.code.startsWith('CAMPUS_'));
+        return matchesSchool;
+      }
+      final matchesSchool = schools.any((s) =>
+          node.path.endsWith('/${s.id}') ||
+          node.path == '/${widget.tenantId}/${s.id}' ||
+          (s.institutionCode.isNotEmpty &&
+              node.code.toUpperCase() == s.institutionCode.toUpperCase()));
+      return matchesSchool && node.depth == 1;
+    }
+
+    void traverse(List<ScopeTreeNode> currentNodes, int currentDepth) {
+      for (final node in currentNodes) {
+        final isCampus = isCampusScope(node);
+        for (final s in schools) {
+          if (node.path.contains(s.id) ||
+              (s.institutionCode.isNotEmpty &&
+                  node.code.toUpperCase() == s.institutionCode.toUpperCase())) {
+            processedSchoolIds.add(s.id);
+          }
+        }
+
+        final prefix = '  ' * currentDepth;
+        final label = currentDepth > 0
+            ? '$prefix└─ ${node.name} (${node.path})'
+            : '${node.name} (${node.path})';
+
+        list.add(FlattenedScopeItem(
+          id: node.id,
+          label: label,
+          rawName: node.name,
+          path: node.path,
+          depth: currentDepth,
+          isCampus: isCampus,
+        ));
+
+        if (node.children.isNotEmpty) {
+          traverse(node.children, currentDepth + 1);
+        }
       }
     }
+
+    traverse(nodes, depth);
+
+    // Also include any schools from schools list that were not already anchored in nodes tree
+    for (final s in schools) {
+      if (!processedSchoolIds.contains(s.id)) {
+        final tId = widget.tenantId != null && widget.tenantId!.isNotEmpty
+            ? widget.tenantId!
+            : 'tenant';
+        final schoolPath = '/$tId/${s.id}';
+        list.add(FlattenedScopeItem(
+          id: s.id,
+          label: '${s.name} ($schoolPath) [Unprovisioned]',
+          rawName: s.name,
+          path: schoolPath,
+          depth: 0,
+          isCampus: true,
+          isSelectable: false,
+        ));
+      }
+    }
+
     return list;
   }
 
@@ -189,6 +260,14 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
       return match.rawName.isNotEmpty
           ? '${match.rawName} (${match.path})'
           : match.label;
+    }
+    final schoolMatch =
+        widget.schools.where((s) => s.id == scopeId).firstOrNull;
+    if (schoolMatch != null) {
+      final tId = widget.tenantId != null && widget.tenantId!.isNotEmpty
+          ? widget.tenantId!
+          : 'tenant';
+      return '${schoolMatch.name} (/$tId/${schoolMatch.id})';
     }
     return scopeId;
   }
@@ -336,13 +415,18 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
               ? widget.tenantId!
               : apiClient.tenantId;
 
-      final requests = itemsToAssign
-          .map((item) => AssignUserRoleRequest(
-                roleId: item.roleId,
-                tenantId: effectiveTenantId,
-                scopeNodeId: item.scopeNodeId,
-              ))
-          .toList();
+      final requests = itemsToAssign.map((item) {
+        final scopeItem =
+            _flattenedScopes.where((s) => s.id == item.scopeNodeId).firstOrNull;
+        final validScopeId = (scopeItem != null && !scopeItem.isSelectable)
+            ? null
+            : (item.scopeNodeId?.isNotEmpty == true ? item.scopeNodeId : null);
+        return AssignUserRoleRequest(
+          roleId: item.roleId,
+          tenantId: effectiveTenantId,
+          scopeNodeId: validScopeId,
+        );
+      }).toList();
 
       await _effectiveIamService.assignRolesBatch(
         userId: widget.user.id,
@@ -361,7 +445,10 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
       }
     } catch (e) {
       if (mounted) {
-        AppToast.showError(context, 'Failed to assign roles (batch): $e');
+        final errorMsg = e.toString().contains('500')
+            ? 'Server error (500). Ensure the target scope anchor exists on the server: $e'
+            : 'Failed to assign roles (batch): $e';
+        AppToast.showError(context, errorMsg);
       }
     } finally {
       if (mounted) setState(() => _isAssigningRole = false);
@@ -867,21 +954,121 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
+            selectedItemBuilder: (context) {
+              return [
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Entire Tenant (Root Scope)',
+                    style:
+                        TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                ..._flattenedScopes.map((s) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '${s.rawName} (${s.path})',
+                      style: const TextStyle(fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }),
+              ];
+            },
             items: [
               const DropdownMenuItem(
                 value: null,
-                child: Text(
-                  'Entire Tenant (Root Scope)',
-                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                child: Row(
+                  children: [
+                    Icon(LucideIcons.globe, size: 14, color: Color(0xFF7C3AED)),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Entire Tenant (Root Scope)',
+                        style: TextStyle(
+                            fontSize: 12.5, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               ..._flattenedScopes.map((s) {
+                final icon = s.isCampus
+                    ? LucideIcons.school
+                    : (s.depth == 0
+                        ? LucideIcons.shieldCheck
+                        : LucideIcons.folderTree);
+                final iconColor = s.isCampus
+                    ? AppColors.forestSage
+                    : (s.depth == 0
+                        ? const Color(0xFF7C3AED)
+                        : AppColors.textSecondary);
+
                 return DropdownMenuItem(
                   value: s.id,
-                  child: Text(
-                    s.label,
-                    style: const TextStyle(fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
+                  enabled: s.isSelectable,
+                  child: Row(
+                    children: [
+                      if (s.depth > 0) SizedBox(width: (s.depth * 8.0)),
+                      Icon(icon,
+                          size: 14,
+                          color:
+                              s.isSelectable ? iconColor : AppColors.textMuted),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          s.label,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: s.isSelectable ? null : AppColors.textMuted,
+                            fontWeight: s.isCampus || s.depth == 0
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (s.isCampus) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD1FAE5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'CAMPUS',
+                            style: TextStyle(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF065F46),
+                            ),
+                          ),
+                        ),
+                      ] else if (s.depth > 0) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'L${s.depth}',
+                            style: const TextStyle(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 );
               }),

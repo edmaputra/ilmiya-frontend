@@ -272,8 +272,18 @@ class IamService {
     if (_apiClient.isMockMode) {
       return _mockStorage.listUsers(tenantId: tenantId);
     }
-    final json =
-        await _apiClient.request(endpoint: '/api/v1/users', method: 'GET');
+    final targetTenant =
+        (tenantId != null && tenantId.isNotEmpty && tenantId != 'platform')
+            ? tenantId
+            : (_apiClient.tenantId != 'platform' ? _apiClient.tenantId : null);
+    final endpoint = targetTenant != null
+        ? '/api/v1/users?tenantId=$targetTenant'
+        : '/api/v1/users';
+    final json = await _apiClient.request(
+      endpoint: endpoint,
+      method: 'GET',
+      headers: targetTenant != null ? {'X-Tenant-ID': targetTenant} : null,
+    );
     final list = json is List<dynamic>
         ? json
         : (json is Map<String, dynamic>
@@ -392,7 +402,8 @@ class IamService {
       body: {
         'roleId': roleId,
         'tenantId': tenantId,
-        if (scopeNodeId != null) 'scopeNodeId': scopeNodeId,
+        if (scopeNodeId != null && scopeNodeId.isNotEmpty)
+          'scopeNodeId': scopeNodeId,
       },
     );
     return UserRoleAssignmentResponse.fromJson(json as Map<String, dynamic>);
@@ -634,7 +645,8 @@ class IamService {
       body: {
         'roleId': roleId,
         'tenantId': tenantId,
-        if (scopeNodeId != null) 'scopeNodeId': scopeNodeId,
+        if (scopeNodeId != null && scopeNodeId.isNotEmpty)
+          'scopeNodeId': scopeNodeId,
       },
     );
     return GroupRoleAssignmentResponse.fromJson(json as Map<String, dynamic>);
