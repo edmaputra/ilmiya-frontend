@@ -493,145 +493,144 @@ class _IamManagementScreenState extends State<IamManagementScreen>
           u.email.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Responsive Header Bar
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 720;
-              final titleColumn = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Identity & Access Management (IAM)',
-                    style: t.h2.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Enterprise ed-iam security console: Users, RBAC Matrix, Directory Groups, and Scopes.',
-                    style: t.muted,
-                  ),
-                ],
-              );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 720;
+        final titleColumn = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Identity & Access Management (IAM)',
+              style: (isNarrow ? t.h3 : t.h2)
+                  .copyWith(fontWeight: FontWeight.bold),
+            ),
+            if (!isNarrow) ...[
+              const SizedBox(height: 2),
+              Text(
+                'Enterprise ed-iam security console: Users, RBAC Matrix, Directory Groups, and Scopes.',
+                style: t.muted,
+              ),
+            ],
+          ],
+        );
 
-              final tabBar = ConstrainedBox(
-                constraints:
-                    BoxConstraints(maxWidth: isNarrow ? double.infinity : 480),
-                child: TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  indicatorColor: c.primary,
-                  labelColor: c.foreground,
-                  unselectedLabelColor: c.mutedForeground,
-                  tabs: const [
-                    Tab(icon: Icon(LucideIcons.users, size: 16), text: 'Users'),
-                    Tab(
-                        icon: Icon(LucideIcons.shieldCheck, size: 16),
-                        text: 'Roles & RBAC'),
-                    Tab(
-                        icon: Icon(LucideIcons.layers, size: 16),
-                        text: 'Groups'),
-                    Tab(
-                        icon: Icon(LucideIcons.gitBranch, size: 16),
-                        text: 'Scope Tree'),
-                  ],
-                ),
-              );
+        final tabBar = ConstrainedBox(
+          constraints:
+              BoxConstraints(maxWidth: isNarrow ? double.infinity : 480),
+          child: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            indicatorColor: c.primary,
+            labelColor: c.foreground,
+            unselectedLabelColor: c.mutedForeground,
+            tabs: const [
+              Tab(icon: Icon(LucideIcons.users, size: 16), text: 'Users'),
+              Tab(
+                  icon: Icon(LucideIcons.shieldCheck, size: 16),
+                  text: 'Roles & RBAC'),
+              Tab(icon: Icon(LucideIcons.layers, size: 16), text: 'Groups'),
+              Tab(
+                  icon: Icon(LucideIcons.gitBranch, size: 16),
+                  text: 'Scope Tree'),
+            ],
+          ),
+        );
 
-              if (isNarrow) {
-                return Column(
+        return Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isNarrow ? 12 : 20,
+            vertical: isNarrow ? 10 : 20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isNarrow)
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     titleColumn,
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     tabBar,
                   ],
-                );
-              }
-
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(child: titleColumn),
-                  const SizedBox(width: 16),
-                  tabBar,
-                ],
-              );
-            },
+                )
+              else
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: titleColumn),
+                    const SizedBox(width: 16),
+                    tabBar,
+                  ],
+                ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    IamUsersTab(
+                      users: filteredUsers,
+                      userRoles: _userRolesMap,
+                      searchQuery: _searchQuery,
+                      canCreate: canCreateUser,
+                      canEdit: canEditUser,
+                      canUpdateStatus: canUpdateUserStatus,
+                      canAssign: canAssignRole,
+                      canDelete: canDeleteUser,
+                      userAssignments: _userAssignments,
+                      roles: _roles,
+                      scopes: _scopes,
+                      onSearchChanged: (v) => setState(() => _searchQuery = v),
+                      onCreateUser: _showCreateUserDialog,
+                      onEditUser: _showEditUserDialog,
+                      onAssignRole: _showAssignRoleDialog,
+                      onDataReload: _loadAllIamData,
+                    ),
+                    IamRolesTab(
+                      roles: _roles,
+                      canCreateRole: canCreateRole,
+                      onCreateRole: _showCreateRoleDialog,
+                      onEditRole: _showEditRoleDialog,
+                      onDeleteRole: _deleteRole,
+                      canEditRole: canEditRole,
+                      canDeleteRole: canDeleteRole,
+                    ),
+                    IamGroupsTab(
+                      groups: _groups,
+                      users: _users,
+                      roles: _roles,
+                      scopes: _scopes,
+                      canCreateGroup: canCreateGroup,
+                      onCreateGroup: _showCreateGroupDialog,
+                      onGroupChanged: _loadAllIamData,
+                    ),
+                    IamScopesTab(
+                      scopes: _scopes,
+                      schools: _schools,
+                      tenantId: auth.tenantId,
+                      canCreateScope: canCreateScope,
+                      canDeleteScope: canDeleteScope,
+                      canCreateRootScope: canCreateRootScope,
+                      isTenantWideAdmin: isTenantWideAdmin,
+                      lockedSchoolId: lockedSchoolId,
+                      onCreateRootScope: (school) => _showCreateScopeDialog(
+                        parentId: null,
+                        school: school,
+                      ),
+                      onAddChildScope: (parentId, node, school) =>
+                          _showCreateScopeDialog(
+                        parentId: parentId,
+                        parentNode: node,
+                        school: school,
+                      ),
+                      onDeleteScope: _handleDeleteScope,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-
-          const SizedBox(height: 16),
-
-          // Tab Views
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                IamUsersTab(
-                  users: filteredUsers,
-                  userRoles: _userRolesMap,
-                  searchQuery: _searchQuery,
-                  canCreate: canCreateUser,
-                  canEdit: canEditUser,
-                  canUpdateStatus: canUpdateUserStatus,
-                  canAssign: canAssignRole,
-                  canDelete: canDeleteUser,
-                  userAssignments: _userAssignments,
-                  roles: _roles,
-                  scopes: _scopes,
-                  onSearchChanged: (v) => setState(() => _searchQuery = v),
-                  onCreateUser: _showCreateUserDialog,
-                  onEditUser: _showEditUserDialog,
-                  onAssignRole: _showAssignRoleDialog,
-                  onDataReload: _loadAllIamData,
-                ),
-                IamRolesTab(
-                  roles: _roles,
-                  canCreateRole: canCreateRole,
-                  onCreateRole: _showCreateRoleDialog,
-                  onEditRole: _showEditRoleDialog,
-                  onDeleteRole: _deleteRole,
-                  canEditRole: canEditRole,
-                  canDeleteRole: canDeleteRole,
-                ),
-                IamGroupsTab(
-                  groups: _groups,
-                  users: _users,
-                  roles: _roles,
-                  scopes: _scopes,
-                  canCreateGroup: canCreateGroup,
-                  onCreateGroup: _showCreateGroupDialog,
-                  onGroupChanged: _loadAllIamData,
-                ),
-                IamScopesTab(
-                  scopes: _scopes,
-                  schools: _schools,
-                  tenantId: auth.tenantId,
-                  canCreateScope: canCreateScope,
-                  canDeleteScope: canDeleteScope,
-                  canCreateRootScope: canCreateRootScope,
-                  isTenantWideAdmin: isTenantWideAdmin,
-                  lockedSchoolId: lockedSchoolId,
-                  onCreateRootScope: (school) => _showCreateScopeDialog(
-                    parentId: null,
-                    school: school,
-                  ),
-                  onAddChildScope: (parentId, node, school) =>
-                      _showCreateScopeDialog(
-                    parentId: parentId,
-                    parentNode: node,
-                    school: school,
-                  ),
-                  onDeleteScope: _handleDeleteScope,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

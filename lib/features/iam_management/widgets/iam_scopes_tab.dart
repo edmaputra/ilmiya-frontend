@@ -291,9 +291,10 @@ class _IamScopesTabState extends State<IamScopesTab> {
         hasSchools;
 
     final displayScopes = _getDisplayScopes(selectedSchool, _searchCtrl.text);
+    final isMobile = MediaQuery.of(context).size.width < 500;
 
     return KiteCard(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isMobile ? 10 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -302,20 +303,22 @@ class _IamScopesTabState extends State<IamScopesTab> {
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 12,
-            runSpacing: 10,
+            runSpacing: 8,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Text(
                         'Hierarchical Scope Tree',
-                        style: t.large.copyWith(fontWeight: FontWeight.bold),
+                        style: (isMobile ? t.h4 : t.large)
+                            .copyWith(fontWeight: FontWeight.bold),
                       ),
                       if (isLocked) ...[
-                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
@@ -346,13 +349,15 @@ class _IamScopesTabState extends State<IamScopesTab> {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    isLocked
-                        ? 'Restricted administration for current campus subtree.'
-                        : 'School-anchored authorization boundary and hierarchical RBAC paths.',
-                    style: t.muted.copyWith(fontSize: 11),
-                  ),
+                  if (!isMobile) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      isLocked
+                          ? 'Restricted administration for current campus subtree.'
+                          : 'School-anchored authorization boundary and hierarchical RBAC paths.',
+                      style: t.muted.copyWith(fontSize: 11),
+                    ),
+                  ],
                 ],
               ),
               ElevatedButton.icon(
@@ -372,7 +377,7 @@ class _IamScopesTabState extends State<IamScopesTab> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: isMobile ? 8 : 14),
 
           // Case 1: No schools registered under this tenant
           if (!hasSchools)
@@ -466,8 +471,8 @@ class _IamScopesTabState extends State<IamScopesTab> {
               )
             else
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 10 : 14, vertical: isMobile ? 4 : 8),
                 decoration: BoxDecoration(
                   color: c.card,
                   borderRadius: BorderRadius.circular(10),
@@ -477,13 +482,13 @@ class _IamScopesTabState extends State<IamScopesTab> {
                   children: [
                     const Icon(LucideIcons.school,
                         size: 18, color: AppColors.forestSage),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     const Text(
                       'Select School:',
                       style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 12.5),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
@@ -525,11 +530,12 @@ class _IamScopesTabState extends State<IamScopesTab> {
                   ],
                 ),
               ),
-            const SizedBox(height: 8),
+            SizedBox(height: isMobile ? 6 : 8),
 
             // Base scope path preview banner
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 8 : 12, vertical: isMobile ? 4 : 8),
               decoration: BoxDecoration(
                 color: AppColors.forestSage.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(8),
@@ -558,14 +564,14 @@ class _IamScopesTabState extends State<IamScopesTab> {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: isMobile ? 6 : 10),
 
             // Search Bar & Expand/Collapse controls
             Row(
               children: [
                 Expanded(
                   child: Container(
-                    height: 38,
+                    height: isMobile ? 34 : 38,
                     decoration: BoxDecoration(
                       color: c.card,
                       borderRadius: BorderRadius.circular(8),
