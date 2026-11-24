@@ -12,6 +12,7 @@ class IamUserTile extends StatelessWidget {
   final List<RoleResponse> assignedRoles;
   final String? assignedRole;
   final String? assignedScope;
+  final String? assignedScopeTooltip;
   final bool canEdit;
   final bool canUpdateStatus;
   final bool canAssign;
@@ -26,6 +27,7 @@ class IamUserTile extends StatelessWidget {
     this.assignedRoles = const [],
     this.assignedRole,
     this.assignedScope,
+    this.assignedScopeTooltip,
     this.canEdit = true,
     required this.canUpdateStatus,
     required this.canAssign,
@@ -90,22 +92,41 @@ class IamUserTile extends StatelessWidget {
               ),
             ),
           if (hasScope)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E40AF).withOpacity(0.10),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: const Color(0xFF1E40AF).withOpacity(0.25),
-                  width: 0.8,
+            Tooltip(
+              message: assignedScopeTooltip ?? 'Scope: $assignedScope',
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E40AF).withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: const Color(0xFF1E40AF).withOpacity(0.25),
+                    width: 0.8,
+                  ),
                 ),
-              ),
-              child: Text(
-                'Scope: $assignedScope',
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E40AF),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      LucideIcons.network,
+                      size: 11,
+                      color: Color(0xFF1E40AF),
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        'Scope: $assignedScope',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E40AF),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

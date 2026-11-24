@@ -16,6 +16,7 @@ import 'package:ilmiya_app/features/iam_management/dialogs/edit_role_dialog.dart
 import 'package:ilmiya_app/features/iam_management/presentation/iam_management_screen.dart';
 import 'package:ilmiya_app/features/iam_management/widgets/iam_scopes_tab.dart';
 import 'package:ilmiya_app/features/iam_management/widgets/iam_user_tile.dart';
+import 'package:ilmiya_app/features/iam_management/widgets/iam_users_tab.dart';
 import 'package:ilmiya_app/features/school_profile/presentation/school_profile_screen.dart';
 import 'package:ilmiya_app/shared_widgets/navigation/app_shell_sidebar.dart';
 import 'package:ilmiya_app/shared_widgets/tenant_session_required_view.dart';
@@ -357,6 +358,86 @@ void main() {
       expect(find.text('Siti Aminah, M.Si'), findsOneWidget);
       expect(find.text('Teacher'), findsOneWidget);
       expect(find.text('Scope: /ROOT/SCIENCE/PHYSICS'), findsOneWidget);
+    });
+
+    testWidgets('IamUsersTab resolves scope chain to target name and tooltip',
+        (WidgetTester tester) async {
+      setUpViewport(tester);
+
+      final user = UserResponse(
+        id: 'u-chain-test',
+        email: 'guru.kimia@ilmiya.edu',
+        fullName: 'Ahmad Dahlan, M.Pd',
+        status: 'ACTIVE',
+        isPlatformSuperAdmin: false,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+
+      final scopes = [
+        ScopeTreeNode(
+          id: '2e3da0a5-18ad-41e7-8c53-c62d79cb8cba',
+          code: 'CAMPUS_MAIN',
+          name: 'Main Campus',
+          path: '/2e3da0a5-18ad-41e7-8c53-c62d79cb8cba',
+          depth: 0,
+          children: [
+            ScopeTreeNode(
+              id: '01a20a6f-d608-7346-aed1-244e3673d094',
+              code: 'HIGH_SCHOOL',
+              name: 'Senior High School',
+              path:
+                  '/2e3da0a5-18ad-41e7-8c53-c62d79cb8cba/01a20a6f-d608-7346-aed1-244e3673d094',
+              depth: 1,
+              parentId: '2e3da0a5-18ad-41e7-8c53-c62d79cb8cba',
+              children: [],
+            ),
+          ],
+        ),
+      ];
+
+      final assignments = {
+        user.id: UserRoleAssignmentResponse(
+          id: 'asgn-1',
+          userId: user.id,
+          roleId: 'role-teacher',
+          tenantId: 'tenant-1',
+          scopeNodeId: '01a20a6f-d608-7346-aed1-244e3673d094',
+          assignedAt: DateTime.now().toIso8601String(),
+        ),
+      };
+
+      await tester.pumpWidget(
+        buildTestHost(
+          IamUsersTab(
+            users: [user],
+            searchQuery: '',
+            canCreate: true,
+            canUpdateStatus: true,
+            canAssign: true,
+            canDelete: true,
+            onSearchChanged: (_) {},
+            onCreateUser: () {},
+            onAssignRole: (_) {},
+            onDataReload: () async {},
+            userAssignments: assignments,
+            scopes: scopes,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Scope: Senior High School'), findsOneWidget);
+      final tooltip = tester.widget<Tooltip>(find.byType(Tooltip));
+      expect(
+        tooltip.message,
+        contains('Main Campus > Senior High School'),
+      );
+      expect(
+        tooltip.message,
+        contains(
+            '/2e3da0a5-18ad-41e7-8c53-c62d79cb8cba/01a20a6f-d608-7346-aed1-244e3673d094'),
+      );
     });
   });
 
