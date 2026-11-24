@@ -19,6 +19,7 @@ class IamUserTile extends StatelessWidget {
   final bool canDelete;
   final ValueChanged<UserResponse>? onEditUser;
   final ValueChanged<UserResponse> onAssignRole;
+  final ValueChanged<UserResponse>? onDeleteUser;
   final Future<void> Function() onDataReload;
 
   const IamUserTile({
@@ -34,8 +35,61 @@ class IamUserTile extends StatelessWidget {
     required this.canDelete,
     this.onEditUser,
     required this.onAssignRole,
+    this.onDeleteUser,
     required this.onDataReload,
   });
+
+  Future<void> _handleDelete(BuildContext context) async {
+    if (onDeleteUser != null) {
+      onDeleteUser!(user);
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final c = KiteColors.of(ctx);
+        final t = KiteText.of(ctx);
+        return AlertDialog(
+          title: Text('Delete User',
+              style: t.h4.copyWith(fontWeight: FontWeight.bold)),
+          content: Text(
+            'Are you sure you want to delete user "${user.fullName}" (${user.email})? This action cannot be undone.',
+            style: t.small,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: c.destructive,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await iamService.deleteUser(user.id);
+        await onDataReload();
+        if (context.mounted) {
+          AppToast.showSuccess(
+              context, "User '${user.fullName}' deleted successfully");
+        }
+      } catch (e) {
+        if (context.mounted) {
+          AppToast.showError(context, 'Failed to delete user: $e');
+        }
+      }
+    }
+  }
 
   Widget _buildRoleBadges() {
     final hasRoles = assignedRoles.isNotEmpty ||
@@ -272,23 +326,8 @@ class IamUserTile extends StatelessWidget {
                     IconButton(
                       icon: Icon(LucideIcons.trash2,
                           size: 16, color: c.destructive),
-                      onPressed: canDelete
-                          ? () async {
-                              try {
-                                await iamService.deleteUser(user.id);
-                                await onDataReload();
-                                if (context.mounted) {
-                                  AppToast.showSuccess(context,
-                                      "User '${user.fullName}' deleted successfully");
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  AppToast.showError(
-                                      context, 'Failed to delete user: $e');
-                                }
-                              }
-                            }
-                          : null,
+                      onPressed:
+                          canDelete ? () => _handleDelete(context) : null,
                     ),
                   ],
                 ),
@@ -407,23 +446,7 @@ class IamUserTile extends StatelessWidget {
               const SizedBox(width: 4),
               IconButton(
                 icon: Icon(LucideIcons.trash2, size: 16, color: c.destructive),
-                onPressed: canDelete
-                    ? () async {
-                        try {
-                          await iamService.deleteUser(user.id);
-                          await onDataReload();
-                          if (context.mounted) {
-                            AppToast.showSuccess(context,
-                                "User '${user.fullName}' deleted successfully");
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            AppToast.showError(
-                                context, 'Failed to delete user: $e');
-                          }
-                        }
-                      }
-                    : null,
+                onPressed: canDelete ? () => _handleDelete(context) : null,
               ),
             ],
           ),

@@ -39,10 +39,14 @@ class _AcademicYearsScreenState extends State<AcademicYearsScreen> {
     });
 
     try {
-      final list = await academicYearService.listAcademicYears();
+      final auth = context.read<AuthNotifier>();
+      final tId = auth.tenantId.isNotEmpty && auth.tenantId != 'platform'
+          ? auth.tenantId
+          : null;
+      final list = await academicYearService.listAcademicYears(tenantId: tId);
       AcademicYearResponse? active;
       try {
-        active = await academicYearService.getActiveAcademicYear();
+        active = await academicYearService.getActiveAcademicYear(tenantId: tId);
       } catch (_) {
         active = list.isNotEmpty ? list.first : null;
       }

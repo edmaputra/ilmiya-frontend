@@ -14,6 +14,7 @@ import 'features/iam_management/presentation/iam_management_screen.dart';
 import 'features/messaging/presentation/messaging_screen.dart';
 import 'features/notifications/presentation/notifications_screen.dart';
 import 'features/preview/presentation/preview_screen.dart';
+import 'features/profile/presentation/user_profile_screen.dart';
 import 'features/school_profile/presentation/school_profile_screen.dart';
 import 'features/school_profile/presentation/schools_campuses_screen.dart';
 import 'features/school_profile/presentation/tenant_management_screen.dart';
@@ -203,8 +204,8 @@ class _LazyTabBodyState extends State<_LazyTabBody> {
   @override
   Widget build(BuildContext context) {
     return IndexedStack(
-      index: widget.currentTab.clamp(0, 9),
-      children: List.generate(10, (index) {
+      index: widget.currentTab.clamp(0, 10),
+      children: List.generate(11, (index) {
         if (!_activatedTabs.contains(index)) {
           return const SizedBox.shrink();
         }
@@ -240,6 +241,10 @@ class _LazyTabBodyState extends State<_LazyTabBody> {
             return SchoolsCampusesScreen(
                 key: ValueKey(
                     'schools_campuses_${widget.tenantId}_${widget.modeSuffix}'));
+          case 10:
+            return UserProfileScreen(
+                key: ValueKey(
+                    'profile_${widget.tenantId}_${widget.modeSuffix}'));
           default:
             return const NotificationsScreen();
         }

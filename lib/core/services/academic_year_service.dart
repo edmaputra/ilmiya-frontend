@@ -10,28 +10,46 @@ class AcademicYearService {
       : _apiClient = apiClient ?? ApiClient(),
         _mockStorage = mockStorage ?? MockStorageService();
 
-  Future<List<AcademicYearResponse>> listAcademicYears() async {
+  Future<List<AcademicYearResponse>> listAcademicYears(
+      {String? tenantId}) async {
+    final tId = (tenantId != null && tenantId.isNotEmpty)
+        ? tenantId
+        : _apiClient.tenantId;
     if (_apiClient.isMockMode) {
-      return _mockStorage.listAcademicYears(_apiClient.tenantId);
+      return _mockStorage.listAcademicYears(tId);
     }
 
+    final endpoint = tId.isNotEmpty && tId != 'platform'
+        ? '/api/v1/academic-years?tenantId=$tId'
+        : '/api/v1/academic-years';
     final json = await _apiClient.request(
-      endpoint: '/api/v1/academic-years',
+      endpoint: endpoint,
       method: 'GET',
+      headers:
+          tId.isNotEmpty && tId != 'platform' ? {'X-Tenant-ID': tId} : null,
     );
     return (json as List<dynamic>)
         .map((e) => AcademicYearResponse.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  Future<AcademicYearResponse?> getActiveAcademicYear() async {
+  Future<AcademicYearResponse?> getActiveAcademicYear(
+      {String? tenantId}) async {
+    final tId = (tenantId != null && tenantId.isNotEmpty)
+        ? tenantId
+        : _apiClient.tenantId;
     if (_apiClient.isMockMode) {
-      return _mockStorage.getActiveAcademicYear(_apiClient.tenantId);
+      return _mockStorage.getActiveAcademicYear(tId);
     }
 
+    final endpoint = tId.isNotEmpty && tId != 'platform'
+        ? '/api/v1/academic-years/active?tenantId=$tId'
+        : '/api/v1/academic-years/active';
     final json = await _apiClient.request(
-      endpoint: '/api/v1/academic-years/active',
+      endpoint: endpoint,
       method: 'GET',
+      headers:
+          tId.isNotEmpty && tId != 'platform' ? {'X-Tenant-ID': tId} : null,
     );
     if (json == null) return null;
     return AcademicYearResponse.fromJson(json as Map<String, dynamic>);

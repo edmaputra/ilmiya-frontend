@@ -3,6 +3,7 @@ import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_version.dart';
 import '../../core/services/api_client.dart';
 import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
@@ -79,6 +80,29 @@ class AppShellSidebarFooter extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 6),
+                    Container(
+                      key: const Key('sidebar_footer_version_tag'),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: (apiClient.isMockMode
+                                ? const Color(0xFF9333EA)
+                                : const Color(0xFF16A34A))
+                            .withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        AppVersion.tag,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: apiClient.isMockMode
+                              ? const Color(0xFF7E22CE)
+                              : const Color(0xFF15803D),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -89,36 +113,54 @@ class AppShellSidebarFooter extends StatelessWidget {
           // User Profile Row
           Row(
             children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.forestSage.withOpacity(0.15),
-                child: Text(
-                  userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.forestSage,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      userName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: t.small.copyWith(fontWeight: FontWeight.w700),
+                child: InkWell(
+                  key: const Key('sidebar_user_profile_tile'),
+                  onTap: () => state.setTab(10),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor:
+                              AppColors.forestSage.withOpacity(0.15),
+                          child: Text(
+                            userName.isNotEmpty
+                                ? userName[0].toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.forestSage,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                userName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.small
+                                    .copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              Text(
+                                userRole,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.muted.copyWith(fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      userRole,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: t.muted.copyWith(fontSize: 10),
-                    ),
-                  ],
+                  ),
                 ),
               ),
 

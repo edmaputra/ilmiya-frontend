@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_version.dart';
 import '../../core/models/iam.dart';
 import '../../core/utils/app_toast.dart';
 import '../../features/auth/presentation/login_dialog.dart';
@@ -35,7 +36,9 @@ class AppShellUserMenu extends StatelessWidget {
         side: BorderSide(color: c.border),
       ),
       onSelected: (action) async {
-        if (action == 'switch_tenant') {
+        if (action == 'profile') {
+          context.read<AppState>().setTab(10);
+        } else if (action == 'switch_tenant') {
           await HeaderTenantSwitcherDialog.show(context, auth);
         } else if (action == 'login') {
           await LoginDialog.show(context);
@@ -108,13 +111,28 @@ class AppShellUserMenu extends StatelessWidget {
         ),
         const PopupMenuDivider(),
         const PopupMenuItem<String>(
+          value: 'profile',
+          child: Row(
+            children: [
+              Icon(LucideIcons.userCheck,
+                  size: 15, color: AppColors.forestSage),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('My Profile...', style: TextStyle(fontSize: 12)),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuItem<String>(
           value: 'switch_tenant',
           child: Row(
             children: [
               Icon(LucideIcons.building2,
                   size: 15, color: AppColors.forestSage),
               SizedBox(width: 8),
-              Text('Switch Tenant...', style: TextStyle(fontSize: 12)),
+              Expanded(
+                child: Text('Switch Tenant...', style: TextStyle(fontSize: 12)),
+              ),
             ],
           ),
         ),
@@ -124,8 +142,10 @@ class AppShellUserMenu extends StatelessWidget {
             children: [
               Icon(LucideIcons.logIn, size: 15, color: AppColors.forestSage),
               SizedBox(width: 8),
-              Text('Sign In with Another Account...',
-                  style: TextStyle(fontSize: 12)),
+              Expanded(
+                child: Text('Sign In with Another Account...',
+                    style: TextStyle(fontSize: 12)),
+              ),
             ],
           ),
         ),
@@ -136,12 +156,32 @@ class AppShellUserMenu extends StatelessWidget {
             children: [
               Icon(LucideIcons.logOut, size: 15, color: AppColors.earthyTerra),
               SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Sign Out',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.earthyTerra,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
               Text(
-                'Sign Out',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.earthyTerra,
+                AppVersion.display,
+                key: const Key('user_menu_version_label'),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textMuted,
                 ),
               ),
             ],

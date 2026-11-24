@@ -74,14 +74,19 @@ class _SchoolsCampusesScreenState extends State<SchoolsCampusesScreen>
   Future<void> _loadSchools() async {
     setState(() => _isLoading = true);
     try {
+      final auth = context.read<AuthNotifier>();
+      final effectiveTenant =
+          auth.tenantId.isNotEmpty && auth.tenantId != 'platform'
+              ? auth.tenantId
+              : null;
       final tenantsList = await tenantService.listTenants();
-      final list = await schoolService.listSchools(bypassTenantHeader: true);
+      final list = await schoolService.listSchools(
+          tenantId: effectiveTenant, bypassTenantHeader: true);
       if (mounted) {
         setState(() {
           _tenants = tenantsList;
           _schools = list;
           _isLoading = false;
-          final auth = context.read<AuthNotifier>();
           _inspectedSchool = list.isNotEmpty
               ? list.firstWhere(
                   (s) => s.id == auth.schoolId || s.tenantId == auth.tenantId,

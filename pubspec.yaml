@@ -1,7 +1,7 @@
 name: ilmiya_app
 description: "Ilmiya - Multiplatform School Information System (SIS) for iOS, Android, Web, and Desktop."
 publish_to: "none"
-version: 0.2.0
+version: 0.9.0
 
 environment:
   sdk: ">=3.3.0 <4.0.0"

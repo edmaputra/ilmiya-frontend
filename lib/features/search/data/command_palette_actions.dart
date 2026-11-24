@@ -103,6 +103,17 @@ List<CommandActionItem> buildCommandActions(BuildContext context) {
         Navigator.of(context).pop();
       },
     ),
+    CommandActionItem(
+      title: 'User Profile & Account Management',
+      group: 'Navigation',
+      icon: LucideIcons.userCheck,
+      subtitle:
+          'Self-manage account credentials, name, and administrative user controls',
+      onSelect: () {
+        appState.setTab(10);
+        Navigator.of(context).pop();
+      },
+    ),
 
     // System Actions
     CommandActionItem(

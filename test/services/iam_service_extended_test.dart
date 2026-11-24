@@ -13,6 +13,7 @@ void main() {
       mockStorage = MockStorageService();
       final client = ApiClient();
       client.isMockMode = true;
+      client.resetTenantId();
       service = IamService(apiClient: client, mockStorage: mockStorage);
     });
 

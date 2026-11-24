@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_version.dart';
 import '../../core/models/iam.dart';
 import '../../core/utils/app_toast.dart';
 import '../../features/auth/presentation/login_dialog.dart';
@@ -36,7 +37,9 @@ class HeaderPersonaMenu extends StatelessWidget {
         side: const BorderSide(color: AppColors.borderLight),
       ),
       onSelected: (action) async {
-        if (action == 'switch_tenant') {
+        if (action == 'profile') {
+          context.read<AppState>().setTab(10);
+        } else if (action == 'switch_tenant') {
           await HeaderTenantSwitcherDialog.show(context, auth);
         } else if (action == 'login') {
           await LoginDialog.show(context);
@@ -109,6 +112,22 @@ class HeaderPersonaMenu extends StatelessWidget {
         ),
         const PopupMenuDivider(),
         const PopupMenuItem<String>(
+          value: 'profile',
+          child: Row(
+            children: [
+              Icon(Icons.account_circle_outlined,
+                  size: 16, color: AppColors.forestSage),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'My Profile...',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuItem<String>(
           value: 'switch_tenant',
           child: Row(
             children: [
@@ -155,6 +174,24 @@ class HeaderPersonaMenu extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: AppColors.earthyTerra,
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                AppVersion.display,
+                key: const Key('header_persona_version_label'),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textMuted,
                 ),
               ),
             ],

@@ -706,7 +706,7 @@ class MockStorageService {
   List<SchoolResponse> listSchools(
       {String? tenantId, String? query, String? status}) {
     return _schools.where((s) {
-      if (tenantId != null && tenantId.isNotEmpty) {
+      if (tenantId != null && tenantId.isNotEmpty && tenantId != 'platform') {
         if (s.tenantId != tenantId) return false;
       }
       if (status != null &&
@@ -1085,6 +1085,14 @@ class MockStorageService {
     }
   }
 
+  UserResponse? getUserById(String id) {
+    try {
+      return _users.firstWhere((u) => u.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
   UserResponse createUser(CreateUserRequest req, {String? tenantId}) {
     final newUser = UserResponse(
       id: 'u-${DateTime.now().millisecondsSinceEpoch}',
@@ -1282,7 +1290,12 @@ class MockStorageService {
   }
 
   // --- IAM Groups ---
-  List<GroupResponse> listGroups(String tenantId) => List.unmodifiable(_groups);
+  List<GroupResponse> listGroups(String tenantId) {
+    if (tenantId.isNotEmpty && tenantId != 'platform') {
+      return _groups.where((g) => g.tenantId == tenantId).toList();
+    }
+    return List.unmodifiable(_groups);
+  }
 
   GroupResponse createGroup(String tenantId, CreateGroupRequest req) {
     final newGroup = GroupResponse(

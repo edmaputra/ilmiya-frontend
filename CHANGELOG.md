@@ -1,5 +1,137 @@
 # Changelog
 
+## [Unreleased](https://github.com/edmaputra/ilmiya-frontend/compare/v0.9.0...HEAD)
+
+### Features
+
+* **iam,profile:** add account profile page and enforce tenant resource isolation ([8847d39](https://github.com/edmaputra/ilmiya-frontend/commit/8847d39))
+  * Add self-service user profile page with account details, password updates, and session boundaries
+  * Add superadmin account administration toolkit on profile screen for user governance
+  * Integrate profile screen into shell navigation, persona menu, sidebar, and command palette
+  * Fix cross-tenant resource leakage across users, groups, schools, and academic years
+  * Display latest release tag version across UI (sidebar header, sidebar footer, profile security card, user menus)
+
+## [0.9.0](https://github.com/edmaputra/ilmiya-frontend/compare/v0.8.0...v0.9.0) (2026-11-24)
+
+### Features
+
+* **iam:** add scope editing, reparenting, and scope-based boundary filtering ([#32](https://github.com/edmaputra/ilmiya-frontend/issues/32)) ([43c82f4](https://github.com/edmaputra/ilmiya-frontend/commit/43c82f4))
+  * Add `PUT /api/v1/scopes/{id}` and `POST /api/v1/scopes/{id}/move` support
+  * Implement `EditScopeDialog` with live path preview and eligible parent reparenting
+  * Support depth computation and parentId inheritance in `ScopeTreeNode.fromJson`
+  * Filter accessible schools in IAM console by actor scope boundaries
+  * Add widget and unit tests for scope editing, reparenting, and boundary restrictions
+
+## [0.8.0](https://github.com/edmaputra/ilmiya-frontend/compare/v0.7.0...v0.8.0) (2026-11-24)
+
+### Features
+
+* **tenant:** switch context switcher to tenant level and prioritize tenant display over school child ([#31](https://github.com/edmaputra/ilmiya-frontend/issues/31)) ([f2f04f0](https://github.com/edmaputra/ilmiya-frontend/commit/f2f04f0))
+  * Streamline top navigation and tenant switcher dialog to operate at the tenant foundation level
+  * Prioritize foundation names in header brand bar and sidebar context selectors
+
+## [0.7.0](https://github.com/edmaputra/ilmiya-frontend/compare/v0.6.0...v0.7.0) (2026-11-24)
+
+### Features
+
+* **iam:** show human-readable scope label and path tooltip in users tab ([#30](https://github.com/edmaputra/ilmiya-frontend/issues/30)) ([5167b05](https://github.com/edmaputra/ilmiya-frontend/commit/5167b05))
+  * Resolve raw scope IDs into human-readable formatted scope path labels and breadcrumbs
+  * Add interactive tooltips displaying complete scope paths
+
+### Bug Fixes
+
+* **iam:** wrap scope badge text in flexible to prevent renderflex overflow ([5167b05](https://github.com/edmaputra/ilmiya-frontend/commit/5167b05))
+
+## [0.6.0](https://github.com/edmaputra/ilmiya-frontend/compare/v0.5.1...v0.6.0) (2026-11-23)
+
+### Features
+
+* **iam:** improve scopes management, role boundaries, and target scope assignment ([#29](https://github.com/edmaputra/ilmiya-frontend/issues/29)) ([94e2526](https://github.com/edmaputra/ilmiya-frontend/commit/94e2526))
+  * Enhance hierarchical scope visualization and administrative assignment
+  * Enforce boundary constraints when assigning roles and scopes to users
+
+### Bug Fixes
+
+* **iam:** resolve mobile overflow and viewport height in iam scope tree ([94e2526](https://github.com/edmaputra/ilmiya-frontend/commit/94e2526))
+
+## [0.5.1](https://github.com/edmaputra/ilmiya-frontend/compare/v0.5.0...v0.5.1) (2026-11-21)
+
+### Bug Fixes
+
+* **auth:** sanitize session and token expiry error details ([#28](https://github.com/edmaputra/ilmiya-frontend/issues/28)) ([995eb6d](https://github.com/edmaputra/ilmiya-frontend/commit/995eb6d))
+  * Prevent raw exception traces from leaking into user-facing authentication toasts
+  * Normalize session expired messages across token refresh and unauthorized states
+
+## [0.5.0](https://github.com/edmaputra/ilmiya-frontend/compare/v0.4.0...v0.5.0) (2026-11-17)
+
+### Features
+
+* **iam:** support batch role assignment endpoint and improve macOS local networking ([#27](https://github.com/edmaputra/ilmiya-frontend/issues/27)) ([5d55f02](https://github.com/edmaputra/ilmiya-frontend/commit/5d55f02))
+  * Integrate `POST /api/v1/users/{id}/roles/batch` in `AssignRoleDialog` and `IamService`
+  * Add `AssignUserRoleRequest` and `AssignUserRolesBatchRequest` models in `iam.dart`
+  * Redesign `AssignRoleDialog` with quick-select role chips, staged batch queue preview, and atomic batch submission
+  * Implement `assignUserRolesBatch` in `MockStorageService` for offline/mock simulation
+  * Add `HttpOverrides` to allow local development SSL certificates for localhost and `*.localhost` domains
+  * Update macOS `Release.entitlements` with `network.server` entitlement for loopback connectivity
+  * Configure `NSExceptionDomains` in macOS `Info.plist` for local development endpoints
+  * Add comprehensive batch widget and service unit tests
+
+### Bug Fixes
+
+* **auth:** prevent 401 session expiration from platform tenant header ([5d55f02](https://github.com/edmaputra/ilmiya-frontend/commit/5d55f02))
+  * Strip non-tenant keyword 'platform' from `X-Tenant-ID` headers in `ApiClient.request`
+  * Guard `SchoolService` `getProfile`, `updateProfile`, and `configureSettings` to return empty without firing network calls during platform-level sessions
+  * Avoid invoking school profile query in `AuthNotifier.refreshProfile` when `tenantId` is 'platform'
+  * Support `PLATFORM_SUPERADMIN` and `ROLE_PLATFORM_SUPERADMIN` role identifiers across IAM models and permission checks
+  * Add live mode tests for platform tenant header sanitization and school profile guard
+* **navigation:** prevent `NavigationBar` destination assertion on compact viewport ([5d55f02](https://github.com/edmaputra/ilmiya-frontend/commit/5d55f02))
+  * Avoid instantiating `NavigationBar` with fewer than 2 destinations when in platform superadmin session on compact viewports
+  * Add widget test verifying clean build without assertion on compact viewport
+
+## [0.4.0](https://github.com/edmaputra/ilmiya-frontend/compare/v0.3.0...v0.4.0) (2026-11-16)
+
+### Features
+
+* **iam,tenant:** support multi-role/group assignment, school-anchored scopes, and separated schools console ([#26](https://github.com/edmaputra/ilmiya-frontend/issues/26)) ([4a398f4](https://github.com/edmaputra/ilmiya-frontend/commit/4a398f4))
+  * Redesign `AssignRoleDialog` into a two-tab console for multi-role and group management
+  * Enforce school prerequisite and base path format (`<tenantId>/<school_id>/...`) for scope trees
+  * Move Schools & Campuses to dedicated submenu under Institution & Control
+  * Restrict session switching strictly to Tenants (Foundations)
+  * Isolate superadmin platform session and provision tenant admin root scopes
+
+## [0.3.0](https://github.com/edmaputra/ilmiya-frontend/compare/v0.2.2...v0.3.0) (2026-11-16)
+
+### Features
+
+* **tenant:** improve empty superadmin state, dynamic tenant switcher, and scope assignment ([#25](https://github.com/edmaputra/ilmiya-frontend/issues/25)) ([fe6d595](https://github.com/edmaputra/ilmiya-frontend/commit/fe6d595))
+  * Handle empty tenant state for superadmin gracefully without fallback defaults:
+    * Add `SchoolResponse.empty()` model factory
+    * Return empty profile in `SchoolService` and `MockStorageService` when `tenantId` is empty
+    * Keep `tenantId` empty in `AuthNotifier` when no tenants exist or `tenantId` is blank
+    * Hide school profile title, badges, and switcher options under top bar header
+  * Dynamically load registered schools in `AppShellTenantDialog` and `HeaderTenantSwitcherDialog` so newly created tenants are listed immediately
+  * Rename IAM user action button to 'Assign Role & Scope' and support selecting scope node partitions
+  * Remove legacy 'springfield' domain and test references across codebase and tests
+
+## [0.2.2](https://github.com/edmaputra/ilmiya-frontend/compare/v0.2.1...v0.2.2) (2026-11-16)
+
+### Bug Fixes
+
+* **iam,tenant,navigation:** address user management, tenant school filtering, and session reset ([#24](https://github.com/edmaputra/ilmiya-frontend/issues/24)) ([92c8694](https://github.com/edmaputra/ilmiya-frontend/commit/92c8694))
+  * Enable user profile editing and password reset with `EditUserDialog` in IAM Console
+  * Display assigned roles chips for all users in IAM Users list
+  * Hide Executive Dashboard, Courses & Grades, and Communications & Labs submenus while preserving underlying implementations
+  * Filter Schools & Campuses by active tenant foundation selection and bypass tenant header when loading superadmin school directory
+  * Completely purge session and teardown widget subtree on logout/login so next user starts from dashboard
+  * Add and update comprehensive unit and widget tests
+
+## [0.2.1](https://github.com/edmaputra/ilmiya-frontend/compare/v0.2.0...v0.2.1) (2026-11-16)
+
+### Features
+
+* **ci:** implement tag-only automated semantic release on merge to main ([#23](https://github.com/edmaputra/ilmiya-frontend/issues/23)) ([c653c53](https://github.com/edmaputra/ilmiya-frontend/commit/c653c53))
+  * Implement tag-only automated semantic release on merge to main branch using `github-tag-action`
+
 ## [0.2.0](https://github.com/edmaputra/ilmiya-frontend/compare/ilmiya_app-v0.1.0...ilmiya_app-v0.2.0) (2026-11-15)
 
 

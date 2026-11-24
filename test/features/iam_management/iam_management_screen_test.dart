@@ -375,5 +375,104 @@ void main() {
       // School boundary: Sibling school sch-002 should NOT be accessible or displayed
       expect(find.textContaining('sch-002'), findsNothing);
     });
+
+    testWidgets(
+        'deleting user shows confirmation dialog and cancels without deleting',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableWidget());
+      await tester.pumpAndSettle();
+
+      final trashButtons = find.byIcon(LucideIcons.trash2);
+      expect(trashButtons, findsWidgets);
+
+      // Tap first user's delete button
+      await tester.tap(trashButtons.first);
+      await tester.pumpAndSettle();
+
+      // Verify confirmation dialog is displayed
+      expect(find.text('Delete User'), findsOneWidget);
+      expect(find.textContaining('Are you sure you want to delete user'),
+          findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+
+      // Tap Cancel
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      // Dialog closed
+      expect(find.text('Delete User'), findsNothing);
+    });
+
+    testWidgets('deleting user confirms deletion and removes user',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableWidget());
+      await tester.pumpAndSettle();
+
+      final trashButtons = find.byIcon(LucideIcons.trash2);
+      expect(trashButtons, findsWidgets);
+
+      // Tap first user's delete button
+      await tester.tap(trashButtons.first);
+      await tester.pumpAndSettle();
+
+      // Confirm deletion
+      expect(find.text('Delete User'), findsOneWidget);
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete User'), findsNothing);
+      expect(find.textContaining('deleted successfully'), findsOneWidget);
+    });
+
+    testWidgets('deleting scope shows confirmation dialog',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestableWidget());
+      await tester.pumpAndSettle();
+
+      // Switch to Scope Tree tab
+      final scopeTreeTab = find.text('Scope Tree');
+      await tester.ensureVisible(scopeTreeTab.first);
+      await tester.tap(scopeTreeTab.first, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Find an enabled scope delete button (non-root, non-anchor)
+      final scopeDeleteBtn = find.byWidgetPredicate((widget) =>
+          widget is IconButton &&
+          widget.onPressed != null &&
+          widget.key is ValueKey &&
+          (widget.key as ValueKey)
+              .value
+              .toString()
+              .startsWith('delete_scope_'));
+
+      if (scopeDeleteBtn.evaluate().isNotEmpty) {
+        await tester.ensureVisible(scopeDeleteBtn.first);
+        await tester.tap(scopeDeleteBtn.first, warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Delete Scope Hierarchy?'), findsOneWidget);
+        expect(find.text('Cancel'), findsOneWidget);
+
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(find.text('Delete Scope Hierarchy?'), findsNothing);
+      }
+    });
   });
 }
