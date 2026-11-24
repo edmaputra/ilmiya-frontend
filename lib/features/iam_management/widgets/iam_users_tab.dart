@@ -18,6 +18,7 @@ class IamUsersTab extends StatelessWidget {
   final VoidCallback onCreateUser;
   final ValueChanged<UserResponse>? onEditUser;
   final ValueChanged<UserResponse> onAssignRole;
+  final ValueChanged<UserResponse>? onDeleteUser;
   final Future<void> Function() onDataReload;
   final Map<String, UserRoleAssignmentResponse> userAssignments;
   final List<RoleResponse> roles;
@@ -37,6 +38,7 @@ class IamUsersTab extends StatelessWidget {
     required this.onCreateUser,
     this.onEditUser,
     required this.onAssignRole,
+    this.onDeleteUser,
     required this.onDataReload,
     this.userAssignments = const {},
     this.roles = const [],
@@ -134,6 +136,7 @@ class IamUsersTab extends StatelessWidget {
                   canDelete: canDelete,
                   onEditUser: onEditUser,
                   onAssignRole: onAssignRole,
+                  onDeleteUser: onDeleteUser,
                   onDataReload: onDataReload,
                 );
               },

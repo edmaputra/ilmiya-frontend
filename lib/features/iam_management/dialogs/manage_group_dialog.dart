@@ -216,6 +216,32 @@ class _ManageGroupDialogState extends State<ManageGroupDialog>
   }
 
   Future<void> _removeMember(String userId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Remove Group Member'),
+        content: Text(
+          "Are you sure you want to remove this user from group '${widget.group.name}'?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.earthyTerra,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     try {
       await iamService.removeUserFromGroup(userId, widget.group.id);
       if (mounted) {
@@ -254,6 +280,32 @@ class _ManageGroupDialogState extends State<ManageGroupDialog>
   }
 
   Future<void> _revokeRole(String assignmentId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Revoke Role from Group'),
+        content: Text(
+          "Are you sure you want to revoke this role from group '${widget.group.name}'?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.earthyTerra,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Revoke'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     try {
       await iamService.revokeGroupRole(
         groupId: widget.group.id,

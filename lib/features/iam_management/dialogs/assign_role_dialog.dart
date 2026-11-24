@@ -456,6 +456,32 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
   }
 
   Future<void> _revokeRole(String assignmentId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Revoke Role Assignment'),
+        content: Text(
+          'Are you sure you want to revoke this role assignment from "${widget.user.fullName}"? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.earthyTerra,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Revoke'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     setState(() => _revokingAssignmentId = assignmentId);
     try {
       await _effectiveIamService.revokeRole(widget.user.id, assignmentId);

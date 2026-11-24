@@ -299,6 +299,57 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     );
   }
 
+  Future<void> _deleteUser(UserResponse user) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final c = KiteColors.of(ctx);
+        final t = KiteText.of(ctx);
+        return AlertDialog(
+          title: Text('Delete User',
+              style: t.h4.copyWith(fontWeight: FontWeight.bold)),
+          content: Text(
+            'Are you sure you want to delete user "${user.fullName}" (${user.email})? This action cannot be undone.',
+            style: t.small,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: c.destructive,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await iamService.deleteUser(user.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('User "${user.fullName}" deleted successfully.')),
+          );
+        }
+        await _loadAllIamData();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete user: $e')),
+          );
+        }
+      }
+    }
+  }
+
   Future<void> _deleteRole(RoleResponse role) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -758,6 +809,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                       onCreateUser: _showCreateUserDialog,
                       onEditUser: _showEditUserDialog,
                       onAssignRole: _showAssignRoleDialog,
+                      onDeleteUser: _deleteUser,
                       onDataReload: _loadAllIamData,
                     ),
                     IamRolesTab(
