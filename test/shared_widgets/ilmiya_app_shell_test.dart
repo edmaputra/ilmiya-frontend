@@ -223,18 +223,18 @@ void main() {
     expect(mockBadge, findsOneWidget);
 
     // Open tenant dialog in sidebar
-    final tenantSelector = find.text(auth.schoolName);
+    final tenantSelector = find.text(auth.tenantName);
     expect(tenantSelector, findsWidgets);
 
     await tester.tap(tenantSelector.first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Switch School Tenant'), findsOneWidget);
+    expect(find.text('Switch Tenant'), findsWidgets);
 
     // Cancel tenant dialog
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
-    expect(find.text('Switch School Tenant'), findsNothing);
+    expect(find.text('Switch Tenant'), findsNothing);
   });
 
   testWidgets('AppShellTenantDialog displays newly created tenant in chip list',
@@ -265,7 +265,7 @@ void main() {
     await tester.tap(tenantSelector.first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Switch School Tenant'), findsOneWidget);
+    expect(find.text('Switch Tenant'), findsWidgets);
     // Newly created tenant MUST be found in the list!
     expect(find.text('Stellar Academy'), findsOneWidget);
 

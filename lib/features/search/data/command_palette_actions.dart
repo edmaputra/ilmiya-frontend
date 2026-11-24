@@ -119,7 +119,7 @@ List<CommandActionItem> buildCommandActions(BuildContext context) {
       },
     ),
     CommandActionItem(
-      title: 'Switch to Lincoln High School',
+      title: 'Switch to Yayasan Pendidikan Lincoln Ilmiya',
       group: 'Multi-Tenant Context',
       icon: LucideIcons.building,
       subtitle: 'Tenant: tenant-lincoln-high-001',
@@ -129,7 +129,7 @@ List<CommandActionItem> buildCommandActions(BuildContext context) {
       },
     ),
     CommandActionItem(
-      title: 'Switch to SMA Negeri 1 Ilmiya',
+      title: 'Switch to Yayasan Pembina Generasi Ilmiya',
       group: 'Multi-Tenant Context',
       icon: LucideIcons.building2,
       subtitle: 'Tenant: tenant-sma1-ilmiya-002',

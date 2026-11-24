@@ -22,11 +22,11 @@ class AppShellTopBar extends StatelessWidget {
     final state = context.watch<AppState>();
     final auth = context.watch<AuthNotifier>();
 
-    final schoolDisplayName = auth.isPlatformSession
+    final tenantDisplayName = auth.isPlatformSession
         ? 'Platform Tenant Management'
         : (auth.tenantId.isEmpty
             ? ''
-            : (auth.schoolName.isNotEmpty ? auth.schoolName : auth.tenantName));
+            : (auth.tenantName.isNotEmpty ? auth.tenantName : auth.schoolName));
 
     final pageTitles = [
       'School Profile',
@@ -71,7 +71,7 @@ class AppShellTopBar extends StatelessWidget {
                   style: t.large
                       .copyWith(fontWeight: FontWeight.w700, height: 1.1),
                 ),
-                if (schoolDisplayName.isNotEmpty) ...[
+                if (tenantDisplayName.isNotEmpty) ...[
                   InkWell(
                     borderRadius: BorderRadius.circular(4),
                     onTap: () => AppShellTenantDialog.show(context, auth),
@@ -80,7 +80,7 @@ class AppShellTopBar extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            schoolDisplayName,
+                            tenantDisplayName,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: const TextStyle(

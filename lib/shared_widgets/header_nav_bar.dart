@@ -31,8 +31,10 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
         ? auth.roles.first
         : appState.currentUser.role.displayName;
 
-    final tenantDisplayName = auth.schoolName;
-    final shortTenantName = auth.schoolName;
+    final tenantDisplayName =
+        auth.tenantName.isNotEmpty ? auth.tenantName : auth.schoolName;
+    final shortTenantName =
+        auth.tenantName.isNotEmpty ? auth.tenantName : auth.schoolName;
 
     return Container(
       decoration: const BoxDecoration(

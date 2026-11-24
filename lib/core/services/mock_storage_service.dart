@@ -838,6 +838,20 @@ class MockStorageService {
       _schools.add(newSchool);
     }
 
+    final existingTenantIdx = _tenants.indexWhere((t) => t.id == req.tenantId);
+    if (existingTenantIdx == -1) {
+      _tenants.add(TenantResponse(
+        id: req.tenantId,
+        name: req.name,
+        address: req.address,
+        contactEmail: req.contactEmail,
+        contactPhone: req.contactPhone,
+        status: 'ACTIVE',
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      ));
+    }
+
     // 1. Provision root scope for the newly created tenant
     final rootScope = ScopeTreeNode(
       id: 'scope-${req.tenantId}-root',

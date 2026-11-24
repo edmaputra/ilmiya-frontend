@@ -30,13 +30,11 @@ class AppShellSidebar extends StatelessWidget {
         ? 'Platform Management'
         : (auth.tenantId.isEmpty
             ? 'No Tenant Selected'
-            : (auth.schoolName.isNotEmpty ? auth.schoolName : auth.tenantName));
+            : (auth.tenantName.isNotEmpty ? auth.tenantName : auth.schoolName));
 
     final tenantSubtitle = auth.isPlatformSession
         ? 'Manage Tenants (Global)'
-        : (auth.tenantId.isEmpty
-            ? 'Select school tenant'
-            : 'Active Institution');
+        : (auth.tenantId.isEmpty ? 'Select tenant' : 'Active Tenant Context');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

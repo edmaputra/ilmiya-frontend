@@ -117,7 +117,7 @@ class HeaderPersonaMenu extends StatelessWidget {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Switch School Tenant...',
+                  'Switch Tenant...',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                 ),
               ),

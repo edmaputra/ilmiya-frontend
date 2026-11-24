@@ -3,33 +3,38 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
-import '../../core/models/school.dart';
+import '../../core/models/tenant.dart';
 import '../../core/services/school_service.dart';
+import '../../core/services/tenant_service.dart';
 import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
 
 class AppShellTenantDialog extends StatefulWidget {
   final AuthNotifier auth;
+  final TenantService? tenantService;
   final SchoolService? schoolService;
   final String title;
 
   const AppShellTenantDialog({
     super.key,
     required this.auth,
+    this.tenantService,
     this.schoolService,
-    this.title = 'Switch School Tenant',
+    this.title = 'Switch Tenant',
   });
 
   static Future<void> show(
     BuildContext context,
     AuthNotifier auth, {
+    TenantService? tenantService,
     SchoolService? schoolService,
-    String title = 'Switch School Tenant',
+    String title = 'Switch Tenant',
   }) {
     return showDialog(
       context: context,
       builder: (ctx) => AppShellTenantDialog(
         auth: auth,
+        tenantService: tenantService,
         schoolService: schoolService,
         title: title,
       ),
@@ -41,13 +46,13 @@ class AppShellTenantDialog extends StatefulWidget {
 }
 
 class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
-  late final SchoolService _schoolService;
+  late final TenantService _tenantService;
   late final TextEditingController _searchCtrl;
   late final TextEditingController _customTenantCtrl;
   late final ExpansionTileController _expansionController;
 
-  List<SchoolResponse> _allSchools = [];
-  List<SchoolResponse> _filteredSchools = [];
+  List<TenantResponse> _allTenants = [];
+  List<TenantResponse> _filteredTenants = [];
   bool _isLoading = true;
   bool _isSwitching = false;
   String _selectedTenantId = '';
@@ -55,12 +60,12 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
   @override
   void initState() {
     super.initState();
-    _schoolService = widget.schoolService ?? SchoolService();
+    _tenantService = widget.tenantService ?? TenantService();
     _selectedTenantId = widget.auth.tenantId;
     _searchCtrl = TextEditingController();
     _customTenantCtrl = TextEditingController(text: widget.auth.tenantId);
     _expansionController = ExpansionTileController();
-    _loadSchools();
+    _loadTenants();
   }
 
   @override
@@ -70,62 +75,81 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
     super.dispose();
   }
 
-  Future<void> _loadSchools() async {
+  Future<void> _loadTenants() async {
     setState(() => _isLoading = true);
     try {
-      final list = await _schoolService.listSchools();
+      final list = await _tenantService.listTenants();
       if (mounted) {
         setState(() {
-          _allSchools = list;
+          _allTenants = list;
           _applyFilter(_searchCtrl.text);
           _isLoading = false;
         });
       }
     } catch (_) {
       if (mounted) {
-        // Fallback default mock schools if service call fails
-        _allSchools = [
-          SchoolResponse(
-            id: 'sch-001',
-            tenantId: 'tenant-lincoln-high-001',
-            name: 'SMA Negeri 1 Ilmiya (Lincoln High Campus)',
-            institutionCode: 'SMAN1-ILM',
+        // Fallback default mock tenants if service call fails
+        _allTenants = [
+          TenantResponse(
+            id: 'tenant-lincoln-high-001',
+            name: 'Yayasan Pendidikan Lincoln Ilmiya',
+            legalEntityNumber: 'AHU-0012345.AH.01.04.2020',
+            registrationType: 'FOUNDATION',
             address: '1240 Oakcrest Ave, Portland, OR 97201',
-            contactEmail: 'office@lincolnhigh.edu',
+            contactEmail: 'foundation@lincolnhigh.edu',
             contactPhone: '+1 503 555 0192',
             status: 'ACTIVE',
-            workingDays: [
-              'MONDAY',
-              'TUESDAY',
-              'WEDNESDAY',
-              'THURSDAY',
-              'FRIDAY'
-            ],
-            gradingPreference: 'DESCRIPTIVE_KURIKULUM_MERDEKA',
-            termLayout: 'SEMESTER',
             createdAt: '2026-01-01T00:00:00Z',
             updatedAt: '2026-01-01T00:00:00Z',
           ),
-          SchoolResponse(
-            id: 'sch-002',
-            tenantId: 'tenant-sma1-ilmiya-002',
-            name: 'SMA Negeri 1 Ilmiya',
-            institutionCode: 'SMAN1-ILM',
-            address: 'Jl. Pendidikan No. 42, Jakarta Selatan',
-            contactEmail: 'admin@ilmiya-school.edu',
+          TenantResponse(
+            id: 'tenant-sma1-ilmiya-002',
+            name: 'Yayasan Pembina Generasi Ilmiya',
+            legalEntityNumber: 'AHU-0098765.AH.01.04.2021',
+            registrationType: 'FOUNDATION',
+            address: 'Jl. Pendidikan No. 42, Kebayoran Baru, Jakarta Selatan',
+            contactEmail: 'sekretariat@ilmiya-foundation.id',
             contactPhone: '+62 21 7890 1234',
             status: 'ACTIVE',
-            workingDays: [
-              'MONDAY',
-              'TUESDAY',
-              'WEDNESDAY',
-              'THURSDAY',
-              'FRIDAY'
-            ],
-            gradingPreference: 'DESCRIPTIVE_KURIKULUM_MERDEKA',
-            termLayout: 'SEMESTER',
             createdAt: '2026-01-01T00:00:00Z',
             updatedAt: '2026-01-01T00:00:00Z',
+          ),
+          TenantResponse(
+            id: 'tenant-alazhar-003',
+            name: 'Yayasan Pesantren Islam Al-Azhar',
+            legalEntityNumber: 'AHU-0034567.AH.01.04.2018',
+            registrationType: 'FOUNDATION',
+            address:
+                'Jl. Sisingamangaraja No. 1, Kebayoran Baru, Jakarta Selatan',
+            contactEmail: 'info@alazhar-foundation.sch.id',
+            contactPhone: '+62 21 7278 8900',
+            status: 'ACTIVE',
+            createdAt: '2026-02-10T00:00:00Z',
+            updatedAt: '2026-02-10T00:00:00Z',
+          ),
+          TenantResponse(
+            id: 'tenant-horizon-004',
+            name: 'Horizon STEM Education Trust',
+            legalEntityNumber: 'WA-CORP-98721',
+            registrationType: 'NON_PROFIT_ORGANIZATION',
+            address: '770 Innovation Blvd, Silicon Forest, WA 98052',
+            contactEmail: 'contact@horizon-trust.org',
+            contactPhone: '+1 206 555 0148',
+            status: 'PENDING',
+            createdAt: '2026-03-01T00:00:00Z',
+            updatedAt: '2026-03-01T00:00:00Z',
+          ),
+          TenantResponse(
+            id: 'tenant-stjude-005',
+            name: 'St. Jude Educational Association',
+            legalEntityNumber: 'MA-NONPROFIT-4412',
+            registrationType: 'RELIGIOUS_BODY',
+            address: '500 Cathedral St, Boston, MA 02118',
+            contactEmail: 'office@stjude-edu.org',
+            contactPhone: '+1 617 555 0184',
+            status: 'SUSPENDED',
+            createdAt: '2026-01-15T00:00:00Z',
+            updatedAt: '2026-01-15T00:00:00Z',
           ),
         ];
         _applyFilter(_searchCtrl.text);
@@ -137,14 +161,24 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
   void _applyFilter(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) {
-      _filteredSchools = List.from(_allSchools);
+      _filteredTenants = List.from(_allTenants);
     } else {
-      _filteredSchools = _allSchools.where((s) {
-        final matchesName = s.name.toLowerCase().contains(q);
-        final matchesTenant = s.tenantId.toLowerCase().contains(q);
-        final matchesCode = s.institutionCode.toLowerCase().contains(q);
-        final matchesAddress = s.address.toLowerCase().contains(q);
-        return matchesName || matchesTenant || matchesCode || matchesAddress;
+      _filteredTenants = _allTenants.where((t) {
+        final matchesName = t.name.toLowerCase().contains(q);
+        final matchesTenant = t.id.toLowerCase().contains(q) ||
+            t.tenantId.toLowerCase().contains(q);
+        final matchesLegal =
+            t.legalEntityNumber?.toLowerCase().contains(q) ?? false;
+        final matchesRegistration =
+            t.registrationType?.toLowerCase().contains(q) ?? false;
+        final matchesAddress = t.address.toLowerCase().contains(q);
+        final matchesEmail = t.contactEmail.toLowerCase().contains(q);
+        return matchesName ||
+            matchesTenant ||
+            matchesLegal ||
+            matchesRegistration ||
+            matchesAddress ||
+            matchesEmail;
       }).toList();
     }
   }
@@ -227,7 +261,9 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  "Foundation: ${widget.auth.tenantName} • Campus: ${widget.auth.schoolName}",
+                  widget.auth.isPlatformSession
+                      ? 'Platform Operations (Global Console)'
+                      : 'Tenant: ${widget.auth.tenantName} (${widget.auth.tenantId})',
                   style: TextStyle(
                     fontSize: 12,
                     color: secondaryTextColor,
@@ -259,7 +295,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
               },
               style: TextStyle(fontSize: 13, color: primaryTextColor),
               decoration: InputDecoration(
-                hintText: 'Search school name, code, or tenant ID...',
+                hintText: 'Search tenant name, ID, or legal entity...',
                 hintStyle: TextStyle(fontSize: 13, color: secondaryTextColor),
                 prefixIcon: Icon(
                   LucideIcons.search,
@@ -339,7 +375,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
                                   : const Color(0xFFE2E8F0)),
                         ),
                         child: Icon(
-                          LucideIcons.building2,
+                          LucideIcons.globe,
                           size: 18,
                           color: _selectedTenantId == 'platform'
                               ? AppColors.forestSage
@@ -393,7 +429,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
               const SizedBox(height: 10),
             ],
 
-            // School List
+            // Tenant List
             Expanded(
               child: _isLoading
                   ? const Center(
@@ -402,29 +438,27 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
                         color: AppColors.forestSage,
                       ),
                     )
-                  : _filteredSchools.isEmpty
+                  : _filteredTenants.isEmpty
                       ? _buildEmptyState(
                           secondaryTextColor,
                           borderColor,
                           surfaceBg,
                         )
                       : ListView.separated(
-                          itemCount: _filteredSchools.length,
+                          itemCount: _filteredTenants.length,
                           separatorBuilder: (_, __) =>
                               const SizedBox(height: 8),
                           itemBuilder: (context, index) {
-                            final school = _filteredSchools[index];
-                            final isSelected =
-                                _selectedTenantId == school.tenantId;
-                            final isCurrent =
-                                widget.auth.tenantId == school.tenantId;
+                            final tenant = _filteredTenants[index];
+                            final isSelected = _selectedTenantId == tenant.id;
+                            final isCurrent = widget.auth.tenantId == tenant.id;
 
                             return InkWell(
-                              key: ValueKey('tenant_tile_${school.tenantId}'),
+                              key: ValueKey('tenant_tile_${tenant.id}'),
                               onTap: () {
                                 setState(() {
-                                  _selectedTenantId = school.tenantId;
-                                  _customTenantCtrl.text = school.tenantId;
+                                  _selectedTenantId = tenant.id;
+                                  _customTenantCtrl.text = tenant.id;
                                 });
                               },
                               borderRadius: BorderRadius.circular(12),
@@ -461,7 +495,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
                                                 : const Color(0xFFE2E8F0)),
                                       ),
                                       child: Icon(
-                                        LucideIcons.school,
+                                        LucideIcons.building,
                                         size: 18,
                                         color: isSelected
                                             ? AppColors.forestSage
@@ -478,7 +512,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
                                             children: [
                                               Expanded(
                                                 child: Text(
-                                                  school.name,
+                                                  tenant.name,
                                                   style: TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w600,
@@ -540,7 +574,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
                                             children: [
                                               Flexible(
                                                 child: Text(
-                                                  school.tenantId,
+                                                  tenant.id,
                                                   style: TextStyle(
                                                     fontSize: 11,
                                                     fontFamily: 'monospace',
@@ -550,8 +584,33 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
                                                       TextOverflow.ellipsis,
                                                 ),
                                               ),
-                                              if (school.institutionCode
-                                                  .isNotEmpty) ...[
+                                              if (tenant.legalEntityNumber !=
+                                                      null &&
+                                                  tenant.legalEntityNumber!
+                                                      .isNotEmpty) ...[
+                                                Text(
+                                                  ' • ',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: secondaryTextColor,
+                                                  ),
+                                                ),
+                                                Flexible(
+                                                  child: Text(
+                                                    tenant.legalEntityNumber!,
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: secondaryTextColor,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ] else if (tenant
+                                                          .registrationType !=
+                                                      null &&
+                                                  tenant.registrationType!
+                                                      .isNotEmpty) ...[
                                                 Text(
                                                   ' • ',
                                                   style: TextStyle(
@@ -560,7 +619,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
                                                   ),
                                                 ),
                                                 Text(
-                                                  school.institutionCode,
+                                                  tenant.registrationType!,
                                                   style: TextStyle(
                                                     fontSize: 11,
                                                     color: secondaryTextColor,
@@ -702,7 +761,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
             Icon(LucideIcons.searchX, size: 36, color: secondaryTextColor),
             const SizedBox(height: 8),
             Text(
-              'No schools match "$query"',
+              'No tenants match "$query"',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -712,7 +771,7 @@ class _AppShellTenantDialogState extends State<AppShellTenantDialog> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Try searching with a different name, institution code, or tenant ID.',
+              'Try searching with a different tenant name, legal entity, or tenant ID.',
               style: TextStyle(fontSize: 11, color: secondaryTextColor),
               textAlign: TextAlign.center,
             ),
