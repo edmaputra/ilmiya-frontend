@@ -283,6 +283,12 @@ class AppShellSidebar extends StatelessWidget {
                         isActive: state.currentTab == 8,
                         badgeText: 'Admin',
                       ),
+                    AppShellNavTile(
+                      title: 'My Profile',
+                      icon: LucideIcons.userCheck,
+                      tabIndex: 10,
+                      isActive: state.currentTab == 10,
+                    ),
                   ],
                   if (showCommSection) ...[
                     const SizedBox(height: 12),

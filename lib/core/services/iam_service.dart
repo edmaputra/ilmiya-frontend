@@ -187,12 +187,22 @@ class IamService {
   Future<UserProfileResponse> getMe() async {
     if (_apiClient.isMockMode) {
       if (_cachedProfile != null) {
+        final mockUser = _mockStorage.getUserById(_cachedProfile!.id);
+        if (mockUser != null) {
+          _cachedProfile = _cachedProfile!.copyWith(
+            fullName: mockUser.fullName,
+            tenantId: _apiClient.tenantId,
+          );
+        }
         return _cachedProfile!.copyWith(tenantId: _apiClient.tenantId);
       }
+      final defaultUser =
+          _mockStorage.getUserById('u-11111111-1111-1111-1111-111111111111');
       return UserProfileResponse(
         id: 'u-11111111-1111-1111-1111-111111111111',
-        email: 'admin.utama@ilmiya.edu',
-        fullName: 'Dr. Sarah Jenkins (Head Administrator)',
+        email: defaultUser?.email ?? 'admin.utama@ilmiya.edu',
+        fullName:
+            defaultUser?.fullName ?? 'Dr. Sarah Jenkins (Head Administrator)',
         tenantId: _apiClient.tenantId,
         roles: ['SUPERADMIN'],
         permissions: ['*'],
@@ -275,13 +285,13 @@ class IamService {
   // ================= User Management Endpoints =================
 
   Future<List<UserResponse>> listUsers({String? tenantId}) async {
-    if (_apiClient.isMockMode) {
-      return _mockStorage.listUsers(tenantId: tenantId);
-    }
     final targetTenant =
         (tenantId != null && tenantId.isNotEmpty && tenantId != 'platform')
             ? tenantId
             : (_apiClient.tenantId != 'platform' ? _apiClient.tenantId : null);
+    if (_apiClient.isMockMode) {
+      return _mockStorage.listUsers(tenantId: targetTenant);
+    }
     final endpoint = targetTenant != null
         ? '/api/v1/users?tenantId=$targetTenant'
         : '/api/v1/users';
@@ -334,14 +344,22 @@ class IamService {
 
   Future<UserResponse> updateUser(String id, String fullName) async {
     if (_apiClient.isMockMode) {
-      return _mockStorage.updateUser(id, fullName);
+      final updated = _mockStorage.updateUser(id, fullName);
+      if (_cachedProfile != null && _cachedProfile!.id == id) {
+        _cachedProfile = _cachedProfile!.copyWith(fullName: fullName);
+      }
+      return updated;
     }
     final json = await _apiClient.request(
       endpoint: '/api/v1/users/$id',
       method: 'PUT',
       body: {'fullName': fullName},
     );
-    return UserResponse.fromJson(json as Map<String, dynamic>);
+    final resp = UserResponse.fromJson(json as Map<String, dynamic>);
+    if (_cachedProfile != null && _cachedProfile!.id == id) {
+      _cachedProfile = _cachedProfile!.copyWith(fullName: resp.fullName);
+    }
+    return resp;
   }
 
   Future<void> resetPassword(String userId, String newPassword) async {
@@ -512,12 +530,23 @@ class IamService {
 
   // ================= Groups Endpoints =================
 
-  Future<List<GroupResponse>> listGroups() async {
+  Future<List<GroupResponse>> listGroups({String? tenantId}) async {
+    final targetTenant = (tenantId != null && tenantId.isNotEmpty)
+        ? tenantId
+        : _apiClient.tenantId;
     if (_apiClient.isMockMode) {
-      return _mockStorage.listGroups(_apiClient.tenantId);
+      return _mockStorage.listGroups(targetTenant);
     }
-    final json =
-        await _apiClient.request(endpoint: '/api/v1/groups', method: 'GET');
+    final endpoint = targetTenant.isNotEmpty && targetTenant != 'platform'
+        ? '/api/v1/groups?tenantId=$targetTenant'
+        : '/api/v1/groups';
+    final json = await _apiClient.request(
+      endpoint: endpoint,
+      method: 'GET',
+      headers: targetTenant.isNotEmpty && targetTenant != 'platform'
+          ? {'X-Tenant-ID': targetTenant}
+          : null,
+    );
     return (json as List<dynamic>)
         .map((g) => GroupResponse.fromJson(g as Map<String, dynamic>))
         .toList();

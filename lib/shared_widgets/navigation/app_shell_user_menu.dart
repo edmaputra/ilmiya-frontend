@@ -35,7 +35,9 @@ class AppShellUserMenu extends StatelessWidget {
         side: BorderSide(color: c.border),
       ),
       onSelected: (action) async {
-        if (action == 'switch_tenant') {
+        if (action == 'profile') {
+          context.read<AppState>().setTab(10);
+        } else if (action == 'switch_tenant') {
           await HeaderTenantSwitcherDialog.show(context, auth);
         } else if (action == 'login') {
           await LoginDialog.show(context);
@@ -107,6 +109,17 @@ class AppShellUserMenu extends StatelessWidget {
           ),
         ),
         const PopupMenuDivider(),
+        const PopupMenuItem<String>(
+          value: 'profile',
+          child: Row(
+            children: [
+              Icon(LucideIcons.userCheck,
+                  size: 15, color: AppColors.forestSage),
+              SizedBox(width: 8),
+              Text('My Profile...', style: TextStyle(fontSize: 12)),
+            ],
+          ),
+        ),
         const PopupMenuItem<String>(
           value: 'switch_tenant',
           child: Row(

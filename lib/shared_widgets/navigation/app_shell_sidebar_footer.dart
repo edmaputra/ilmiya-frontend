@@ -89,36 +89,54 @@ class AppShellSidebarFooter extends StatelessWidget {
           // User Profile Row
           Row(
             children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.forestSage.withOpacity(0.15),
-                child: Text(
-                  userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.forestSage,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      userName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: t.small.copyWith(fontWeight: FontWeight.w700),
+                child: InkWell(
+                  key: const Key('sidebar_user_profile_tile'),
+                  onTap: () => state.setTab(10),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor:
+                              AppColors.forestSage.withOpacity(0.15),
+                          child: Text(
+                            userName.isNotEmpty
+                                ? userName[0].toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.forestSage,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                userName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.small
+                                    .copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              Text(
+                                userRole,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.muted.copyWith(fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      userRole,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: t.muted.copyWith(fontSize: 10),
-                    ),
-                  ],
+                  ),
                 ),
               ),
 

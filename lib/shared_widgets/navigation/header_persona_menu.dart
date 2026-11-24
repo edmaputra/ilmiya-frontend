@@ -36,7 +36,9 @@ class HeaderPersonaMenu extends StatelessWidget {
         side: const BorderSide(color: AppColors.borderLight),
       ),
       onSelected: (action) async {
-        if (action == 'switch_tenant') {
+        if (action == 'profile') {
+          context.read<AppState>().setTab(10);
+        } else if (action == 'switch_tenant') {
           await HeaderTenantSwitcherDialog.show(context, auth);
         } else if (action == 'login') {
           await LoginDialog.show(context);
@@ -108,6 +110,22 @@ class HeaderPersonaMenu extends StatelessWidget {
           ),
         ),
         const PopupMenuDivider(),
+        const PopupMenuItem<String>(
+          value: 'profile',
+          child: Row(
+            children: [
+              Icon(Icons.account_circle_outlined,
+                  size: 16, color: AppColors.forestSage),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'My Profile...',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+        ),
         const PopupMenuItem<String>(
           value: 'switch_tenant',
           child: Row(

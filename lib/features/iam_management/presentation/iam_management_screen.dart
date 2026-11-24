@@ -93,6 +93,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     setState(() => _isLoading = true);
     try {
       final tId = auth.tenantId;
+      final isSpecificTenant = tId.isNotEmpty && tId != 'platform';
       final results = await Future.wait([
         iamService.listUsers(tenantId: tId).catchError((e) {
           debugPrint('Error loading users: $e');
@@ -102,7 +103,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
           debugPrint('Error loading roles: $e');
           return <RoleResponse>[];
         }),
-        iamService.listGroups().catchError((e) {
+        iamService.listGroups(tenantId: tId).catchError((e) {
           debugPrint('Error loading groups: $e');
           return <GroupResponse>[];
         }),
@@ -139,8 +140,6 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                 .getUserRoles(u.id)
                 .catchError((_) => <UserRoleAssignmentResponse>[])),
           );
-          final isSpecificTenant = tId.isNotEmpty && tId != 'platform';
-
           for (var i = 0; i < users.length; i++) {
             final user = users[i];
             final uId = user.id;
@@ -151,18 +150,24 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                 ? userAssigns.where((a) => a.tenantId == tId).toList()
                 : userAssigns;
 
-            // In live REST mode, only filter out a user if they explicitly belong
-            // to a different tenant. Users with no role assignments yet (e.g. freshly created)
-            // must remain visible so admins can assign them.
+            // In a specific tenant context, enforce strict boundary filtering:
+            // 1. Users who have role assignments in a different tenant must NOT be visible.
+            // 2. Users with no role assignments in this tenant must NOT be visible,
+            //    unless the user has zero assignments anywhere (e.g. freshly created unassigned).
+            // 3. Platform superadmins without a role in this tenant must NOT be visible in this tenant.
             final hasOtherTenantAssignment = userAssigns.any((a) =>
                 a.tenantId != tId &&
                 a.tenantId.isNotEmpty &&
                 a.tenantId != 'platform');
-            if (isSpecificTenant &&
-                !apiClient.isMockMode &&
-                tenantAssigns.isEmpty &&
-                hasOtherTenantAssignment) {
-              continue;
+            if (isSpecificTenant) {
+              if (tenantAssigns.isEmpty) {
+                if (hasOtherTenantAssignment || userAssigns.isNotEmpty) {
+                  continue;
+                }
+                if (user.isPlatformSuperAdmin) {
+                  continue;
+                }
+              }
             }
 
             final primaryAssignment = tenantAssigns.isNotEmpty
@@ -220,7 +225,10 @@ class _IamManagementScreenState extends State<IamManagementScreen>
         } catch (_) {}
       }
 
-      if (displayUsers.isEmpty && users.isNotEmpty && apiClient.isMockMode) {
+      if (displayUsers.isEmpty &&
+          users.isNotEmpty &&
+          apiClient.isMockMode &&
+          !isSpecificTenant) {
         if (auth.isTenantWideAdmin || auth.scopes.isEmpty) {
           displayUsers.addAll(users);
         }

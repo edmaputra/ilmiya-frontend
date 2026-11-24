@@ -306,7 +306,7 @@ class _AssignRoleDialogState extends State<AssignRoleDialog>
         widget.groups.isNotEmpty
             ? Future.value(widget.groups)
             : _effectiveIamService
-                .listGroups()
+                .listGroups(tenantId: effectiveTenantId)
                 .catchError((_) => <GroupResponse>[]),
       ]);
 
