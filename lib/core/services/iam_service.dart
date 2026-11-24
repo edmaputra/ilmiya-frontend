@@ -122,6 +122,11 @@ class IamService {
         permissions = ['school:profile:read', 'academic:year:read'];
       }
 
+      final assignedScopePaths =
+          _mockStorage.getUserAccessibleScopePaths(userId, _apiClient.tenantId);
+      final resolvedScopes =
+          assignedScopePaths.isNotEmpty ? assignedScopePaths : ['/CAMPUS_MAIN'];
+
       _cachedProfile = UserProfileResponse(
         id: userId,
         email: email.isNotEmpty ? email : 'user@ilmiya.edu',
@@ -129,7 +134,7 @@ class IamService {
         tenantId: _apiClient.tenantId,
         roles: roles,
         permissions: permissions,
-        scopes: ['/CAMPUS_MAIN'],
+        scopes: resolvedScopes,
         isPlatformSuperAdmin: roles.contains('SUPERADMIN'),
       );
 
@@ -141,6 +146,7 @@ class IamService {
         tenantId: _apiClient.tenantId,
         roles: roles,
         permissions: permissions,
+        user: _cachedProfile,
       );
     }
 
@@ -687,6 +693,44 @@ class IamService {
     final json = await _apiClient.request(
       endpoint: '/api/v1/scopes',
       method: 'POST',
+      body: req.toJson(),
+    );
+    return ScopeTreeNode.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<ScopeTreeNode> updateScope(String scopeId, UpdateScopeRequest req,
+      {String? tenantId}) async {
+    final tId = tenantId ?? _apiClient.tenantId;
+    if (_apiClient.isMockMode) {
+      return _mockStorage.updateScope(tId, scopeId, req);
+    }
+    final targetTenant = (tId.isNotEmpty && tId != 'platform') ? tId : null;
+    final endpoint = targetTenant != null
+        ? '/api/v1/scopes/$scopeId?tenantId=$targetTenant'
+        : '/api/v1/scopes/$scopeId';
+    final json = await _apiClient.request(
+      endpoint: endpoint,
+      method: 'PUT',
+      headers: targetTenant != null ? {'X-Tenant-ID': targetTenant} : null,
+      body: req.toJson(),
+    );
+    return ScopeTreeNode.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<ScopeTreeNode> moveScope(String scopeId, MoveScopeRequest req,
+      {String? tenantId}) async {
+    final tId = tenantId ?? _apiClient.tenantId;
+    if (_apiClient.isMockMode) {
+      return _mockStorage.moveScope(tId, scopeId, req);
+    }
+    final targetTenant = (tId.isNotEmpty && tId != 'platform') ? tId : null;
+    final endpoint = targetTenant != null
+        ? '/api/v1/scopes/$scopeId/move?tenantId=$targetTenant'
+        : '/api/v1/scopes/$scopeId/move';
+    final json = await _apiClient.request(
+      endpoint: endpoint,
+      method: 'POST',
+      headers: targetTenant != null ? {'X-Tenant-ID': targetTenant} : null,
       body: req.toJson(),
     );
     return ScopeTreeNode.fromJson(json as Map<String, dynamic>);

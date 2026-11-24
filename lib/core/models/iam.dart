@@ -459,20 +459,36 @@ class ScopeTreeNode {
     required this.children,
   });
 
-  factory ScopeTreeNode.fromJson(Map<String, dynamic> json) {
+  factory ScopeTreeNode.fromJson(
+    Map<String, dynamic> json, {
+    String? parentId,
+    int inheritedDepth = 0,
+  }) {
+    final rawDepth =
+        (json['depth'] as num?)?.toInt() ?? (json['level'] as num?)?.toInt();
+    final rawParentId = json['parentId'] as String? ?? parentId;
+    final path = json['path'] as String? ?? '';
+    final id = json['id'] as String? ?? '';
+
+    // If backend doesn't supply depth, compute depth from inheritedDepth
+    final computedDepth = rawDepth ?? inheritedDepth;
+
+    final childrenList = (json['children'] as List<dynamic>?) ?? [];
+
     return ScopeTreeNode(
-      id: json['id'] as String? ?? '',
+      id: id,
       code: json['code'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      path: json['path'] as String? ?? '',
-      depth: (json['depth'] as num?)?.toInt() ??
-          (json['level'] as num?)?.toInt() ??
-          0,
-      parentId: json['parentId'] as String?,
-      children: (json['children'] as List<dynamic>?)
-              ?.map((c) => ScopeTreeNode.fromJson(c as Map<String, dynamic>))
-              .toList() ??
-          [],
+      path: path,
+      depth: computedDepth,
+      parentId: rawParentId,
+      children: childrenList
+          .map((c) => ScopeTreeNode.fromJson(
+                c as Map<String, dynamic>,
+                parentId: id,
+                inheritedDepth: computedDepth + 1,
+              ))
+          .toList(),
     );
   }
 
@@ -505,6 +521,33 @@ class CreateScopeRequest {
         'code': code,
         'name': name,
         if (parentId != null) 'parentId': parentId,
+      };
+}
+
+class UpdateScopeRequest {
+  final String code;
+  final String name;
+
+  UpdateScopeRequest({
+    required this.code,
+    required this.name,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'code': code,
+        'name': name,
+      };
+}
+
+class MoveScopeRequest {
+  final String newParentId;
+
+  MoveScopeRequest({
+    required this.newParentId,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'newParentId': newParentId,
       };
 }
 

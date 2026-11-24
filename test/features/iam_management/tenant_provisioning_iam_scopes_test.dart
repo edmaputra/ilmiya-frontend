@@ -691,6 +691,7 @@ void main() {
       setUpViewport(tester);
 
       ScopeTreeNode? deletedScope;
+      ScopeTreeNode? editedScope;
 
       final testScopes = [
         ScopeTreeNode(
@@ -738,9 +739,11 @@ void main() {
             schools: sampleSchools,
             tenantId: 'tenant-test-001',
             canCreateScope: true,
+            canEditScope: true,
             canDeleteScope: true,
             canCreateRootScope: true,
             isTenantWideAdmin: true,
+            onEditScope: (node, school) => editedScope = node,
             onDeleteScope: (s) => deletedScope = s,
           ),
         ),
@@ -814,6 +817,15 @@ void main() {
 
       expect(deletedScope, isNotNull);
       expect(deletedScope!.id, equals('scope-dept-cs'));
+
+      // Edit Scope button
+      final editBtn = find.byKey(const ValueKey('edit_scope_scope-dept-cs'));
+      expect(editBtn, findsOneWidget);
+      await tester.tap(editBtn);
+      await tester.pumpAndSettle();
+
+      expect(editedScope, isNotNull);
+      expect(editedScope!.id, equals('scope-dept-cs'));
     });
 
     testWidgets(

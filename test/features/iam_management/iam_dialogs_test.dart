@@ -9,6 +9,7 @@ import 'package:ilmiya_app/features/iam_management/dialogs/create_group_dialog.d
 import 'package:ilmiya_app/features/iam_management/dialogs/create_role_dialog.dart';
 import 'package:ilmiya_app/features/iam_management/dialogs/create_scope_dialog.dart';
 import 'package:ilmiya_app/features/iam_management/dialogs/create_user_dialog.dart';
+import 'package:ilmiya_app/features/iam_management/dialogs/edit_scope_dialog.dart';
 import 'package:ilmiya_app/features/iam_management/dialogs/edit_user_dialog.dart';
 import 'package:ilmiya_app/features/iam_management/dialogs/manage_group_dialog.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
@@ -527,6 +528,232 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(updated, isTrue);
+    });
+  });
+
+  group('EditScopeDialog Tests', () {
+    testWidgets('EditScopeDialog populates existing data and updates scope',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final parentScope = ScopeTreeNode(
+        id: 'scope-parent-1',
+        code: 'CAMPUS_A',
+        name: 'Campus A',
+        path: '/tenant-1/CAMPUS_A',
+        depth: 0,
+        children: [],
+      );
+
+      final alternativeParent = ScopeTreeNode(
+        id: 'scope-parent-2',
+        code: 'CAMPUS_B',
+        name: 'Campus B',
+        path: '/tenant-1/CAMPUS_B',
+        depth: 0,
+        children: [],
+      );
+
+      final scope = ScopeTreeNode(
+        id: 'scope-test-1',
+        code: 'OLD_CODE',
+        name: 'Old Scope Name',
+        path: '/tenant-1/CAMPUS_A/OLD_CODE',
+        depth: 1,
+        parentId: 'scope-parent-1',
+        children: [],
+      );
+
+      bool updated = false;
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          EditScopeDialog(
+            scope: scope,
+            allScopes: [parentScope, alternativeParent],
+            tenantId: DEFAULT_TENANT_ID,
+            onScopeUpdated: () async => updated = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit & Reparent Scope'), findsOneWidget);
+      expect(find.text('ID: scope-test-1'), findsOneWidget);
+      expect(find.text('/tenant-1/CAMPUS_A/OLD_CODE'), findsOneWidget);
+
+      final codeField = find.byKey(const ValueKey('edit_scope_code_field'));
+      final nameField = find.byKey(const ValueKey('edit_scope_name_field'));
+      expect(codeField, findsOneWidget);
+      expect(nameField, findsOneWidget);
+
+      // Reparent to alternative parent
+      final parentDropdown =
+          find.byKey(const ValueKey('edit_scope_parent_dropdown'));
+      expect(parentDropdown, findsOneWidget);
+      await tester.tap(parentDropdown);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Campus B'), findsWidgets);
+      await tester.tap(find.textContaining('Campus B').last);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(codeField, 'NEW_CODE');
+      await tester.enterText(nameField, 'New Scope Name');
+      await tester.pumpAndSettle();
+
+      // Check preview path updated to Campus B
+      expect(find.text('/tenant-1/CAMPUS_B/NEW_CODE'), findsOneWidget);
+
+      final submitBtn = find.byKey(const ValueKey('edit_scope_submit_btn'));
+      await tester.tap(submitBtn);
+      await tester.pumpAndSettle();
+
+      expect(updated, isTrue);
+    });
+
+    testWidgets('EditScopeDialog validates empty code or name',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final scope = ScopeTreeNode(
+        id: 'scope-test-2',
+        code: 'VALID_CODE',
+        name: 'Valid Name',
+        path: '/tenant-1/VALID_CODE',
+        depth: 1,
+        children: [],
+      );
+
+      bool updated = false;
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          EditScopeDialog(
+            scope: scope,
+            tenantId: DEFAULT_TENANT_ID,
+            onScopeUpdated: () async => updated = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final codeField = find.byKey(const ValueKey('edit_scope_code_field'));
+      final nameField = find.byKey(const ValueKey('edit_scope_name_field'));
+
+      await tester.enterText(codeField, '');
+      await tester.enterText(nameField, '');
+      await tester.pumpAndSettle();
+
+      final submitBtn = find.byKey(const ValueKey('edit_scope_submit_btn'));
+      await tester.tap(submitBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Scope code is required'), findsOneWidget);
+      expect(find.text('Scope name is required'), findsOneWidget);
+      expect(updated, isFalse);
+    });
+
+    testWidgets(
+        'EditScopeDialog allows reparenting root scope under another node',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final rootA = ScopeTreeNode(
+        id: 'scope-root-a',
+        code: 'ROOT_A',
+        name: 'Root Scope A',
+        path: '/tenant-1/scope-root-a/',
+        depth: 0,
+        children: [],
+      );
+
+      final rootB = ScopeTreeNode(
+        id: 'scope-root-b',
+        code: 'ROOT_B',
+        name: 'Root Scope B',
+        path: '/tenant-1/scope-root-b/',
+        depth: 0,
+        children: [],
+      );
+
+      bool updated = false;
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          EditScopeDialog(
+            scope: rootA,
+            allScopes: [rootA, rootB],
+            tenantId: DEFAULT_TENANT_ID,
+            onScopeUpdated: () async => updated = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final parentDropdown =
+          find.byKey(const ValueKey('edit_scope_parent_dropdown'));
+      expect(parentDropdown, findsOneWidget);
+
+      await tester.tap(parentDropdown);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Root Scope B'), findsWidgets);
+      await tester.tap(find.textContaining('Root Scope B').last);
+      await tester.pumpAndSettle();
+
+      final submitBtn = find.byKey(const ValueKey('edit_scope_submit_btn'));
+      await tester.tap(submitBtn);
+      await tester.pumpAndSettle();
+
+      expect(updated, isTrue);
+    });
+
+    testWidgets(
+        'EditScopeDialog shows informative banner when no candidate parents exist',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final rootA = ScopeTreeNode(
+        id: 'scope-root-a',
+        code: 'ROOT_A',
+        name: 'Root Scope A',
+        path: '/tenant-1/scope-root-a/',
+        depth: 0,
+        children: [],
+      );
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          EditScopeDialog(
+            scope: rootA,
+            allScopes: [rootA],
+            tenantId: DEFAULT_TENANT_ID,
+            onScopeUpdated: () async {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+            'No eligible parent scopes available to move under in current scope boundary.'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('edit_scope_parent_dropdown')),
+          findsNothing);
     });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ilmiya_app/core/models/iam.dart';
 import 'package:ilmiya_app/core/theme/app_theme.dart';
 import 'package:ilmiya_app/features/iam_management/presentation/iam_management_screen.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
@@ -324,6 +325,55 @@ void main() {
       expect(find.text('Hierarchical Scope Tree'), findsOneWidget);
       expect(find.text('Lincoln High Main Campus'), findsWidgets);
       expect(find.text('Add Child'), findsWidgets);
+    });
+
+    testWidgets(
+        'restricts visible scopes and users when logged in with child scope X',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final auth = AuthNotifier();
+      // Log in as teacher assigned to DEPT_CS scope child
+      await auth.login(LoginRequest(
+          email: 'eleanor.vance@ilmiya.edu', password: 'password'));
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: auth,
+          child: ShadTheme(
+            data: AppTheme.shadLightTheme,
+            child: const MaterialApp(
+              home: Scaffold(
+                body: IamManagementScreen(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Users tab: Eleanor Vance should be visible, while users outside scope DEPT_CS should not
+      expect(find.text('Dr. Eleanor Vance (Computer Science Faculty)'),
+          findsOneWidget);
+      expect(find.text('Dr. Sarah Jenkins (Head Administrator)'), findsNothing);
+      expect(find.text('Alex Rivera (Class 10-A)'), findsNothing);
+
+      // Switch to Scope Tree tab
+      final scopeTreeTab = find.text('Scope Tree');
+      await tester.ensureVisible(scopeTreeTab.first);
+      await tester.tap(scopeTreeTab.first, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Scope Tree: Root scope "Lincoln High Main Campus" and sibling "Junior High School" should NOT be visible
+      expect(find.text('Computer Science Department'), findsOneWidget);
+      expect(find.text('Lincoln High Main Campus'), findsNothing);
+      expect(find.text('Junior High School (SMP)'), findsNothing);
+
+      // School boundary: Sibling school sch-002 should NOT be accessible or displayed
+      expect(find.textContaining('sch-002'), findsNothing);
     });
   });
 }

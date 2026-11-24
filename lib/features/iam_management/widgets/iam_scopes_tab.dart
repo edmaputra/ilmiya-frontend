@@ -19,6 +19,7 @@ class IamScopesTab extends StatefulWidget {
   final List<SchoolResponse> schools;
   final String tenantId;
   final bool canCreateScope;
+  final bool canEditScope;
   final bool canDeleteScope;
   final bool canCreateRootScope;
   final bool isTenantWideAdmin;
@@ -27,6 +28,7 @@ class IamScopesTab extends StatefulWidget {
   final void Function(
           String parentId, ScopeTreeNode node, SchoolResponse? school)?
       onAddChildScope;
+  final void Function(ScopeTreeNode node, SchoolResponse? school)? onEditScope;
   final ValueChanged<ScopeTreeNode>? onDeleteScope;
 
   const IamScopesTab({
@@ -35,12 +37,14 @@ class IamScopesTab extends StatefulWidget {
     this.schools = const [],
     this.tenantId = '',
     required this.canCreateScope,
+    this.canEditScope = false,
     this.canDeleteScope = false,
     this.canCreateRootScope = true,
     this.isTenantWideAdmin = true,
     this.lockedSchoolId,
     this.onCreateRootScope,
     this.onAddChildScope,
+    this.onEditScope,
     this.onDeleteScope,
   });
 
@@ -185,7 +189,7 @@ class _IamScopesTabState extends State<IamScopesTab> {
   List<ScopeTreeNode> _getDisplayScopes(
       SchoolResponse? school, String searchQuery) {
     List<ScopeTreeNode> list;
-    if (school == null) {
+    if (school == null || !widget.isTenantWideAdmin) {
       list = widget.scopes;
     } else {
       bool matchesAnyOtherSchool(ScopeTreeNode n) => widget.schools
@@ -856,6 +860,21 @@ class _IamScopesTabState extends State<IamScopesTab> {
                     foregroundColor: c.primary,
                   ),
                 ),
+                if (widget.canEditScope && widget.onEditScope != null) ...[
+                  IconButton(
+                    key: ValueKey('edit_scope_${node.id}'),
+                    icon: const Icon(LucideIcons.pencil, size: 13),
+                    tooltip: 'Edit Scope',
+                    style: IconButton.styleFrom(
+                      foregroundColor: c.foreground,
+                      padding: const EdgeInsets.all(2),
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      minimumSize: const Size(22, 22),
+                    ),
+                    onPressed: () => widget.onEditScope?.call(node, school),
+                  ),
+                ],
                 if (widget.canDeleteScope && widget.onDeleteScope != null) ...[
                   if (isRootOrAnchor)
                     Tooltip(
