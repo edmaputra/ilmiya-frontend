@@ -152,7 +152,7 @@ void main() {
     await tester.tap(find.byType(PopupMenuButton<String>));
     await tester.pumpAndSettle();
 
-    expect(find.text('Switch School Tenant...'), findsOneWidget);
+    expect(find.text('Switch Tenant...'), findsOneWidget);
     expect(find.text('Sign In with Another Account...'), findsOneWidget);
     expect(find.text('Sign Out'), findsOneWidget);
 

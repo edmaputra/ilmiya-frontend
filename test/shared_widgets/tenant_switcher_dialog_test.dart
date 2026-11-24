@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ilmiya_app/core/services/api_client.dart';
 import 'package:ilmiya_app/core/services/iam_service.dart';
 import 'package:ilmiya_app/core/services/mock_storage_service.dart';
-import 'package:ilmiya_app/core/services/school_service.dart';
+import 'package:ilmiya_app/core/services/tenant_service.dart';
 import 'package:ilmiya_app/shared_widgets/navigation/app_shell_tenant_dialog.dart';
 import 'package:ilmiya_app/shared_widgets/navigation/header_tenant_switcher_dialog.dart';
 import 'package:ilmiya_app/state/auth_notifier.dart';
@@ -15,16 +15,21 @@ void main() {
     late ApiClient client;
     late MockStorageService storage;
     late IamService iam;
-    late SchoolService schoolService;
+    late TenantService tenantService;
     late AuthNotifier authNotifier;
 
     setUp(() {
       client = apiClient;
       client.isMockMode = true;
       storage = MockStorageService();
+      storage.reset();
       iam = IamService(apiClient: client, mockStorage: storage);
-      schoolService = SchoolService(apiClient: client, mockStorage: storage);
-      authNotifier = AuthNotifier(iamService: iam, apiClient: client);
+      tenantService = TenantService(apiClient: client, mockStorage: storage);
+      authNotifier = AuthNotifier(
+        iamService: iam,
+        apiClient: client,
+        tenantService: tenantService,
+      );
     });
 
     Widget buildTestHost({required Widget child}) {
@@ -41,7 +46,7 @@ void main() {
     }
 
     testWidgets(
-        'AppShellTenantDialog renders header, search field, and school list',
+        'AppShellTenantDialog renders header, search field, and tenant list',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -52,23 +57,22 @@ void main() {
         buildTestHost(
           child: AppShellTenantDialog(
             auth: authNotifier,
-            schoolService: schoolService,
+            tenantService: tenantService,
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Switch School Tenant'), findsOneWidget);
+      expect(find.text('Switch Tenant'), findsWidgets);
       expect(find.byKey(const Key('tenant_search_field')), findsOneWidget);
 
-      // Verify schools loaded from mock storage
-      expect(find.text('SMA Negeri 1 Ilmiya (Lincoln High Campus)'),
-          findsOneWidget);
-      expect(find.text('Al-Azhar Islamic Academy'), findsOneWidget);
+      // Verify tenants loaded at tenant level from mock storage
+      expect(find.text('Yayasan Pendidikan Lincoln Ilmiya'), findsOneWidget);
+      expect(find.text('Yayasan Pesantren Islam Al-Azhar'), findsOneWidget);
       expect(find.text('CURRENT'), findsOneWidget);
     });
 
-    testWidgets('AppShellTenantDialog filters schools by name in real-time',
+    testWidgets('AppShellTenantDialog filters tenants by name in real-time',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -79,7 +83,7 @@ void main() {
         buildTestHost(
           child: AppShellTenantDialog(
             auth: authNotifier,
-            schoolService: schoolService,
+            tenantService: tenantService,
           ),
         ),
       );
@@ -90,21 +94,19 @@ void main() {
           find.byKey(const Key('tenant_search_field')), 'Azhar');
       await tester.pumpAndSettle();
 
-      expect(find.text('Al-Azhar Islamic Academy'), findsOneWidget);
-      expect(
-          find.text('SMA Negeri 1 Ilmiya (Lincoln High Campus)'), findsNothing);
+      expect(find.text('Yayasan Pesantren Islam Al-Azhar'), findsOneWidget);
+      expect(find.text('Yayasan Pendidikan Lincoln Ilmiya'), findsNothing);
 
       // Clear search
       final clearBtn = find.byIcon(LucideIcons.x).at(1);
       await tester.tap(clearBtn);
       await tester.pumpAndSettle();
 
-      expect(find.text('SMA Negeri 1 Ilmiya (Lincoln High Campus)'),
-          findsOneWidget);
-      expect(find.text('Al-Azhar Islamic Academy'), findsOneWidget);
+      expect(find.text('Yayasan Pendidikan Lincoln Ilmiya'), findsOneWidget);
+      expect(find.text('Yayasan Pesantren Islam Al-Azhar'), findsOneWidget);
     });
 
-    testWidgets('AppShellTenantDialog filters schools by tenant ID',
+    testWidgets('AppShellTenantDialog filters tenants by tenant ID',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -115,7 +117,7 @@ void main() {
         buildTestHost(
           child: AppShellTenantDialog(
             auth: authNotifier,
-            schoolService: schoolService,
+            tenantService: tenantService,
           ),
         ),
       );
@@ -125,8 +127,8 @@ void main() {
           find.byKey(const Key('tenant_search_field')), 'tenant-horizon');
       await tester.pumpAndSettle();
 
-      expect(find.text('Horizon International STEM Academy'), findsOneWidget);
-      expect(find.text('Al-Azhar Islamic Academy'), findsNothing);
+      expect(find.text('Horizon STEM Education Trust'), findsOneWidget);
+      expect(find.text('Yayasan Pesantren Islam Al-Azhar'), findsNothing);
     });
 
     testWidgets(
@@ -141,7 +143,7 @@ void main() {
         buildTestHost(
           child: AppShellTenantDialog(
             auth: authNotifier,
-            schoolService: schoolService,
+            tenantService: tenantService,
           ),
         ),
       );
@@ -151,7 +153,7 @@ void main() {
           find.byKey(const Key('tenant_search_field')), 'tenant-custom-999');
       await tester.pumpAndSettle();
 
-      expect(find.text('No schools match "tenant-custom-999"'), findsOneWidget);
+      expect(find.text('No tenants match "tenant-custom-999"'), findsOneWidget);
       final useActionBtn = find.text('Use "tenant-custom-999" as Tenant ID');
       expect(useActionBtn, findsOneWidget);
 
@@ -164,7 +166,7 @@ void main() {
       expect(customField.controller?.text, 'tenant-custom-999');
     });
 
-    testWidgets('Selecting a school and tapping Switch Tenant switches tenant',
+    testWidgets('Selecting a tenant and tapping Switch Tenant switches tenant',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -177,7 +179,7 @@ void main() {
             onPressed: () => AppShellTenantDialog.show(
               tester.element(find.byType(ElevatedButton)),
               authNotifier,
-              schoolService: schoolService,
+              tenantService: tenantService,
             ),
             child: const Text('Open'),
           ),
@@ -188,9 +190,9 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Al-Azhar Islamic Academy'), findsOneWidget);
+      expect(find.text('Yayasan Pesantren Islam Al-Azhar'), findsOneWidget);
 
-      // Tap on Al-Azhar
+      // Tap on Al-Azhar tenant
       await tester
           .tap(find.byKey(const ValueKey('tenant_tile_tenant-alazhar-003')));
       await tester.pumpAndSettle();
@@ -218,7 +220,7 @@ void main() {
             onPressed: () => HeaderTenantSwitcherDialog.show(
               tester.element(find.byType(ElevatedButton)),
               authNotifier,
-              schoolService: schoolService,
+              tenantService: tenantService,
             ),
             child: const Text('Open From Header'),
           ),

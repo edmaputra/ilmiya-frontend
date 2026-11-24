@@ -31,6 +31,7 @@ class TenantService {
     final json = await _apiClient.request(
       endpoint: endpoint,
       method: 'GET',
+      headers: {'X-Tenant-ID': ''},
     );
     if (json is Map && json.containsKey('content') && json['content'] is List) {
       return (json['content'] as List)

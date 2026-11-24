@@ -114,7 +114,7 @@ class AppShellUserMenu extends StatelessWidget {
               Icon(LucideIcons.building2,
                   size: 15, color: AppColors.forestSage),
               SizedBox(width: 8),
-              Text('Switch School Tenant...', style: TextStyle(fontSize: 12)),
+              Text('Switch Tenant...', style: TextStyle(fontSize: 12)),
             ],
           ),
         ),

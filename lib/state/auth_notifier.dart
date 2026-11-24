@@ -173,6 +173,9 @@ class AuthNotifier extends ChangeNotifier {
     if (_tenantName != null && _tenantName!.isNotEmpty) {
       return _tenantName!;
     }
+    if (_tenantId == 'platform') {
+      return 'Platform Administration';
+    }
     if (_tenantId == 'tenant-lincoln-high-001') {
       return 'Yayasan Pendidikan Lincoln Ilmiya';
     }
@@ -181,6 +184,12 @@ class AuthNotifier extends ChangeNotifier {
     }
     if (_tenantId == 'tenant-alazhar-003') {
       return 'Yayasan Pesantren Islam Al-Azhar';
+    }
+    if (_tenantId == 'tenant-horizon-004') {
+      return 'Horizon STEM Education Trust';
+    }
+    if (_tenantId == 'tenant-stjude-005') {
+      return 'St. Jude Educational Association';
     }
     return 'Yayasan Pendidikan Ilmiya';
   }
@@ -192,6 +201,11 @@ class AuthNotifier extends ChangeNotifier {
   String get schoolName {
     if (_tenantId.isEmpty) {
       return '';
+    }
+    if (_tenantId == 'platform') {
+      return _schoolName != null && _schoolName!.isNotEmpty
+          ? _schoolName!
+          : 'Platform Operations';
     }
     if (_schoolName != null && _schoolName!.isNotEmpty) {
       return _schoolName!;
@@ -285,6 +299,8 @@ class AuthNotifier extends ChangeNotifier {
               r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN');
       if (isSuper && _apiClient.tenantId == 'platform') {
         _tenantId = 'platform';
+        _tenantName = 'Platform Administration';
+        _schoolName = 'Platform Operations';
       } else {
         _tenantId =
             _apiClient.tenantId.isNotEmpty && _apiClient.tenantId != 'platform'
