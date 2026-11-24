@@ -43,12 +43,19 @@ class IamUsersTab extends StatelessWidget {
     this.scopes = const [],
   });
 
-  String? _findScopePath(List<ScopeTreeNode> nodes, String? scopeId) {
-    if (scopeId == null) return null;
+  String _nodeLabel(ScopeTreeNode n) {
+    if (n.name.isNotEmpty) return n.name;
+    if (n.code.isNotEmpty) return n.code;
+    return n.id;
+  }
+
+  List<ScopeTreeNode>? _findScopeChain(
+      List<ScopeTreeNode> nodes, String? scopeId) {
+    if (scopeId == null || scopeId.isEmpty) return null;
     for (final n in nodes) {
-      if (n.id == scopeId) return n.path;
-      final childPath = _findScopePath(n.children, scopeId);
-      if (childPath != null) return childPath;
+      if (n.id == scopeId || n.path == scopeId) return [n];
+      final childChain = _findScopeChain(n.children, scopeId);
+      if (childChain != null) return [n, ...childChain];
     }
     return null;
   }
@@ -105,14 +112,22 @@ class IamUsersTab extends StatelessWidget {
                 final role = assignment != null
                     ? roles.where((r) => r.id == assignment.roleId).firstOrNull
                     : null;
-                final scopePath =
-                    _findScopePath(scopes, assignment?.scopeNodeId);
+                final chain = _findScopeChain(scopes, assignment?.scopeNodeId);
+                final targetLabel =
+                    chain != null ? _nodeLabel(chain.last) : null;
+                final breadcrumb = chain?.map(_nodeLabel).join(' > ');
+                final rawPath = chain?.last.path;
+                final scopeTooltip =
+                    breadcrumb != null && rawPath != null && rawPath.isNotEmpty
+                        ? '$breadcrumb ($rawPath)'
+                        : breadcrumb;
 
                 return IamUserTile(
                   user: u,
                   assignedRoles:
                       userRoles[u.id] ?? (role != null ? [role] : const []),
-                  assignedScope: scopePath ?? assignment?.scopeNodeId,
+                  assignedScope: targetLabel ?? assignment?.scopeNodeId,
+                  assignedScopeTooltip: scopeTooltip,
                   canEdit: canEdit,
                   canUpdateStatus: canUpdateStatus,
                   canAssign: canAssign,
