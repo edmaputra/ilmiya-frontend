@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_version.dart';
 import '../../core/models/iam.dart';
 import '../../core/utils/app_toast.dart';
 import '../../features/auth/presentation/login_dialog.dart';
@@ -173,6 +174,24 @@ class HeaderPersonaMenu extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: AppColors.earthyTerra,
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                AppVersion.display,
+                key: const Key('header_persona_version_label'),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textMuted,
                 ),
               ),
             ],

@@ -3,6 +3,7 @@ import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_version.dart';
 import '../../../core/models/iam.dart';
 import '../../../core/services/api_client.dart';
 import '../../../core/services/iam_service.dart';
@@ -257,6 +258,24 @@ class _ProfileSecurityCardState extends State<ProfileSecurityCard> {
                     child: Text(
                       'Environment: ${apiClient.isMockMode ? "Mock Simulation Mode" : "Live REST API Mode"}',
                       style: t.muted.copyWith(fontSize: 11),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    key: const Key('profile_system_version_tag'),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.forestSage.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Version ${AppVersion.tag}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.forestSage,
+                      ),
                     ),
                   ),
                 ],

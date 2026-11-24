@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_version.dart';
 import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
 import '../ilmiya_logo.dart';
@@ -82,11 +83,42 @@ class AppShellSidebar extends StatelessWidget {
                             ),
                           ],
                         ),
-                        Text(
-                          'School Information System',
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: t.muted.copyWith(fontSize: 11),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'School Information System',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: t.muted.copyWith(fontSize: 11),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Container(
+                              key: const Key('sidebar_header_version_badge'),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.darkSurface
+                                    : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: c.border,
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                AppVersion.tag,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                  color: c.mutedForeground,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

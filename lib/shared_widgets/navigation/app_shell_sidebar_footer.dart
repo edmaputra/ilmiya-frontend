@@ -3,6 +3,7 @@ import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_version.dart';
 import '../../core/services/api_client.dart';
 import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
@@ -72,6 +73,29 @@ class AppShellSidebarFooter extends StatelessWidget {
                             : 'Live REST API',
                         style: TextStyle(
                           fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: apiClient.isMockMode
+                              ? const Color(0xFF7E22CE)
+                              : const Color(0xFF15803D),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      key: const Key('sidebar_footer_version_tag'),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: (apiClient.isMockMode
+                                ? const Color(0xFF9333EA)
+                                : const Color(0xFF16A34A))
+                            .withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        AppVersion.tag,
+                        style: TextStyle(
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: apiClient.isMockMode
                               ? const Color(0xFF7E22CE)
