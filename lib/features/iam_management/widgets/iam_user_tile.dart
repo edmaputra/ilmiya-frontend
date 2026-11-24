@@ -114,12 +114,16 @@ class IamUserTile extends StatelessWidget {
                       color: Color(0xFF1E40AF),
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      'Scope: $assignedScope',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E40AF),
+                    Flexible(
+                      child: Text(
+                        'Scope: $assignedScope',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E40AF),
+                        ),
                       ),
                     ),
                   ],
