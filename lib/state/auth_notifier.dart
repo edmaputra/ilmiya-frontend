@@ -244,6 +244,7 @@ class AuthNotifier extends ChangeNotifier {
   String? get token => _token;
   List<String> get roles => List.unmodifiable(_roles);
   List<String> get permissions => List.unmodifiable(_permissions);
+  List<String> get scopes => _user?.scopes ?? const [];
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -259,8 +260,27 @@ class AuthNotifier extends ChangeNotifier {
       _roles.any((r) =>
           r.toUpperCase() == 'TENANT_ADMIN' ||
           r.toUpperCase() == 'ROLE_TENANT_ADMIN');
+  bool get isTenantWideAdmin => isSuperAdmin || isTenantAdmin;
   bool get hasSwitchedTenant => _hasSwitchedTenant;
   bool get isPlatformSession => isSuperAdmin && _tenantId == 'platform';
+
+  /// Verifies if a given scope path is accessible based on the user's scope boundaries.
+  /// If tenantWide / SuperAdmin, has access to all scopes.
+  /// Otherwise, can access if the scope path matches or is a descendant of any accessible scope.
+  bool canAccessScopePath(String targetPath) {
+    if (isTenantWideAdmin) return true;
+    final userScopes = scopes;
+    if (userScopes.isEmpty) return false;
+    final normalizedTarget = targetPath.toLowerCase();
+    for (final s in userScopes) {
+      final normalizedUserScope = s.toLowerCase();
+      if (normalizedTarget == normalizedUserScope ||
+          normalizedTarget.startsWith('$normalizedUserScope/')) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   void clearError() {
     _error = null;

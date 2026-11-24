@@ -1261,6 +1261,22 @@ class MockStorageService {
     return _userRoleAssignments.where((a) => a.userId == userId).toList();
   }
 
+  List<String> getUserAccessibleScopePaths(String userId, String tenantId) {
+    final assignments = _userRoleAssignments
+        .where((a) => a.userId == userId && a.tenantId == tenantId);
+    final allScopes = getScopeTree(tenantId);
+    final paths = <String>{};
+
+    for (final a in assignments) {
+      if (a.scopeNodeId == null || a.scopeNodeId!.isEmpty) continue;
+      final node = _findScopeNode(allScopes, a.scopeNodeId);
+      if (node != null) {
+        paths.add(node.path);
+      }
+    }
+    return paths.toList();
+  }
+
   void revokeUserRole(String assignmentId) {
     _userRoleAssignments.removeWhere((a) => a.id == assignmentId);
   }
@@ -1453,6 +1469,147 @@ class MockStorageService {
       }
     }
     return false;
+  }
+
+  ScopeTreeNode updateScope(
+      String tenantId, String scopeId, UpdateScopeRequest req) {
+    final currentScopes = getScopeTree(tenantId);
+    ScopeTreeNode? updatedNode;
+
+    bool updateInList(List<ScopeTreeNode> nodes) {
+      for (int i = 0; i < nodes.length; i++) {
+        if (nodes[i].id == scopeId) {
+          final old = nodes[i];
+          final pathSegments = old.path.split('/');
+          if (pathSegments.isNotEmpty) {
+            pathSegments[pathSegments.length - 1] = req.code;
+          }
+          final updated = ScopeTreeNode(
+            id: old.id,
+            code: req.code,
+            name: req.name,
+            path: pathSegments.join('/'),
+            depth: old.depth,
+            parentId: old.parentId,
+            children: old.children,
+          );
+          nodes[i] = updated;
+          updatedNode = updated;
+          return true;
+        }
+        if (updateInList(nodes[i].children)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    updateInList(currentScopes);
+    _tenantScopes[tenantId] = currentScopes;
+    return updatedNode ??
+        ScopeTreeNode(
+          id: scopeId,
+          code: req.code,
+          name: req.name,
+          path: '/$tenantId/${req.code}',
+          depth: 0,
+          children: [],
+        );
+  }
+
+  ScopeTreeNode moveScope(
+      String tenantId, String scopeId, MoveScopeRequest req) {
+    final currentScopes = getScopeTree(tenantId);
+    ScopeTreeNode? targetNode;
+
+    // 1. Find and extract target node from current location
+    bool extractNode(List<ScopeTreeNode> nodes) {
+      for (int i = 0; i < nodes.length; i++) {
+        if (nodes[i].id == scopeId) {
+          targetNode = nodes.removeAt(i);
+          return true;
+        }
+        final childList = List<ScopeTreeNode>.from(nodes[i].children);
+        if (extractNode(childList)) {
+          nodes[i] = ScopeTreeNode(
+            id: nodes[i].id,
+            code: nodes[i].code,
+            name: nodes[i].name,
+            path: nodes[i].path,
+            depth: nodes[i].depth,
+            parentId: nodes[i].parentId,
+            children: childList,
+          );
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // 2. Find new parent and attach target node
+    ScopeTreeNode? newParentNode;
+    void findParent(List<ScopeTreeNode> nodes) {
+      for (final n in nodes) {
+        if (n.id == req.newParentId) {
+          newParentNode = n;
+          return;
+        }
+        findParent(n.children);
+      }
+    }
+
+    findParent(currentScopes);
+    extractNode(currentScopes);
+
+    if (targetNode != null && newParentNode != null) {
+      final parentBasePath = newParentNode!.path.endsWith('/')
+          ? newParentNode!.path
+          : '${newParentNode!.path}/';
+      final newPath = '$parentBasePath${targetNode!.code}';
+
+      ScopeTreeNode updateSubtreePaths(
+          ScopeTreeNode n, String basePath, int depth) {
+        final nodePath = '$basePath/${n.code}';
+        return ScopeTreeNode(
+          id: n.id,
+          code: n.code,
+          name: n.name,
+          path: nodePath,
+          depth: depth,
+          parentId: n.parentId,
+          children: n.children
+              .map((c) => updateSubtreePaths(c, nodePath, depth + 1))
+              .toList(),
+        );
+      }
+
+      final movedNode = ScopeTreeNode(
+        id: targetNode!.id,
+        code: targetNode!.code,
+        name: targetNode!.name,
+        path: newPath,
+        depth: newParentNode!.depth + 1,
+        parentId: req.newParentId,
+        children: targetNode!.children
+            .map(
+                (c) => updateSubtreePaths(c, newPath, newParentNode!.depth + 2))
+            .toList(),
+      );
+
+      _addChildToScopeNode(currentScopes, req.newParentId, movedNode);
+      _tenantScopes[tenantId] = currentScopes;
+      return movedNode;
+    }
+
+    return targetNode ??
+        ScopeTreeNode(
+          id: scopeId,
+          code: 'MOVED',
+          name: 'Moved Scope',
+          path: '/$tenantId/MOVED',
+          depth: 0,
+          children: [],
+        );
   }
 
   bool deleteScope(String tenantId, String scopeId) {

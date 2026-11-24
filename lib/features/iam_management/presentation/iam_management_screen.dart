@@ -16,6 +16,7 @@ import '../dialogs/create_role_dialog.dart';
 import '../dialogs/create_scope_dialog.dart';
 import '../dialogs/create_user_dialog.dart';
 import '../dialogs/edit_role_dialog.dart';
+import '../dialogs/edit_scope_dialog.dart';
 import '../dialogs/edit_user_dialog.dart';
 import '../widgets/iam_access_restricted_view.dart';
 import '../widgets/iam_groups_tab.dart';
@@ -39,6 +40,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   List<GroupResponse> _groups = [];
   List<ScopeTreeNode> _scopes = [];
   List<SchoolResponse> _schools = [];
+  List<ScopeTreeNode> _rawTenantScopes = [];
   Map<String, UserRoleAssignmentResponse> _userAssignments = {};
   Map<String, List<RoleResponse>> _userRolesMap = {};
   bool _isLoading = true;
@@ -119,10 +121,12 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       final users = results[0] as List<UserResponse>;
       final roles = results[1] as List<RoleResponse>;
       final groups = results[2] as List<GroupResponse>;
-      final scopes = results[3] as List<ScopeTreeNode>;
+      final rawScopes = results[3] as List<ScopeTreeNode>;
       final schools = results[4] as List<SchoolResponse>;
 
-      _schools = schools;
+      // Filter schools and scope tree based on user's authorized scope path boundary
+      _schools = _filterSchoolsForActor(schools, rawScopes, auth);
+      final scopes = _filterScopeTreeForActor(rawScopes, auth);
 
       final userRolesMap = <String, List<RoleResponse>>{};
       final assignments = <String, UserRoleAssignmentResponse>{};
@@ -161,6 +165,27 @@ class _IamManagementScreenState extends State<IamManagementScreen>
               continue;
             }
 
+            final primaryAssignment = tenantAssigns.isNotEmpty
+                ? tenantAssigns.first
+                : (userAssigns.isNotEmpty ? userAssigns.first : null);
+
+            // Scope boundary check: non-tenant-wide admins can only see users within their scope subtree
+            if (!auth.isTenantWideAdmin && auth.scopes.isNotEmpty) {
+              if (primaryAssignment != null &&
+                  primaryAssignment.scopeNodeId != null &&
+                  primaryAssignment.scopeNodeId!.isNotEmpty) {
+                final userScopePath =
+                    _findScopePath(rawScopes, primaryAssignment.scopeNodeId);
+                if (userScopePath != null &&
+                    !auth.canAccessScopePath(userScopePath)) {
+                  continue;
+                }
+              } else if (primaryAssignment == null) {
+                // If user has no assignment, only tenant-wide admin can view/manage
+                continue;
+              }
+            }
+
             displayUsers.add(user);
 
             if (tenantAssigns.isNotEmpty) {
@@ -196,7 +221,9 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       }
 
       if (displayUsers.isEmpty && users.isNotEmpty && apiClient.isMockMode) {
-        displayUsers.addAll(users);
+        if (auth.isTenantWideAdmin || auth.scopes.isEmpty) {
+          displayUsers.addAll(users);
+        }
       }
 
       if (mounted) {
@@ -205,6 +232,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
           _roles = roles;
           _groups = groups;
           _scopes = scopes;
+          _rawTenantScopes = rawScopes;
           _userAssignments = assignments;
           _userRolesMap = userRolesMap;
           _isLoading = false;
@@ -406,6 +434,128 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     );
   }
 
+  String? _findScopePath(List<ScopeTreeNode> nodes, String? scopeId) {
+    if (scopeId == null) return null;
+    for (final n in nodes) {
+      if (n.id == scopeId) return n.path;
+      final childPath = _findScopePath(n.children, scopeId);
+      if (childPath != null) return childPath;
+    }
+    return null;
+  }
+
+  List<ScopeTreeNode> _filterScopeTreeForActor(
+      List<ScopeTreeNode> nodes, AuthNotifier auth) {
+    if (auth.isTenantWideAdmin || auth.scopes.isEmpty) {
+      return nodes;
+    }
+
+    final matchedRoots = <ScopeTreeNode>[];
+
+    void findAccessibleRoots(ScopeTreeNode current) {
+      // If current node matches or is descendant of user's scopes, this subtree is accessible
+      final normalizedPath = current.path.toLowerCase();
+      final hasScopeAccess = auth.scopes.any((s) {
+        final normS = s.toLowerCase();
+        return normalizedPath == normS || normalizedPath.startsWith('$normS/');
+      });
+
+      if (hasScopeAccess) {
+        matchedRoots.add(current);
+        return;
+      }
+
+      // If current node is an ancestor of user's scopes, search deeper
+      for (final child in current.children) {
+        findAccessibleRoots(child);
+      }
+    }
+
+    for (final root in nodes) {
+      findAccessibleRoots(root);
+    }
+
+    return matchedRoots;
+  }
+
+  List<SchoolResponse> _filterSchoolsForActor(
+    List<SchoolResponse> allSchools,
+    List<ScopeTreeNode> rawScopes,
+    AuthNotifier auth,
+  ) {
+    if (auth.isTenantWideAdmin || auth.scopes.isEmpty) {
+      return allSchools;
+    }
+
+    bool scopeMatchesSchool(ScopeTreeNode node, SchoolResponse school) {
+      final sId = school.id.toLowerCase();
+      final instCode = school.institutionCode.toLowerCase();
+      final path = node.path.toLowerCase();
+      final code = node.code.toLowerCase();
+
+      if (path.contains(sId) ||
+          (instCode.isNotEmpty &&
+              (path.contains(instCode) || code == instCode))) {
+        return true;
+      }
+      if (code == 'campus_main' &&
+          (school.id == 'sch-001' || allSchools.length == 1)) {
+        return true;
+      }
+      return false;
+    }
+
+    final matchedSchoolPaths = <String, Set<String>>{};
+    void collectSchoolPaths(ScopeTreeNode node) {
+      for (final s in allSchools) {
+        if (scopeMatchesSchool(node, s)) {
+          final set = matchedSchoolPaths.putIfAbsent(s.id, () => <String>{});
+          set.add(node.path.toLowerCase());
+        }
+      }
+      for (final child in node.children) {
+        collectSchoolPaths(child);
+      }
+    }
+
+    for (final root in rawScopes) {
+      collectSchoolPaths(root);
+    }
+
+    final normalizedUserScopes =
+        auth.scopes.map((s) => s.toLowerCase().trim()).toList();
+
+    return allSchools.where((school) {
+      // Direct campus match if user has schoolId
+      if (auth.schoolId != null && auth.schoolId == school.id) {
+        return true;
+      }
+
+      // Check against collected scope paths for this school
+      final paths = matchedSchoolPaths[school.id];
+      if (paths != null && paths.isNotEmpty) {
+        for (final schoolPath in paths) {
+          final normSchoolPath =
+              schoolPath.endsWith('/') ? schoolPath : '$schoolPath/';
+          for (final uScope in normalizedUserScopes) {
+            final normUScope = uScope.endsWith('/') ? uScope : '$uScope/';
+            // User scope is inside school, or school is inside user scope, or exact match
+            if (normUScope.startsWith(normSchoolPath) ||
+                normSchoolPath.startsWith(normUScope)) {
+              return true;
+            }
+          }
+        }
+      }
+
+      // Fallback: check if school id or code is directly present in user scope path strings
+      final sId = school.id.toLowerCase();
+      final instCode = school.institutionCode.toLowerCase();
+      return normalizedUserScopes.any((s) =>
+          s.contains(sId) || (instCode.isNotEmpty && s.contains(instCode)));
+    }).toList();
+  }
+
   void _showCreateScopeDialog({
     String? parentId,
     ScopeTreeNode? parentNode,
@@ -418,6 +568,17 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       school: school,
       tenantId: context.read<AuthNotifier>().tenantId,
       onScopeCreated: _loadAllIamData,
+    );
+  }
+
+  void _showEditScopeDialog(ScopeTreeNode node, SchoolResponse? school) {
+    EditScopeDialog.show(
+      context,
+      scope: node,
+      allScopes: _rawTenantScopes.isNotEmpty ? _rawTenantScopes : _scopes,
+      school: school,
+      tenantId: context.read<AuthNotifier>().tenantId,
+      onScopeUpdated: _loadAllIamData,
     );
   }
 
@@ -472,6 +633,10 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     final canCreateScope = auth.hasPermission('iam:scope:create') ||
         auth.hasRole('SUPERADMIN') ||
         auth.hasRole('TENANT_ADMIN');
+    final canEditScope = auth.hasPermission('iam:scope:update') ||
+        auth.hasPermission('iam:scope:move') ||
+        auth.hasRole('SUPERADMIN') ||
+        auth.hasRole('TENANT_ADMIN');
     final canDeleteScope = auth.hasPermission('iam:scope:delete') ||
         auth.hasRole('SUPERADMIN') ||
         auth.hasRole('TENANT_ADMIN');
@@ -479,9 +644,11 @@ class _IamManagementScreenState extends State<IamManagementScreen>
         auth.hasRole('SUPERADMIN') || auth.hasRole('TENANT_ADMIN');
     final isCampusAdmin =
         !isTenantAdmin && auth.schoolId != null && auth.schoolId!.isNotEmpty;
-    final lockedSchoolId = isCampusAdmin ? auth.schoolId : null;
+    final lockedSchoolId = isCampusAdmin
+        ? auth.schoolId
+        : (!isTenantAdmin && _schools.length == 1 ? _schools.first.id : null);
     final canCreateRootScope = isTenantAdmin && canCreateScope;
-    final isTenantWideAdmin = isTenantAdmin;
+    final isTenantWideAdmin = auth.isTenantWideAdmin;
 
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));
@@ -608,6 +775,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                       schools: _schools,
                       tenantId: auth.tenantId,
                       canCreateScope: canCreateScope,
+                      canEditScope: canEditScope,
                       canDeleteScope: canDeleteScope,
                       canCreateRootScope: canCreateRootScope,
                       isTenantWideAdmin: isTenantWideAdmin,
@@ -622,6 +790,7 @@ class _IamManagementScreenState extends State<IamManagementScreen>
                         parentNode: node,
                         school: school,
                       ),
+                      onEditScope: _showEditScopeDialog,
                       onDeleteScope: _handleDeleteScope,
                     ),
                   ],

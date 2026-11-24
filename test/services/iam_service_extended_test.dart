@@ -187,6 +187,32 @@ void main() {
 
       final tree = await service.getScopeTree();
       expect(tree.any((n) => n.code == 'WEST_WING'), isTrue);
+
+      final updatedScope = await service.updateScope(
+        newScope.id,
+        UpdateScopeRequest(
+          code: 'WEST_WING_RENAMED',
+          name: 'Renamed West Wing',
+        ),
+      );
+      expect(updatedScope.code, 'WEST_WING_RENAMED');
+      expect(updatedScope.name, 'Renamed West Wing');
+
+      final updatedTree = await service.getScopeTree();
+      expect(updatedTree.any((n) => n.code == 'WEST_WING_RENAMED'), isTrue);
+
+      final parentScope = await service.createScope(CreateScopeRequest(
+        tenantId: 'tenant-lincoln-high-001',
+        code: 'NEW_CAMPUS',
+        name: 'New Campus Center',
+      ));
+
+      final movedScope = await service.moveScope(
+        newScope.id,
+        MoveScopeRequest(newParentId: parentScope.id),
+      );
+      expect(movedScope.parentId, equals(parentScope.id));
+      expect(movedScope.path, contains(newScope.code));
     });
   });
 }
