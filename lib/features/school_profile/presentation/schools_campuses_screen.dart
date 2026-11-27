@@ -4,12 +4,14 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_permissions.dart';
 import '../../../core/models/school.dart';
 import '../../../core/models/tenant.dart';
 import '../../../core/services/school_service.dart';
 import '../../../core/services/tenant_service.dart';
 import '../../../core/utils/app_toast.dart';
 import '../../../shared_widgets/tenant_session_required_view.dart';
+import '../../../state/action_permissions.dart';
 import '../../../state/auth_notifier.dart';
 import '../dialogs/edit_tenant_dialog.dart';
 import '../dialogs/register_foundation_dialog.dart';
@@ -182,6 +184,16 @@ class _SchoolsCampusesScreenState extends State<SchoolsCampusesScreen>
       );
     }
 
+    // Every action requires its own specific permission; SUPERADMIN and
+    // wildcard permissions resolve inside ActionPermissions.
+    bool can(String permission) =>
+        ActionPermissions.can(auth, permission, allowTenantAdmin: true);
+    final canRegisterCampus = can(AppPermissions.schoolCampusCreate);
+    final canRegisterFoundation = can(AppPermissions.tenantWrite);
+    final canEditProfile = can(AppPermissions.schoolProfileWrite);
+    final canManageSettings = can(AppPermissions.schoolSettingsManage);
+    final canToggleStatus = can(AppPermissions.schoolStatusManage);
+
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));
     }
@@ -309,6 +321,11 @@ class _SchoolsCampusesScreenState extends State<SchoolsCampusesScreen>
                   onToggleStatus: _toggleSchoolStatus,
                   onAddCampus: (tenantId) => _showRegisterSchoolDialog(
                       tenantId.isEmpty ? null : tenantId),
+                  canRegisterCampus: canRegisterCampus,
+                  canRegisterFoundation: canRegisterFoundation,
+                  canEditProfile: canEditProfile,
+                  canManageSettings: canManageSettings,
+                  canToggleStatus: canToggleStatus,
                 ),
                 TenantInspectorTab(
                   schools:
@@ -322,6 +339,8 @@ class _SchoolsCampusesScreenState extends State<SchoolsCampusesScreen>
                   },
                   onEditProfile: _showEditProfileDialog,
                   onSettings: _showSettingsDialog,
+                  canEditProfile: canEditProfile,
+                  canManageSettings: canManageSettings,
                 ),
               ],
             ),

@@ -25,6 +25,11 @@ class TenantDirectoryTab extends StatelessWidget {
   final ValueChanged<SchoolResponse> onSettings;
   final ValueChanged<SchoolResponse> onToggleStatus;
   final ValueChanged<String>? onAddCampus;
+  final bool canRegisterCampus;
+  final bool canRegisterFoundation;
+  final bool canEditProfile;
+  final bool canManageSettings;
+  final bool canToggleStatus;
 
   const TenantDirectoryTab({
     super.key,
@@ -44,6 +49,11 @@ class TenantDirectoryTab extends StatelessWidget {
     required this.onSettings,
     required this.onToggleStatus,
     this.onAddCampus,
+    required this.canRegisterCampus,
+    required this.canRegisterFoundation,
+    required this.canEditProfile,
+    required this.canManageSettings,
+    required this.canToggleStatus,
   });
 
   @override
@@ -226,31 +236,32 @@ class TenantDirectoryTab extends StatelessWidget {
                       }),
                     ],
                   ),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.forestSage,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
+                  if (canRegisterCampus || canRegisterFoundation)
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.forestSage,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                      ),
+                      onPressed: canRegisterCampus
+                          ? () => onAddCampus?.call(
+                                selectedFoundationFilter != 'ALL'
+                                    ? selectedFoundationFilter ?? ''
+                                    : '',
+                              )
+                          : onRegisterTenant,
+                      icon: const Icon(LucideIcons.plus, size: 16),
+                      label: Text(
+                        canRegisterCampus
+                            ? 'Register School Campus'
+                            : 'Register Foundation / Tenant',
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    onPressed: () {
-                      if (onAddCampus != null) {
-                        onAddCampus!(selectedFoundationFilter != 'ALL'
-                            ? selectedFoundationFilter ?? ''
-                            : '');
-                      } else {
-                        onRegisterTenant();
-                      }
-                    },
-                    icon: const Icon(LucideIcons.plus, size: 16),
-                    label: const Text(
-                      'Register School Campus',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -292,6 +303,10 @@ class TenantDirectoryTab extends StatelessWidget {
                   onSettings: onSettings,
                   onToggleStatus: onToggleStatus,
                   onAddCampus: onAddCampus,
+                  canAddCampus: canRegisterCampus,
+                  canEditProfile: canEditProfile,
+                  canManageSettings: canManageSettings,
+                  canToggleStatus: canToggleStatus,
                 ),
               );
             }),

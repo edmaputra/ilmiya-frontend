@@ -19,6 +19,7 @@ import 'features/school_profile/presentation/school_profile_screen.dart';
 import 'features/school_profile/presentation/schools_campuses_screen.dart';
 import 'features/school_profile/presentation/tenant_management_screen.dart';
 import 'shared_widgets/adaptive_scaffold.dart';
+import 'state/app_navigation_guard.dart';
 import 'state/app_state.dart';
 import 'state/auth_notifier.dart';
 
@@ -55,6 +56,8 @@ class _IlmiyaAppState extends State<IlmiyaApp> {
   void Function()? _unsubAccessDenied;
   void Function()? _unsubLogout;
   void Function()? _unsubLogin;
+  AuthNotifier? _auth;
+  AppState? _appState;
 
   @override
   void didChangeDependencies() {
@@ -62,12 +65,42 @@ class _IlmiyaAppState extends State<IlmiyaApp> {
     if (_unsubLogout == null) {
       final auth = context.read<AuthNotifier>();
       final state = context.read<AppState>();
+      _auth = auth;
+      _appState = state;
+      state.setTabAccessGuard(
+        (tab) => AppNavigationGuard.canAccessTab(tab, auth),
+        fallbackTab: AppNavigationGuard.firstAccessibleTab(auth),
+      );
+      auth.addListener(_ensureAccessibleTab);
       _unsubLogout = auth.onLogout(() {
         state.resetSession();
       });
       _unsubLogin = auth.onLogin(() {
         state.resetSession();
       });
+    }
+  }
+
+  /// Redirects away from tabs the user lost access to (login, tenant switch,
+  /// permission change) so no hidden screen can stay active.
+  void _ensureAccessibleTab() {
+    final auth = _auth;
+    final state = _appState;
+    if (auth == null || state == null) return;
+    if (!auth.isAuthenticated) {
+      state.setTabAccessGuard(
+        (tab) => AppNavigationGuard.canAccessTab(tab, auth),
+        fallbackTab: AppNavigationGuard.schoolProfileTab,
+      );
+      return;
+    }
+    final fallback = AppNavigationGuard.firstAccessibleTab(auth);
+    state.setTabAccessGuard(
+      (tab) => AppNavigationGuard.canAccessTab(tab, auth),
+      fallbackTab: fallback,
+    );
+    if (!AppNavigationGuard.canAccessTab(state.currentTab, auth)) {
+      state.setTab(fallback);
     }
   }
 
@@ -109,6 +142,7 @@ class _IlmiyaAppState extends State<IlmiyaApp> {
 
   @override
   void dispose() {
+    _auth?.removeListener(_ensureAccessibleTab);
     _unsubAuthExpired?.call();
     _unsubAccessDenied?.call();
     _unsubLogout?.call();

@@ -4,8 +4,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_permissions.dart';
 import '../../../core/models/school.dart';
 import '../../../core/services/school_service.dart';
+import '../../../state/action_permissions.dart';
 import '../../../state/auth_notifier.dart';
 import '../../../shared_widgets/tenant_session_required_view.dart';
 import '../dialogs/edit_institutional_profile_dialog.dart';
@@ -60,7 +62,7 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
       if (mounted) {
         final auth = context.read<AuthNotifier>();
         final isSuperAdmin =
-            auth.hasRole('SUPERADMIN') || auth.hasPermission('*');
+            auth.isSuperAdmin || auth.hasPermission(AppPermissions.all);
         if (isSuperAdmin) {
           setState(() {
             _profile = SchoolResponse.empty();
@@ -104,11 +106,14 @@ class _SchoolProfileScreenState extends State<SchoolProfileScreen> {
     final t = KiteText.of(context);
     final auth = context.watch<AuthNotifier>();
     final p = _profile ?? SchoolResponse.empty();
+    bool can(String permission) =>
+        ActionPermissions.can(auth, permission, allowTenantAdmin: true);
     final canEditProfile =
-        p.name.isNotEmpty && auth.hasPermission('school:profile:write');
+        p.name.isNotEmpty && can(AppPermissions.schoolProfileWrite);
     final canManageSettings =
-        p.name.isNotEmpty && auth.hasPermission('school:settings:manage');
-    final isSuperAdmin = auth.hasRole('SUPERADMIN') || auth.hasPermission('*');
+        p.name.isNotEmpty && can(AppPermissions.schoolSettingsManage);
+    final isSuperAdmin =
+        auth.isSuperAdmin || auth.hasPermission(AppPermissions.all);
 
     if (auth.isPlatformSession) {
       return const TenantSessionRequiredView(

@@ -3,12 +3,14 @@ import 'package:kite_ui/kite_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/constants/app_permissions.dart';
 import '../../../core/models/iam.dart';
 import '../../../core/models/school.dart';
 import '../../../core/services/api_client.dart';
 import '../../../core/services/iam_service.dart';
 import '../../../core/services/school_service.dart';
 import '../../../shared_widgets/tenant_session_required_view.dart';
+import '../../../state/action_permissions.dart';
 import '../../../state/auth_notifier.dart';
 import '../dialogs/assign_role_dialog.dart';
 import '../dialogs/create_group_dialog.dart';
@@ -31,10 +33,7 @@ class IamManagementScreen extends StatefulWidget {
   State<IamManagementScreen> createState() => _IamManagementScreenState();
 }
 
-class _IamManagementScreenState extends State<IamManagementScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
+class _IamManagementScreenState extends State<IamManagementScreen> {
   List<UserResponse> _users = [];
   List<RoleResponse> _roles = [];
   List<GroupResponse> _groups = [];
@@ -49,12 +48,6 @@ class _IamManagementScreenState extends State<IamManagementScreen>
   String? _lastTenantId;
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final currentTenantId = context.watch<AuthNotifier>().tenantId;
@@ -64,18 +57,10 @@ class _IamManagementScreenState extends State<IamManagementScreen>
     }
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadAllIamData() async {
     final auth = context.read<AuthNotifier>();
     if (!apiClient.isMockMode &&
-        !auth.hasRole('SUPERADMIN') &&
-        !auth.hasRole('TENANT_ADMIN') &&
-        !auth.hasPermission('iam:user:read')) {
+        !auth.hasAnyPermission(AppPermissions.iamView)) {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -653,52 +638,30 @@ class _IamManagementScreenState extends State<IamManagementScreen>
       );
     }
 
-    // RBAC Security Check
+    // RBAC Security Check — any permission in the IAM domain grants entry.
     if (!apiClient.isMockMode &&
-        !auth.hasRole('SUPERADMIN') &&
-        !auth.hasRole('TENANT_ADMIN') &&
-        !auth.hasPermission('iam:user:read')) {
+        !auth.hasAnyPermission(AppPermissions.iamView)) {
       return IamAccessRestrictedView(auth: auth);
     }
 
-    final canCreateUser = auth.hasPermission('iam:user:create') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canEditUser = auth.hasPermission('iam:user:update') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN') ||
-        auth.hasPermission('*');
-    final canUpdateUserStatus = auth.hasPermission('iam:user:status') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canAssignRole = auth.hasPermission('iam:user:assign-role') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canDeleteUser = auth.hasPermission('iam:user:delete') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canCreateRole = auth.hasPermission('iam:role:create') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canEditRole = auth.hasPermission('iam:role:update') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canDeleteRole = auth.hasPermission('iam:role:delete') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canCreateGroup = auth.hasPermission('iam:group:create') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canCreateScope = auth.hasPermission('iam:scope:create') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canEditScope = auth.hasPermission('iam:scope:update') ||
-        auth.hasPermission('iam:scope:move') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
-    final canDeleteScope = auth.hasPermission('iam:scope:delete') ||
-        auth.hasRole('SUPERADMIN') ||
-        auth.hasRole('TENANT_ADMIN');
+    // Each button is guarded by its own specific permission code; the
+    // TENANT_ADMIN fallback preserves the documented administrative role.
+    bool can(String permission) =>
+        ActionPermissions.can(auth, permission, allowTenantAdmin: true);
+
+    final canCreateUser = can(AppPermissions.iamUserCreate);
+    final canEditUser = can(AppPermissions.iamUserUpdate);
+    final canUpdateUserStatus = can(AppPermissions.iamUserStatus);
+    final canAssignRole = can(AppPermissions.iamUserAssignRole);
+    final canDeleteUser = can(AppPermissions.iamUserDelete);
+    final canCreateRole = can(AppPermissions.iamRoleCreate);
+    final canEditRole = can(AppPermissions.iamRoleUpdate);
+    final canDeleteRole = can(AppPermissions.iamRoleDelete);
+    final canCreateGroup = can(AppPermissions.iamGroupCreate);
+    final canCreateScope = can(AppPermissions.iamScopeCreate);
+    final canEditScope =
+        can(AppPermissions.iamScopeUpdate) || can(AppPermissions.iamScopeMove);
+    final canDeleteScope = can(AppPermissions.iamScopeDelete);
     final isTenantAdmin =
         auth.hasRole('SUPERADMIN') || auth.hasRole('TENANT_ADMIN');
     final isCampusAdmin =
@@ -719,147 +682,181 @@ class _IamManagementScreenState extends State<IamManagementScreen>
           u.email.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 720;
-        final titleColumn = Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Identity & Access Management (IAM)',
-              style: (isNarrow ? t.h3 : t.h2)
-                  .copyWith(fontWeight: FontWeight.bold),
+    // Sub-tabs follow the same rule: at least one permission in the domain
+    // exposes the tab. TENANT_ADMIN keeps the documented fallback. Mock mode
+    // mirrors the screen-level RBAC bypass so scope-filtering demos remain
+    // explorable.
+    final showAllTabs = apiClient.isMockMode;
+    final tabs = <({IconData icon, String label, Widget view})>[
+      if (showAllTabs ||
+          auth.hasAnyPermission(AppPermissions.iamUsersTabView) ||
+          auth.hasRole('TENANT_ADMIN'))
+        (
+          icon: LucideIcons.users,
+          label: 'Users',
+          view: IamUsersTab(
+            users: filteredUsers,
+            userRoles: _userRolesMap,
+            searchQuery: _searchQuery,
+            canCreate: canCreateUser,
+            canEdit: canEditUser,
+            canUpdateStatus: canUpdateUserStatus,
+            canAssign: canAssignRole,
+            canDelete: canDeleteUser,
+            userAssignments: _userAssignments,
+            roles: _roles,
+            scopes: _scopes,
+            onSearchChanged: (v) => setState(() => _searchQuery = v),
+            onCreateUser: _showCreateUserDialog,
+            onEditUser: _showEditUserDialog,
+            onAssignRole: _showAssignRoleDialog,
+            onDeleteUser: _deleteUser,
+            onDataReload: _loadAllIamData,
+          ),
+        ),
+      if (showAllTabs ||
+          auth.hasAnyPermission(AppPermissions.iamRolesTabView) ||
+          auth.hasRole('TENANT_ADMIN'))
+        (
+          icon: LucideIcons.shieldCheck,
+          label: 'Roles & RBAC',
+          view: IamRolesTab(
+            roles: _roles,
+            canCreateRole: canCreateRole,
+            onCreateRole: _showCreateRoleDialog,
+            onEditRole: _showEditRoleDialog,
+            onDeleteRole: _deleteRole,
+            canEditRole: canEditRole,
+            canDeleteRole: canDeleteRole,
+          ),
+        ),
+      if (showAllTabs ||
+          auth.hasAnyPermission(AppPermissions.iamGroupsTabView) ||
+          auth.hasRole('TENANT_ADMIN'))
+        (
+          icon: LucideIcons.layers,
+          label: 'Groups',
+          view: IamGroupsTab(
+            groups: _groups,
+            users: _users,
+            roles: _roles,
+            scopes: _scopes,
+            canCreateGroup: canCreateGroup,
+            onCreateGroup: _showCreateGroupDialog,
+            onGroupChanged: _loadAllIamData,
+          ),
+        ),
+      if (showAllTabs ||
+          auth.hasAnyPermission(AppPermissions.iamScopesTabView) ||
+          auth.hasRole('TENANT_ADMIN'))
+        (
+          icon: LucideIcons.gitBranch,
+          label: 'Scope Tree',
+          view: IamScopesTab(
+            scopes: _scopes,
+            schools: _schools,
+            tenantId: auth.tenantId,
+            canCreateScope: canCreateScope,
+            canEditScope: canEditScope,
+            canDeleteScope: canDeleteScope,
+            canCreateRootScope: canCreateRootScope,
+            isTenantWideAdmin: isTenantWideAdmin,
+            lockedSchoolId: lockedSchoolId,
+            onCreateRootScope: (school) => _showCreateScopeDialog(
+              parentId: null,
+              school: school,
             ),
-            if (!isNarrow) ...[
-              const SizedBox(height: 2),
-              Text(
-                'Enterprise ed-iam security console: Users, RBAC Matrix, Directory Groups, and Scopes.',
-                style: t.muted,
-              ),
-            ],
-          ],
-        );
-
-        final tabBar = ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: isNarrow ? double.infinity : 480),
-          child: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            indicatorColor: c.primary,
-            labelColor: c.foreground,
-            unselectedLabelColor: c.mutedForeground,
-            tabs: const [
-              Tab(icon: Icon(LucideIcons.users, size: 16), text: 'Users'),
-              Tab(
-                  icon: Icon(LucideIcons.shieldCheck, size: 16),
-                  text: 'Roles & RBAC'),
-              Tab(icon: Icon(LucideIcons.layers, size: 16), text: 'Groups'),
-              Tab(
-                  icon: Icon(LucideIcons.gitBranch, size: 16),
-                  text: 'Scope Tree'),
-            ],
+            onAddChildScope: (parentId, node, school) => _showCreateScopeDialog(
+              parentId: parentId,
+              parentNode: node,
+              school: school,
+            ),
+            onEditScope: _showEditScopeDialog,
+            onDeleteScope: _handleDeleteScope,
           ),
-        );
+        ),
+    ];
 
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: isNarrow ? 12 : 20,
-            vertical: isNarrow ? 10 : 20,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    if (tabs.isEmpty) {
+      return IamAccessRestrictedView(auth: auth);
+    }
+
+    return DefaultTabController(
+      key: ValueKey(tabs.length),
+      length: tabs.length,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 720;
+          final titleColumn = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (isNarrow)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    titleColumn,
-                    const SizedBox(height: 10),
-                    tabBar,
-                  ],
-                )
-              else
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(child: titleColumn),
-                    const SizedBox(width: 16),
-                    tabBar,
-                  ],
-                ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    IamUsersTab(
-                      users: filteredUsers,
-                      userRoles: _userRolesMap,
-                      searchQuery: _searchQuery,
-                      canCreate: canCreateUser,
-                      canEdit: canEditUser,
-                      canUpdateStatus: canUpdateUserStatus,
-                      canAssign: canAssignRole,
-                      canDelete: canDeleteUser,
-                      userAssignments: _userAssignments,
-                      roles: _roles,
-                      scopes: _scopes,
-                      onSearchChanged: (v) => setState(() => _searchQuery = v),
-                      onCreateUser: _showCreateUserDialog,
-                      onEditUser: _showEditUserDialog,
-                      onAssignRole: _showAssignRoleDialog,
-                      onDeleteUser: _deleteUser,
-                      onDataReload: _loadAllIamData,
-                    ),
-                    IamRolesTab(
-                      roles: _roles,
-                      canCreateRole: canCreateRole,
-                      onCreateRole: _showCreateRoleDialog,
-                      onEditRole: _showEditRoleDialog,
-                      onDeleteRole: _deleteRole,
-                      canEditRole: canEditRole,
-                      canDeleteRole: canDeleteRole,
-                    ),
-                    IamGroupsTab(
-                      groups: _groups,
-                      users: _users,
-                      roles: _roles,
-                      scopes: _scopes,
-                      canCreateGroup: canCreateGroup,
-                      onCreateGroup: _showCreateGroupDialog,
-                      onGroupChanged: _loadAllIamData,
-                    ),
-                    IamScopesTab(
-                      scopes: _scopes,
-                      schools: _schools,
-                      tenantId: auth.tenantId,
-                      canCreateScope: canCreateScope,
-                      canEditScope: canEditScope,
-                      canDeleteScope: canDeleteScope,
-                      canCreateRootScope: canCreateRootScope,
-                      isTenantWideAdmin: isTenantWideAdmin,
-                      lockedSchoolId: lockedSchoolId,
-                      onCreateRootScope: (school) => _showCreateScopeDialog(
-                        parentId: null,
-                        school: school,
-                      ),
-                      onAddChildScope: (parentId, node, school) =>
-                          _showCreateScopeDialog(
-                        parentId: parentId,
-                        parentNode: node,
-                        school: school,
-                      ),
-                      onEditScope: _showEditScopeDialog,
-                      onDeleteScope: _handleDeleteScope,
-                    ),
-                  ],
-                ),
+              Text(
+                'Identity & Access Management (IAM)',
+                style: (isNarrow ? t.h3 : t.h2)
+                    .copyWith(fontWeight: FontWeight.bold),
               ),
+              if (!isNarrow) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'Enterprise ed-iam security console: Users, RBAC Matrix, Directory Groups, and Scopes.',
+                  style: t.muted,
+                ),
+              ],
             ],
-          ),
-        );
-      },
+          );
+
+          final tabBar = ConstrainedBox(
+            constraints:
+                BoxConstraints(maxWidth: isNarrow ? double.infinity : 480),
+            child: TabBar(
+              isScrollable: true,
+              indicatorColor: c.primary,
+              labelColor: c.foreground,
+              unselectedLabelColor: c.mutedForeground,
+              tabs: [
+                for (final tab in tabs)
+                  Tab(icon: Icon(tab.icon, size: 16), text: tab.label),
+              ],
+            ),
+          );
+
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isNarrow ? 12 : 20,
+              vertical: isNarrow ? 10 : 20,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isNarrow)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      titleColumn,
+                      const SizedBox(height: 10),
+                      tabBar,
+                    ],
+                  )
+                else
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: titleColumn),
+                      const SizedBox(width: 16),
+                      tabBar,
+                    ],
+                  ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: TabBarView(
+                    children: [for (final tab in tabs) tab.view],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

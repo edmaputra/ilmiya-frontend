@@ -4,11 +4,13 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_permissions.dart';
 import '../../../core/models/school.dart';
 import '../../../core/models/tenant.dart';
 import '../../../core/services/school_service.dart';
 import '../../../core/services/tenant_service.dart';
 import '../../../core/utils/app_toast.dart';
+import '../../../state/action_permissions.dart';
 import '../../../state/auth_notifier.dart';
 import '../dialogs/edit_foundation_dialog.dart';
 import '../dialogs/register_foundation_dialog.dart';
@@ -134,13 +136,20 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
     final t = KiteText.of(context);
     final auth = context.watch<AuthNotifier>();
 
-    final isSuperAdmin = auth.hasRole('SUPERADMIN') ||
-        auth.hasPermission('*') ||
-        auth.isSuperAdmin;
+    final isSuperAdmin =
+        auth.isSuperAdmin || auth.hasPermission(AppPermissions.all);
 
     if (!isSuperAdmin) {
       return const TenantAccessRestrictedView();
     }
+
+    // Platform governance actions are guarded by specific permission codes.
+    bool can(String permission) =>
+        ActionPermissions.can(auth, permission, allowTenantAdmin: false);
+    final canManageTenants = can(AppPermissions.tenantWrite);
+    final canReadTenants = can(AppPermissions.tenantRead);
+    final canRegisterCampus =
+        can(AppPermissions.schoolCampusCreate) || canManageTenants;
 
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: c.primary));
@@ -231,6 +240,11 @@ class _TenantManagementScreenState extends State<TenantManagementScreen>
                   onToggleStatus: _toggleFoundationStatus,
                   onAddCampus: (tenantId) =>
                       _showRegisterSchoolDialog(tenantId),
+                  canRegisterFoundation: canManageTenants,
+                  canEditFoundation: canManageTenants,
+                  canToggleStatus: canManageTenants,
+                  canSwitchTenant: canReadTenants,
+                  canAddCampus: canRegisterCampus,
                 ),
                 const TenantQuotasTab(),
               ],

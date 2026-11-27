@@ -14,6 +14,10 @@ class FoundationCard extends StatelessWidget {
   final ValueChanged<TenantResponse> onEdit;
   final ValueChanged<TenantResponse> onToggleStatus;
   final ValueChanged<String> onAddCampus;
+  final bool canEdit;
+  final bool canToggleStatus;
+  final bool canSwitchTenant;
+  final bool canAddCampus;
 
   const FoundationCard({
     super.key,
@@ -24,6 +28,10 @@ class FoundationCard extends StatelessWidget {
     required this.onEdit,
     required this.onToggleStatus,
     required this.onAddCampus,
+    required this.canEdit,
+    required this.canToggleStatus,
+    required this.canSwitchTenant,
+    required this.canAddCampus,
   });
 
   @override
@@ -235,18 +243,20 @@ class FoundationCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        TextButton.icon(
-                          style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                        if (canAddCampus)
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            onPressed: () => onAddCampus(tenant.id),
+                            icon: const Icon(LucideIcons.plusCircle, size: 14),
+                            label: const Text(
+                              'Add Campus',
+                              style: TextStyle(fontSize: 11),
+                            ),
                           ),
-                          onPressed: () => onAddCampus(tenant.id),
-                          icon: const Icon(LucideIcons.plusCircle, size: 14),
-                          label: const Text(
-                            'Add Campus',
-                            style: TextStyle(fontSize: 11),
-                          ),
-                        ),
                       ],
                     );
                   },
@@ -315,46 +325,49 @@ class FoundationCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.forestSage,
-                  foregroundColor: Colors.white,
-                  visualDensity: VisualDensity.compact,
+              if (canAddCampus)
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.forestSage,
+                    foregroundColor: Colors.white,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed: () => onAddCampus(tenant.id),
+                  icon: const Icon(LucideIcons.plus, size: 14),
+                  label: const Text(
+                    'Add School Campus',
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
-                onPressed: () => onAddCampus(tenant.id),
-                icon: const Icon(LucideIcons.plus, size: 14),
-                label: const Text(
-                  'Add School Campus',
-                  style: TextStyle(fontSize: 12),
+              if (canEdit)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed: () => onEdit(tenant),
+                  icon: const Icon(LucideIcons.edit2, size: 14),
+                  label: const Text('Edit Foundation',
+                      style: TextStyle(fontSize: 12)),
                 ),
-              ),
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
+              if (canToggleStatus)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: isSuspended
+                        ? AppColors.forestSage
+                        : AppColors.earthyTerra,
+                  ),
+                  onPressed: () => onToggleStatus(tenant),
+                  icon: Icon(
+                    isSuspended ? LucideIcons.checkCircle : LucideIcons.ban,
+                    size: 14,
+                  ),
+                  label: Text(
+                    isSuspended ? 'Activate' : 'Suspend',
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 ),
-                onPressed: () => onEdit(tenant),
-                icon: const Icon(LucideIcons.edit2, size: 14),
-                label: const Text('Edit Foundation',
-                    style: TextStyle(fontSize: 12)),
-              ),
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  foregroundColor: isSuspended
-                      ? AppColors.forestSage
-                      : AppColors.earthyTerra,
-                ),
-                onPressed: () => onToggleStatus(tenant),
-                icon: Icon(
-                  isSuspended ? LucideIcons.checkCircle : LucideIcons.ban,
-                  size: 14,
-                ),
-                label: Text(
-                  isSuspended ? 'Activate' : 'Suspend',
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-              if (!isCurrentTenant)
+              if (canSwitchTenant && !isCurrentTenant)
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     visualDensity: VisualDensity.compact,

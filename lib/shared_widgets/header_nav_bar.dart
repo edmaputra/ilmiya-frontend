@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/constants/app_colors.dart';
+import '../state/app_navigation_guard.dart';
 import '../state/app_state.dart';
 import '../state/auth_notifier.dart';
 import 'navigation/header_brand_title.dart';
@@ -66,23 +67,15 @@ class HeaderNavBar extends StatelessWidget implements PreferredSizeWidget {
                       scrollDirection: Axis.horizontal,
                       child: Builder(
                         builder: (context) {
+                          bool canView(int tab) =>
+                              AppNavigationGuard.canAccessTab(tab, auth);
                           final canViewSchool =
-                              auth.hasPermission('school:profile:read') ||
-                                  auth.hasRole('SUPERADMIN') ||
-                                  auth.hasRole('SCHOOL_ADMIN');
+                              canView(AppNavigationGuard.schoolProfileTab);
                           final canViewAcademic =
-                              auth.hasPermission('academic:year:read') ||
-                                  auth.hasRole('SUPERADMIN') ||
-                                  auth.hasRole('SCHOOL_ADMIN');
-                          final canViewIam =
-                              auth.hasPermission('iam:user:read') ||
-                                  auth.hasPermission('iam:role:read') ||
-                                  auth.hasPermission('iam:group:read') ||
-                                  auth.hasPermission('iam:scope:read') ||
-                                  auth.hasRole('SUPERADMIN');
-                          final canViewPreviews = auth.hasRole('SUPERADMIN') ||
-                              auth.hasRole('SCHOOL_ADMIN') ||
-                              !auth.isAuthenticated;
+                              canView(AppNavigationGuard.academicYearsTab);
+                          final canViewIam = canView(AppNavigationGuard.iamTab);
+                          final canViewPreviews =
+                              canView(AppNavigationGuard.previewsTab);
 
                           return Row(
                             mainAxisSize: MainAxisSize.min,

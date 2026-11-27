@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_version.dart';
+import '../../state/app_navigation_guard.dart';
 import '../../state/app_state.dart';
 import '../../state/auth_notifier.dart';
 import '../ilmiya_logo.dart';
@@ -14,11 +15,6 @@ import 'app_shell_tenant_dialog.dart';
 
 class AppShellSidebar extends StatelessWidget {
   const AppShellSidebar({super.key});
-
-  /// Feature visibility toggles - preserved for future feature reuse
-  static bool get showExecutiveDashboard => false;
-  static bool get showCoursesAndGrades => false;
-  static bool get showCommunicationsAndLabs => false;
 
   @override
   Widget build(BuildContext context) {
@@ -205,51 +201,30 @@ class AppShellSidebar extends StatelessWidget {
                     AppShellNavTile(
                       title: 'Tenant Console',
                       icon: LucideIcons.building2,
-                      tabIndex: 8,
-                      isActive: state.currentTab == 8,
+                      tabIndex: AppNavigationGuard.tenantConsoleTab,
+                      isActive: state.currentTab ==
+                          AppNavigationGuard.tenantConsoleTab,
                       badgeText: 'Admin',
                     ),
                   ],
                 );
               }
 
-              final canViewSchoolProfile = auth.hasPermission('school:read') ||
-                  auth.hasPermission('*') ||
-                  auth.hasRole('SUPERADMIN') ||
-                  auth.hasRole('TENANT_ADMIN') ||
-                  auth.hasRole('SCHOOL_ADMIN');
-              final canViewDashboard = auth.hasRole('SUPERADMIN') ||
-                  auth.hasRole('TENANT_ADMIN') ||
-                  auth.hasRole('PRINCIPAL') ||
-                  auth.hasRole('SCHOOL_ADMIN');
-              final canViewAcademicYears =
-                  auth.hasPermission('academic-year:read') ||
-                      auth.hasPermission('*') ||
-                      auth.hasRole('SUPERADMIN') ||
-                      auth.hasRole('TENANT_ADMIN') ||
-                      auth.hasRole('SCHOOL_ADMIN');
-              final canViewGrades = auth.hasRole('SUPERADMIN') ||
-                  auth.hasRole('TENANT_ADMIN') ||
-                  auth.hasRole('TEACHER') ||
-                  auth.hasRole('STUDENT');
-              final canViewIam = auth.hasPermission('iam:user:read') ||
-                  auth.hasPermission('iam:role:read') ||
-                  auth.hasPermission('iam:group:read') ||
-                  auth.hasPermission('iam:scope:read') ||
-                  auth.hasRole('SUPERADMIN') ||
-                  auth.hasRole('TENANT_ADMIN');
-              final canViewTenants = auth.isSuperAdmin;
-              final canViewPreviews = auth.hasRole('SUPERADMIN') ||
-                  auth.hasRole('TENANT_ADMIN') ||
-                  auth.hasRole('SCHOOL_ADMIN') ||
-                  !auth.isAuthenticated;
+              // Navigation visibility is centralized in AppNavigationGuard.
+              bool canView(int tab) => AppNavigationGuard.canViewTab(tab, auth);
 
-              final showInstitutionSection = canViewSchoolProfile ||
-                  (showExecutiveDashboard && canViewDashboard);
-              final showAcademicsSection = canViewAcademicYears ||
-                  (showCoursesAndGrades && canViewGrades);
-              final showAdminSection = canViewIam || canViewTenants;
-              final showCommSection = showCommunicationsAndLabs;
+              final showInstitutionSection =
+                  canView(AppNavigationGuard.schoolProfileTab) ||
+                      canView(AppNavigationGuard.schoolsCampusesTab) ||
+                      canView(AppNavigationGuard.dashboardTab);
+              final showAcademicsSection =
+                  canView(AppNavigationGuard.academicYearsTab) ||
+                      canView(AppNavigationGuard.gradesTab);
+              final showAdminSection = canView(AppNavigationGuard.iamTab) ||
+                  canView(AppNavigationGuard.tenantConsoleTab);
+              final showCommSection = canView(AppNavigationGuard.previewsTab) ||
+                  canView(AppNavigationGuard.messagesTab) ||
+                  canView(AppNavigationGuard.notificationsTab);
 
               return ListView(
                 padding:
@@ -257,90 +232,101 @@ class AppShellSidebar extends StatelessWidget {
                 children: [
                   if (showInstitutionSection) ...[
                     _buildSectionHeader('Institution & Control'),
-                    if (canViewSchoolProfile) ...[
+                    if (canView(AppNavigationGuard.schoolProfileTab))
                       AppShellNavTile(
                         title: 'School Profile',
                         icon: LucideIcons.school,
-                        tabIndex: 0,
-                        isActive: state.currentTab == 0,
+                        tabIndex: AppNavigationGuard.schoolProfileTab,
+                        isActive: state.currentTab ==
+                            AppNavigationGuard.schoolProfileTab,
                       ),
+                    if (canView(AppNavigationGuard.schoolsCampusesTab))
                       AppShellNavTile(
                         title: 'Schools & Campuses',
                         icon: LucideIcons.building,
-                        tabIndex: 9,
-                        isActive: state.currentTab == 9,
+                        tabIndex: AppNavigationGuard.schoolsCampusesTab,
+                        isActive: state.currentTab ==
+                            AppNavigationGuard.schoolsCampusesTab,
                       ),
-                    ],
-                    if (showExecutiveDashboard && canViewDashboard)
+                    if (canView(AppNavigationGuard.dashboardTab))
                       AppShellNavTile(
                         title: 'Executive Dashboard',
                         icon: LucideIcons.layoutDashboard,
-                        tabIndex: 4,
-                        isActive: state.currentTab == 4,
+                        tabIndex: AppNavigationGuard.dashboardTab,
+                        isActive:
+                            state.currentTab == AppNavigationGuard.dashboardTab,
                       ),
                   ],
                   if (showAcademicsSection) ...[
                     const SizedBox(height: 12),
                     _buildSectionHeader('Academics'),
-                    if (canViewAcademicYears)
+                    if (canView(AppNavigationGuard.academicYearsTab))
                       AppShellNavTile(
                         title: 'Academic Years',
                         icon: LucideIcons.calendarDays,
-                        tabIndex: 1,
-                        isActive: state.currentTab == 1,
+                        tabIndex: AppNavigationGuard.academicYearsTab,
+                        isActive: state.currentTab ==
+                            AppNavigationGuard.academicYearsTab,
                       ),
-                    if (showCoursesAndGrades && canViewGrades)
+                    if (canView(AppNavigationGuard.gradesTab))
                       AppShellNavTile(
                         title: 'Courses & Grades',
                         icon: LucideIcons.graduationCap,
-                        tabIndex: 5,
-                        isActive: state.currentTab == 5,
+                        tabIndex: AppNavigationGuard.gradesTab,
+                        isActive:
+                            state.currentTab == AppNavigationGuard.gradesTab,
                       ),
                   ],
                   if (showAdminSection) ...[
                     const SizedBox(height: 12),
                     _buildSectionHeader('Administration'),
-                    if (canViewIam)
+                    if (canView(AppNavigationGuard.iamTab))
                       AppShellNavTile(
                         title: 'IAM Console',
                         icon: LucideIcons.shieldCheck,
-                        tabIndex: 2,
-                        isActive: state.currentTab == 2,
+                        tabIndex: AppNavigationGuard.iamTab,
+                        isActive: state.currentTab == AppNavigationGuard.iamTab,
                       ),
-                    if (canViewTenants)
+                    if (canView(AppNavigationGuard.tenantConsoleTab))
                       AppShellNavTile(
                         title: 'Tenant Console',
                         icon: LucideIcons.building2,
-                        tabIndex: 8,
-                        isActive: state.currentTab == 8,
+                        tabIndex: AppNavigationGuard.tenantConsoleTab,
+                        isActive: state.currentTab ==
+                            AppNavigationGuard.tenantConsoleTab,
                         badgeText: 'Admin',
                       )
                   ],
                   if (showCommSection) ...[
                     const SizedBox(height: 12),
                     _buildSectionHeader('Communications & Labs'),
-                    if (canViewPreviews)
+                    if (canView(AppNavigationGuard.previewsTab))
                       AppShellNavTile(
                         title: 'Feature Previews',
                         icon: LucideIcons.flaskConical,
-                        tabIndex: 3,
-                        isActive: state.currentTab == 3,
+                        tabIndex: AppNavigationGuard.previewsTab,
+                        isActive:
+                            state.currentTab == AppNavigationGuard.previewsTab,
                         badgeText: 'Labs',
                       ),
-                    AppShellNavTile(
-                      title: 'Messages',
-                      icon: LucideIcons.messageSquare,
-                      tabIndex: 6,
-                      isActive: state.currentTab == 6,
-                      unreadCount: state.unreadMessagesCount,
-                    ),
-                    AppShellNavTile(
-                      title: 'Notifications',
-                      icon: LucideIcons.bell,
-                      tabIndex: 7,
-                      isActive: state.currentTab == 7,
-                      unreadCount: state.unreadNotifsCount,
-                    ),
+                    if (canView(AppNavigationGuard.messagesTab))
+                      AppShellNavTile(
+                        title: 'Messages',
+                        icon: LucideIcons.messageSquare,
+                        tabIndex: AppNavigationGuard.messagesTab,
+                        isActive:
+                            state.currentTab == AppNavigationGuard.messagesTab,
+                        unreadCount: state.unreadMessagesCount,
+                      ),
+                    if (canView(AppNavigationGuard.notificationsTab))
+                      AppShellNavTile(
+                        title: 'Notifications',
+                        icon: LucideIcons.bell,
+                        tabIndex: AppNavigationGuard.notificationsTab,
+                        isActive: state.currentTab ==
+                            AppNavigationGuard.notificationsTab,
+                        unreadCount: state.unreadNotifsCount,
+                      ),
                   ],
                 ],
               );

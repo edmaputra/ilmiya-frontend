@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import '../../../state/app_navigation_guard.dart';
 import '../../../state/app_state.dart';
 import '../../../state/auth_notifier.dart';
 import '../../auth/presentation/login_dialog.dart';
@@ -12,108 +13,118 @@ List<CommandActionItem> buildCommandActions(BuildContext context) {
 
   return [
     // Navigation
-    CommandActionItem(
-      title: 'School Profile',
-      group: 'Navigation',
-      icon: LucideIcons.school,
-      subtitle: 'Institution details, accreditation & leadership',
-      onSelect: () {
-        appState.setTab(0);
-        Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: 'Academic Years & Terms',
-      group: 'Navigation',
-      icon: LucideIcons.calendarDays,
-      subtitle: 'Academic calendar, semesters, and term schedules',
-      onSelect: () {
-        appState.setTab(1);
-        Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: 'IAM Console (Identity & Access)',
-      group: 'Navigation',
-      icon: LucideIcons.shieldCheck,
-      subtitle: 'Manage staff, student, and admin credentials & roles',
-      onSelect: () {
-        appState.setTab(2);
-        Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: 'Feature Previews & Labs',
-      group: 'Navigation',
-      icon: LucideIcons.flaskConical,
-      subtitle: 'Experimental components and preview sandbox',
-      onSelect: () {
-        appState.setTab(3);
-        Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: 'Dashboard Overview',
-      group: 'Navigation',
-      icon: LucideIcons.layoutDashboard,
-      subtitle: 'Executive school metrics, attendance & timetable',
-      onSelect: () {
-        appState.setTab(4);
-        Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: 'Courses & Gradebook',
-      group: 'Navigation',
-      icon: LucideIcons.graduationCap,
-      subtitle: 'Curriculum, grade calculations & coursework',
-      onSelect: () {
-        appState.setTab(5);
-        Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: 'Messages & Communications',
-      group: 'Navigation',
-      icon: LucideIcons.messageSquare,
-      subtitle: 'Direct messages & school discussion channels',
-      onSelect: () {
-        appState.setTab(6);
-        Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: 'Notifications & Alerts',
-      group: 'Navigation',
-      icon: LucideIcons.bell,
-      subtitle: 'Administrative notices and academic alerts',
-      onSelect: () {
-        appState.setTab(7);
-        Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: 'Tenant Management Console (SuperAdmin)',
-      group: 'Navigation',
-      icon: LucideIcons.building2,
-      subtitle:
-          'Multi-tenant institution registry, accreditation oversight & quotas',
-      onSelect: () {
-        appState.setTab(8);
-        Navigator.of(context).pop();
-      },
-    ),
-    CommandActionItem(
-      title: 'User Profile & Account Management',
-      group: 'Navigation',
-      icon: LucideIcons.userCheck,
-      subtitle:
-          'Self-manage account credentials, name, and administrative user controls',
-      onSelect: () {
-        appState.setTab(10);
-        Navigator.of(context).pop();
-      },
-    ),
+    if (AppNavigationGuard.canAccessTab(0, auth))
+      CommandActionItem(
+        title: 'School Profile',
+        group: 'Navigation',
+        icon: LucideIcons.school,
+        subtitle: 'Institution details, accreditation & leadership',
+        onSelect: () {
+          appState.setTab(0);
+          Navigator.of(context).pop();
+        },
+      ),
+    if (AppNavigationGuard.canAccessTab(1, auth))
+      CommandActionItem(
+        title: 'Academic Years & Terms',
+        group: 'Navigation',
+        icon: LucideIcons.calendarDays,
+        subtitle: 'Academic calendar, semesters, and term schedules',
+        onSelect: () {
+          appState.setTab(1);
+          Navigator.of(context).pop();
+        },
+      ),
+    if (AppNavigationGuard.canAccessTab(2, auth))
+      CommandActionItem(
+        title: 'IAM Console (Identity & Access)',
+        group: 'Navigation',
+        icon: LucideIcons.shieldCheck,
+        subtitle: 'Manage staff, student, and admin credentials & roles',
+        onSelect: () {
+          appState.setTab(2);
+          Navigator.of(context).pop();
+        },
+      ),
+    if (AppNavigationGuard.canAccessTab(3, auth))
+      CommandActionItem(
+        title: 'Feature Previews & Labs',
+        group: 'Navigation',
+        icon: LucideIcons.flaskConical,
+        subtitle: 'Experimental components and preview sandbox',
+        onSelect: () {
+          appState.setTab(3);
+          Navigator.of(context).pop();
+        },
+      ),
+    if (AppNavigationGuard.canAccessTab(4, auth))
+      CommandActionItem(
+        title: 'Dashboard Overview',
+        group: 'Navigation',
+        icon: LucideIcons.layoutDashboard,
+        subtitle: 'Executive school metrics, attendance & timetable',
+        onSelect: () {
+          appState.setTab(4);
+          Navigator.of(context).pop();
+        },
+      ),
+    if (AppNavigationGuard.canAccessTab(5, auth))
+      CommandActionItem(
+        title: 'Courses & Gradebook',
+        group: 'Navigation',
+        icon: LucideIcons.graduationCap,
+        subtitle: 'Curriculum, grade calculations & coursework',
+        onSelect: () {
+          appState.setTab(5);
+          Navigator.of(context).pop();
+        },
+      ),
+    if (AppNavigationGuard.canAccessTab(6, auth))
+      CommandActionItem(
+        title: 'Messages & Communications',
+        group: 'Navigation',
+        icon: LucideIcons.messageSquare,
+        subtitle: 'Direct messages & school discussion channels',
+        onSelect: () {
+          appState.setTab(6);
+          Navigator.of(context).pop();
+        },
+      ),
+    if (AppNavigationGuard.canAccessTab(7, auth))
+      CommandActionItem(
+        title: 'Notifications & Alerts',
+        group: 'Navigation',
+        icon: LucideIcons.bell,
+        subtitle: 'Administrative notices and academic alerts',
+        onSelect: () {
+          appState.setTab(7);
+          Navigator.of(context).pop();
+        },
+      ),
+    if (AppNavigationGuard.canAccessTab(8, auth))
+      CommandActionItem(
+        title: 'Tenant Management Console (SuperAdmin)',
+        group: 'Navigation',
+        icon: LucideIcons.building2,
+        subtitle:
+            'Multi-tenant institution registry, accreditation oversight & quotas',
+        onSelect: () {
+          appState.setTab(8);
+          Navigator.of(context).pop();
+        },
+      ),
+    if (AppNavigationGuard.canAccessTab(10, auth))
+      CommandActionItem(
+        title: 'User Profile & Account Management',
+        group: 'Navigation',
+        icon: LucideIcons.userCheck,
+        subtitle:
+            'Self-manage account credentials, name, and administrative user controls',
+        onSelect: () {
+          appState.setTab(10);
+          Navigator.of(context).pop();
+        },
+      ),
 
     // System Actions
     CommandActionItem(
