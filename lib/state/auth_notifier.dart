@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import '../core/models/iam.dart';
 import '../core/services/api_client.dart';
 import '../core/services/iam_service.dart';
@@ -6,15 +7,20 @@ import '../core/services/school_service.dart';
 import '../core/services/session_storage_service.dart';
 import '../core/services/tenant_service.dart';
 
-bool checkPermission(List<String> userPermissions, List<String> userRoles,
-    String targetPermission,
-    {bool isSuperAdmin = false}) {
+bool checkPermission(
+  List<String> userPermissions,
+  List<String> userRoles,
+  String targetPermission, {
+  bool isSuperAdmin = false,
+}) {
   if (isSuperAdmin ||
-      userRoles.any((r) =>
-          r.toUpperCase() == 'SUPERADMIN' ||
-          r.toUpperCase() == 'ROLE_SUPERADMIN' ||
-          r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
-          r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN') ||
+      userRoles.any(
+        (r) =>
+            r.toUpperCase() == 'SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+            r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN',
+      ) ||
       userPermissions.contains('*')) {
     return true;
   }
@@ -250,16 +256,20 @@ class AuthNotifier extends ChangeNotifier {
 
   bool get isSuperAdmin =>
       (_user?.isPlatformSuperAdmin ?? false) ||
-      _roles.any((r) =>
-          r.toUpperCase() == 'SUPERADMIN' ||
-          r.toUpperCase() == 'ROLE_SUPERADMIN' ||
-          r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
-          r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN');
+      _roles.any(
+        (r) =>
+            r.toUpperCase() == 'SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+            r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+            r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN',
+      );
   bool get isTenantAdmin =>
       !isSuperAdmin &&
-      _roles.any((r) =>
-          r.toUpperCase() == 'TENANT_ADMIN' ||
-          r.toUpperCase() == 'ROLE_TENANT_ADMIN');
+      _roles.any(
+        (r) =>
+            r.toUpperCase() == 'TENANT_ADMIN' ||
+            r.toUpperCase() == 'ROLE_TENANT_ADMIN',
+      );
   bool get isTenantWideAdmin => isSuperAdmin || isTenantAdmin;
   bool get hasSwitchedTenant => _hasSwitchedTenant;
   bool get isPlatformSession => isSuperAdmin && _tenantId == 'platform';
@@ -288,17 +298,34 @@ class AuthNotifier extends ChangeNotifier {
   }
 
   bool hasPermission(String targetPermission) {
-    return checkPermission(_permissions, _roles, targetPermission,
-        isSuperAdmin: isSuperAdmin);
+    return checkPermission(
+      _permissions,
+      _roles,
+      targetPermission,
+      isSuperAdmin: isSuperAdmin,
+    );
+  }
+
+  /// Returns true if the user holds at least one of the [targetPermissions].
+  ///
+  /// Empty lists return false. Wildcards and SUPERADMIN roles are resolved by
+  /// [hasPermission], so a single matching permission is enough.
+  bool hasAnyPermission(List<String> targetPermissions) {
+    for (final permission in targetPermissions) {
+      if (hasPermission(permission)) return true;
+    }
+    return false;
   }
 
   bool hasRole(String role) {
     if (isSuperAdmin) return true;
     final normalized = role.toUpperCase();
-    return _roles.any((r) =>
-        r.toUpperCase() == normalized ||
-        r.toUpperCase() == 'ROLE_$normalized' ||
-        'ROLE_${r.toUpperCase()}' == normalized);
+    return _roles.any(
+      (r) =>
+          r.toUpperCase() == normalized ||
+          r.toUpperCase() == 'ROLE_$normalized' ||
+          'ROLE_${r.toUpperCase()}' == normalized,
+    );
   }
 
   Future<void> refreshProfile({bool showLoading = false}) async {
@@ -312,11 +339,13 @@ class AuthNotifier extends ChangeNotifier {
       _roles = profile.roles;
       _permissions = profile.permissions;
       final isSuper = (_user?.isPlatformSuperAdmin ?? false) ||
-          _roles.any((r) =>
-              r.toUpperCase() == 'SUPERADMIN' ||
-              r.toUpperCase() == 'ROLE_SUPERADMIN' ||
-              r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
-              r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN');
+          _roles.any(
+            (r) =>
+                r.toUpperCase() == 'SUPERADMIN' ||
+                r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+                r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+                r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN',
+          );
       if (isSuper && _apiClient.tenantId == 'platform') {
         _tenantId = 'platform';
         _tenantName = 'Platform Administration';
@@ -371,11 +400,13 @@ class AuthNotifier extends ChangeNotifier {
         _user = resp.user;
       }
       final isSuper = (_user?.isPlatformSuperAdmin ?? false) ||
-          _roles.any((r) =>
-              r.toUpperCase() == 'SUPERADMIN' ||
-              r.toUpperCase() == 'ROLE_SUPERADMIN' ||
-              r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
-              r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN');
+          _roles.any(
+            (r) =>
+                r.toUpperCase() == 'SUPERADMIN' ||
+                r.toUpperCase() == 'ROLE_SUPERADMIN' ||
+                r.toUpperCase() == 'PLATFORM_SUPERADMIN' ||
+                r.toUpperCase() == 'ROLE_PLATFORM_SUPERADMIN',
+          );
       if (isSuper) {
         _hasSwitchedTenant = false;
         _tenantId = 'platform';
@@ -417,12 +448,14 @@ class AuthNotifier extends ChangeNotifier {
         : _apiClient.tenantId.isNotEmpty && _apiClient.tenantId != 'platform'
             ? _apiClient.tenantId
             : 'tenant-lincoln-high-001';
-    await login(LoginRequest(
-      email: persona.email,
-      password:
-          '${persona.key.name[0].toUpperCase()}${persona.key.name.substring(1)}@123',
-      tenantId: tId,
-    ));
+    await login(
+      LoginRequest(
+        email: persona.email,
+        password:
+            '${persona.key.name[0].toUpperCase()}${persona.key.name.substring(1)}@123',
+        tenantId: tId,
+      ),
+    );
   }
 
   void resetLoading() {
@@ -455,8 +488,10 @@ class AuthNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> switchTenant(String newTenantId,
-      {String? targetSchoolId}) async {
+  Future<void> switchTenant(
+    String newTenantId, {
+    String? targetSchoolId,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -497,8 +532,10 @@ class AuthNotifier extends ChangeNotifier {
         final schools = await _schoolService.listSchools(tenantId: _tenantId);
         if (schools.isNotEmpty) {
           final matched = targetSchoolId != null
-              ? schools.firstWhere((s) => s.id == targetSchoolId,
-                  orElse: () => schools.first)
+              ? schools.firstWhere(
+                  (s) => s.id == targetSchoolId,
+                  orElse: () => schools.first,
+                )
               : schools.first;
           _schoolId = matched.id;
           _schoolName = matched.name;

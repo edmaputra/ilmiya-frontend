@@ -9,6 +9,7 @@ import '../core/data/mock_data.dart';
 import '../core/services/notification_service.dart';
 import '../core/services/session_storage_service.dart';
 import '../core/theme/app_theme.dart';
+import 'app_navigation_guard.dart';
 
 class AppState extends ChangeNotifier {
   UserRole _currentRole = UserRole.student;
@@ -32,6 +33,8 @@ class AppState extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
   KiteAccent _accent = KiteAccent.slate;
   final SessionStorageService _sessionStorage;
+  bool Function(int tab)? _tabAccessGuard;
+  int _fallbackTab = AppNavigationGuard.profileTab;
 
   AppState({SessionStorageService? sessionStorage})
       : _sessionStorage = sessionStorage ?? SessionStorageService() {
@@ -110,8 +113,16 @@ class AppState extends ChangeNotifier {
   }
 
   // Setters & Actions
+  /// Registers a guard that rejects navigation to tabs the current user
+  /// cannot access. When null (e.g. in unit tests), tab changes are unrestricted.
+  void setTabAccessGuard(bool Function(int tab)? guard,
+      {int fallbackTab = AppNavigationGuard.profileTab}) {
+    _tabAccessGuard = guard;
+    _fallbackTab = fallbackTab;
+  }
+
   void resetSession() {
-    _currentTab = 0;
+    setTab(AppNavigationGuard.schoolProfileTab);
     _currentRole = UserRole.student;
     _courses = List.from(initialCourses);
     _notifications = List.from(initialNotifications);
@@ -134,6 +145,11 @@ class AppState extends ChangeNotifier {
   }
 
   void setTab(int index) {
+    if (_tabAccessGuard != null &&
+        index != _currentTab &&
+        !_tabAccessGuard!(index)) {
+      index = _fallbackTab;
+    }
     _currentTab = index;
     notifyListeners();
   }
@@ -174,7 +190,7 @@ class AppState extends ChangeNotifier {
       'course': course,
       'assignment': assignment,
     };
-    _currentTab = 3; // Switch to Feature Previews Tab
+    setTab(AppNavigationGuard.previewsTab);
     notifyListeners();
   }
 

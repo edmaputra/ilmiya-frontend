@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ilmiya_app/core/models/iam.dart';
 import 'package:ilmiya_app/core/services/api_client.dart';
 import 'package:ilmiya_app/core/services/iam_service.dart';
 import 'package:ilmiya_app/core/services/mock_storage_service.dart';
@@ -60,6 +61,22 @@ void main() {
     expect(find.byType(IlmiyaCommandPalette), findsOneWidget);
     expect(find.text('School Profile'), findsOneWidget);
     expect(find.text('Dashboard Overview'), findsOneWidget);
+  });
+
+  testWidgets('IlmiyaCommandPalette hides actions the user cannot access',
+      (tester) async {
+    _setDesktopSize(tester);
+    final appState = _makeAppState();
+    final auth = _makeAuth();
+    await auth.loginAsPersona(DemoPersonaKey.teacher);
+    await tester.pumpWidget(_buildPaletteHost(appState: appState, auth: auth));
+
+    await tester.tap(find.text('Open Palette'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('School Profile'), findsOneWidget);
+    expect(find.text('IAM Console (Identity & Access)'), findsNothing);
+    expect(find.text('Tenant Management Console (SuperAdmin)'), findsNothing);
   });
 
   testWidgets('IlmiyaCommandPalette filters by search query',

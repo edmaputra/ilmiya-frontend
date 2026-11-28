@@ -13,6 +13,8 @@ class TenantInspectorTab extends StatelessWidget {
   final ValueChanged<String> onSelectSchool;
   final ValueChanged<SchoolResponse> onEditProfile;
   final ValueChanged<SchoolResponse> onSettings;
+  final bool canEditProfile;
+  final bool canManageSettings;
 
   const TenantInspectorTab({
     super.key,
@@ -21,6 +23,8 @@ class TenantInspectorTab extends StatelessWidget {
     required this.onSelectSchool,
     required this.onEditProfile,
     required this.onSettings,
+    required this.canEditProfile,
+    required this.canManageSettings,
   });
 
   @override
@@ -96,12 +100,15 @@ class TenantInspectorTab extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              OutlinedButton.icon(
-                                onPressed: () => onEditProfile(inspected),
-                                icon: const Icon(LucideIcons.pencil, size: 14),
-                                label: const Text('Edit'),
-                              ),
+                              if (canEditProfile) ...[
+                                const SizedBox(width: 8),
+                                OutlinedButton.icon(
+                                  onPressed: () => onEditProfile(inspected),
+                                  icon:
+                                      const Icon(LucideIcons.pencil, size: 14),
+                                  label: const Text('Edit'),
+                                ),
+                              ],
                             ],
                           ),
                         ],
@@ -137,12 +144,14 @@ class TenantInspectorTab extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
-                            onPressed: () => onEditProfile(inspected),
-                            icon: const Icon(LucideIcons.pencil, size: 14),
-                            label: const Text('Edit'),
-                          ),
+                          if (canEditProfile) ...[
+                            const SizedBox(width: 8),
+                            OutlinedButton.icon(
+                              onPressed: () => onEditProfile(inspected),
+                              icon: const Icon(LucideIcons.pencil, size: 14),
+                              label: const Text('Edit'),
+                            ),
+                          ],
                         ],
                       ),
               );
@@ -160,6 +169,7 @@ class TenantInspectorTab extends StatelessWidget {
               final rightCard = TenantOperationalPoliciesCard(
                 school: inspected,
                 onSettings: onSettings,
+                canManageSettings: canManageSettings,
               );
 
               if (isWide) {

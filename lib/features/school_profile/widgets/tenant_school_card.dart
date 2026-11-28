@@ -15,6 +15,10 @@ class TenantSchoolCard extends StatelessWidget {
   final ValueChanged<SchoolResponse> onSettings;
   final ValueChanged<SchoolResponse> onToggleStatus;
   final ValueChanged<String>? onAddCampus;
+  final bool canAddCampus;
+  final bool canEditProfile;
+  final bool canManageSettings;
+  final bool canToggleStatus;
 
   const TenantSchoolCard({
     super.key,
@@ -26,6 +30,10 @@ class TenantSchoolCard extends StatelessWidget {
     required this.onSettings,
     required this.onToggleStatus,
     this.onAddCampus,
+    required this.canAddCampus,
+    required this.canEditProfile,
+    required this.canManageSettings,
+    required this.canToggleStatus,
   });
 
   @override
@@ -127,40 +135,43 @@ class TenantSchoolCard extends StatelessWidget {
           runSpacing: 6,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            if (onAddCampus != null)
+            if (canAddCampus && onAddCampus != null)
               IconButton(
                 iconSize: 16,
                 tooltip: 'Add School Campus',
                 icon: const Icon(LucideIcons.school),
                 onPressed: () => onAddCampus!(school.tenantId),
               ),
-            IconButton(
-              iconSize: 16,
-              tooltip: 'Edit Profile',
-              icon: const Icon(LucideIcons.pencil),
-              onPressed: () => onEditProfile(school),
-            ),
-            IconButton(
-              iconSize: 16,
-              tooltip: 'Operational Settings',
-              icon: const Icon(LucideIcons.settings),
-              onPressed: () => onSettings(school),
-            ),
-            IconButton(
-              iconSize: 16,
-              tooltip: school.status == 'ACTIVE'
-                  ? 'Suspend Tenant'
-                  : 'Activate Tenant',
-              icon: Icon(
-                school.status == 'ACTIVE'
-                    ? LucideIcons.ban
-                    : LucideIcons.checkCircle,
-                color: school.status == 'ACTIVE'
-                    ? AppColors.earthyTerra
-                    : AppColors.forestSage,
+            if (canEditProfile)
+              IconButton(
+                iconSize: 16,
+                tooltip: 'Edit Profile',
+                icon: const Icon(LucideIcons.pencil),
+                onPressed: () => onEditProfile(school),
               ),
-              onPressed: () => onToggleStatus(school),
-            ),
+            if (canManageSettings)
+              IconButton(
+                iconSize: 16,
+                tooltip: 'Operational Settings',
+                icon: const Icon(LucideIcons.settings),
+                onPressed: () => onSettings(school),
+              ),
+            if (canToggleStatus)
+              IconButton(
+                iconSize: 16,
+                tooltip: school.status == 'ACTIVE'
+                    ? 'Suspend Tenant'
+                    : 'Activate Tenant',
+                icon: Icon(
+                  school.status == 'ACTIVE'
+                      ? LucideIcons.ban
+                      : LucideIcons.checkCircle,
+                  color: school.status == 'ACTIVE'
+                      ? AppColors.earthyTerra
+                      : AppColors.forestSage,
+                ),
+                onPressed: () => onToggleStatus(school),
+              ),
           ],
         );
 

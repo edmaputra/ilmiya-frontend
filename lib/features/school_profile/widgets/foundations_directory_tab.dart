@@ -21,6 +21,11 @@ class FoundationsDirectoryTab extends StatelessWidget {
   final ValueChanged<TenantResponse> onEditFoundation;
   final ValueChanged<TenantResponse> onToggleStatus;
   final ValueChanged<String> onAddCampus;
+  final bool canRegisterFoundation;
+  final bool canEditFoundation;
+  final bool canToggleStatus;
+  final bool canSwitchTenant;
+  final bool canAddCampus;
 
   const FoundationsDirectoryTab({
     super.key,
@@ -36,6 +41,11 @@ class FoundationsDirectoryTab extends StatelessWidget {
     required this.onEditFoundation,
     required this.onToggleStatus,
     required this.onAddCampus,
+    required this.canRegisterFoundation,
+    required this.canEditFoundation,
+    required this.canToggleStatus,
+    required this.canSwitchTenant,
+    required this.canAddCampus,
   });
 
   @override
@@ -198,23 +208,24 @@ class FoundationsDirectoryTab extends StatelessWidget {
                       );
                     }).toList(),
                   ),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.forestSage,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
+                  if (canRegisterFoundation)
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.forestSage,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                      ),
+                      onPressed: onRegisterFoundation,
+                      icon: const Icon(LucideIcons.plus, size: 16),
+                      label: const Text(
+                        'Register Foundation / Tenant',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    onPressed: onRegisterFoundation,
-                    icon: const Icon(LucideIcons.plus, size: 16),
-                    label: const Text(
-                      'Register Foundation / Tenant',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -252,6 +263,10 @@ class FoundationsDirectoryTab extends StatelessWidget {
                   onEdit: onEditFoundation,
                   onToggleStatus: onToggleStatus,
                   onAddCampus: onAddCampus,
+                  canEdit: canEditFoundation,
+                  canToggleStatus: canToggleStatus,
+                  canSwitchTenant: canSwitchTenant,
+                  canAddCampus: canAddCampus,
                 ),
               );
             }),

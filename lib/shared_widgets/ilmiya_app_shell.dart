@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../features/search/ilmiya_command_palette.dart';
+import '../state/app_navigation_guard.dart';
 import '../state/app_state.dart';
 import '../state/auth_notifier.dart';
 import 'navigation/app_shell_sidebar.dart';
@@ -26,6 +27,31 @@ class IlmiyaAppShell extends StatelessWidget {
     final state = context.watch<AppState>();
     final auth = context.watch<AuthNotifier>();
 
+    final mobileDestinations = <({int tab, IconData icon, String label})>[
+      (
+        tab: AppNavigationGuard.schoolProfileTab,
+        icon: LucideIcons.school,
+        label: 'School'
+      ),
+      (
+        tab: AppNavigationGuard.academicYearsTab,
+        icon: LucideIcons.calendarDays,
+        label: 'Calendar'
+      ),
+      (
+        tab: AppNavigationGuard.iamTab,
+        icon: LucideIcons.shieldCheck,
+        label: 'IAM Console'
+      ),
+      (
+        tab: AppNavigationGuard.previewsTab,
+        icon: LucideIcons.flaskConical,
+        label: 'Previews'
+      ),
+    ].where((d) => AppNavigationGuard.canViewTab(d.tab, auth)).toList();
+    final mobileSelectedIndex =
+        mobileDestinations.indexWhere((d) => d.tab == state.currentTab);
+
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyK, meta: true): () =>
@@ -45,33 +71,25 @@ class IlmiyaAppShell extends StatelessWidget {
                   ),
                 )
               : null,
-          bottomNavigationBar:
-              !isDesktop && (!auth.isSuperAdmin || !auth.isPlatformSession)
-                  ? NavigationBar(
-                      selectedIndex: state.currentTab.clamp(0, 3),
-                      onDestinationSelected: (index) => state.setTab(index),
-                      backgroundColor: c.card,
-                      indicatorColor: c.primary.withOpacity(0.18),
-                      destinations: const [
-                        NavigationDestination(
-                          icon: Icon(LucideIcons.school, size: 20),
-                          label: 'School',
-                        ),
-                        NavigationDestination(
-                          icon: Icon(LucideIcons.calendarDays, size: 20),
-                          label: 'Calendar',
-                        ),
-                        NavigationDestination(
-                          icon: Icon(LucideIcons.shieldCheck, size: 20),
-                          label: 'IAM Console',
-                        ),
-                        NavigationDestination(
-                          icon: Icon(LucideIcons.flaskConical, size: 20),
-                          label: 'Previews',
-                        ),
-                      ],
-                    )
-                  : null,
+          bottomNavigationBar: !isDesktop &&
+                  mobileDestinations.isNotEmpty &&
+                  !auth.isPlatformSession
+              ? NavigationBar(
+                  selectedIndex:
+                      mobileSelectedIndex < 0 ? 0 : mobileSelectedIndex,
+                  onDestinationSelected: (index) =>
+                      state.setTab(mobileDestinations[index].tab),
+                  backgroundColor: c.card,
+                  indicatorColor: c.primary.withOpacity(0.18),
+                  destinations: [
+                    for (final destination in mobileDestinations)
+                      NavigationDestination(
+                        icon: Icon(destination.icon, size: 20),
+                        label: destination.label,
+                      ),
+                  ],
+                )
+              : null,
           body: SafeArea(
             child: Stack(
               children: [

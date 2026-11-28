@@ -18,11 +18,13 @@ class TenantOperationalPoliciesCard extends StatelessWidget {
 
   final SchoolResponse school;
   final ValueChanged<SchoolResponse> onSettings;
+  final bool canManageSettings;
 
   const TenantOperationalPoliciesCard({
     super.key,
     required this.school,
     required this.onSettings,
+    required this.canManageSettings,
   });
 
   @override
@@ -45,12 +47,15 @@ class TenantOperationalPoliciesCard extends StatelessWidget {
                   style: t.large.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: () => onSettings(school),
-                icon: const Icon(LucideIcons.settings, size: 13),
-                label: const Text('Configure', style: TextStyle(fontSize: 11)),
-              ),
+              if (canManageSettings) ...[
+                const SizedBox(width: 8),
+                TextButton.icon(
+                  onPressed: () => onSettings(school),
+                  icon: const Icon(LucideIcons.settings, size: 13),
+                  label:
+                      const Text('Configure', style: TextStyle(fontSize: 11)),
+                ),
+              ],
             ],
           ),
           Divider(height: 24, color: c.border),
